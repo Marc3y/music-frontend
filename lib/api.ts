@@ -191,6 +191,11 @@ export const audioApi = {
       artist?: string
       description?: string
     }>(`/audio-files/public/stream/${shareToken}`, { skipRefresh: true }),
+  reorder: (playlistId: string, orderedIds: string[]) =>
+    apiClient<{ message: string }>(`/audio-files/playlists/${playlistId}/reorder`, {
+      method: 'POST',
+      body: { orderedIds },
+    }),
 }
 
 /* ------------------------- Direct uploads ------------------------ */

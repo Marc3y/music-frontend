@@ -19,14 +19,16 @@ interface WaveSurferState {
 export function useWaveSurfer(
   containerRef: RefObject<HTMLDivElement | null>,
 ): WaveSurferState {
-  const { streamUrl, playToken, isPlaying, loop, setIsPlaying, next } = usePlayer()
+  const { streamUrl, playToken, isPlaying, loop, volume, setIsPlaying, next } = usePlayer()
 
   const wsRef = useRef<WaveSurfer | null>(null)
   const shouldPlayRef = useRef(false)
   const loopRef = useRef(loop)
   const nextRef = useRef(next)
+  const volumeRef = useRef(volume)
   loopRef.current = loop
   nextRef.current = next
+  volumeRef.current = volume
 
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -48,11 +50,13 @@ export function useWaveSurfer(
       barRadius: 8,
       normalize: true,
       interact: true,
+      volume: volumeRef.current,
     })
     wsRef.current = ws
 
     ws.on('ready', () => {
       setDuration(ws.getDuration())
+      ws.setVolume(volumeRef.current)
       try {
         const exported = ws.exportPeaks({ maxLength: 200 })
         setPeaks(exported?.[0] ? Array.from(exported[0]) : [])
@@ -108,6 +112,11 @@ export function useWaveSurfer(
       ws.pause()
     }
   }, [isPlaying, ready])
+
+  // Reflect volume changes immediately, even mid-playback.
+  useEffect(() => {
+    wsRef.current?.setVolume(volume)
+  }, [volume])
 
   const seekTo = (fraction: number) => {
     const ws = wsRef.current

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ChevronDown,
@@ -13,10 +13,14 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
+  Volume1,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 import { usePlayer } from '@/lib/player-context'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { Slider } from '@/components/ui/slider'
 import { useWaveSurfer } from './use-wavesurfer'
 import { BarsWaveform } from './bars-waveform'
 
@@ -101,6 +105,8 @@ export function GlobalPlayer() {
               </div>
 
               <Controls player={player} isPlaying={isPlaying} isLoading={isLoading} large />
+
+              <VolumeControl className="w-full max-w-[220px]" />
             </div>
           </motion.div>
         )}
@@ -149,6 +155,8 @@ export function GlobalPlayer() {
               <div ref={containerRef} className="w-full" />
             </div>
 
+            <VolumeControl className="hidden w-28 shrink-0 lg:flex" />
+
             <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
               <IconButton
                 onClick={player.toggleShuffle}
@@ -194,6 +202,45 @@ export function GlobalPlayer() {
         </div>
       </div>
     </>
+  )
+}
+
+function VolumeControl({ className }: { className?: string }) {
+  const { volume, setVolume } = usePlayer()
+  const [previousVolume, setPreviousVolume] = useState(1)
+
+  function toggleMute() {
+    if (volume > 0) {
+      setPreviousVolume(volume)
+      setVolume(0)
+    } else {
+      setVolume(previousVolume || 1)
+    }
+  }
+
+  const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2
+
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <button
+        onClick={toggleMute}
+        aria-label={volume === 0 ? 'Stummschaltung aufheben' : 'Stummschalten'}
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <VolumeIcon className="size-4" />
+      </button>
+      <Slider
+        value={[Math.round(volume * 100)]}
+        max={100}
+        min={0}
+        onValueChange={(value) => {
+          const v = Array.isArray(value) ? value[0] : value
+          setVolume((v ?? 0) / 100)
+        }}
+        aria-label="Lautstärke"
+        className="w-full"
+      />
+    </div>
   )
 }
 

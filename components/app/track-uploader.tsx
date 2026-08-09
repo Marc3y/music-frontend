@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -29,19 +29,24 @@ interface UploadItem {
   error?: string
 }
 
-export function TrackUploader({
-  playlistId,
-  onUploaded,
-}: {
-  playlistId: string
-  onUploaded: (track: AudioFile) => void
-}) {
+export interface TrackUploaderHandle {
+  handleFiles: (files: FileList | File[] | null) => void
+}
+
+export const TrackUploader = forwardRef<
+  TrackUploaderHandle,
+  {
+    playlistId: string
+    onUploaded: (track: AudioFile) => void
+  }
+>(function TrackUploader({ playlistId, onUploaded }, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [items, setItems] = useState<UploadItem[]>([])
 
-  async function handleFiles(fileList: FileList | null) {
-    if (!fileList || fileList.length === 0) return
+  async function handleFiles(fileList: FileList | File[] | null) {
+    if (!fileList) return
     const files = Array.from(fileList)
+    if (files.length === 0) return
 
     for (const file of files) {
       const id = `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
@@ -65,6 +70,8 @@ export function TrackUploader({
       })
     }
   }
+
+  useImperativeHandle(ref, () => ({ handleFiles }))
 
   async function uploadOne(file: File, id: string) {
     try {
@@ -187,4 +194,4 @@ export function TrackUploader({
       )}
     </div>
   )
-}
+})

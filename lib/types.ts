@@ -31,6 +31,7 @@ export interface AudioFile {
   fileSize: number
   mimeType: string
   status: AudioStatus
+  order?: number
   shareEnabled: boolean
   shareToken?: string
   createdAt: string

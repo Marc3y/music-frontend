@@ -10,12 +10,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
-import { formatTime } from '@/lib/format'
+import { formatDate, formatTime } from '@/lib/format'
 import { audioApi, ApiError } from '@/lib/api'
 import type { AudioFile } from '@/lib/types'
 
 export function TrackRow({
   track,
+  fallbackCoverUrl,
   isCurrent,
   isPlaying,
   isLoading,
@@ -25,6 +26,7 @@ export function TrackRow({
   onDeleted,
 }: {
   track: AudioFile
+  fallbackCoverUrl?: string | null
   isCurrent: boolean
   isPlaying: boolean
   isLoading: boolean
@@ -35,6 +37,7 @@ export function TrackRow({
 }) {
   const isReady = track.status === 'ready'
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const displayCover = track.coverUrl || fallbackCoverUrl
 
   async function handleDelete() {
     try {
@@ -59,9 +62,9 @@ export function TrackRow({
         aria-label={isPlaying && isCurrent ? 'Pause' : 'Abspielen'}
         className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {track.coverUrl ? (
+        {displayCover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={track.coverUrl} alt="" className="size-full object-cover" />
+          <img src={displayCover} alt="" className="size-full object-cover" />
         ) : (
           <Music className="size-4 text-foreground/40" />
         )}
@@ -83,6 +86,10 @@ export function TrackRow({
         <p className="truncate text-xs text-muted-foreground">
           {track.artist || 'Unbekannter Interpret'}
         </p>
+      </div>
+
+      <div className="hidden shrink-0 text-xs text-muted-foreground xl:block">
+        {formatDate(track.createdAt)}
       </div>
 
       <div className="hidden shrink-0 text-xs text-muted-foreground sm:block">

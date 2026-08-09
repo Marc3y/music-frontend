@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'motion/react'
-import { LogOut, User } from 'lucide-react'
+import { ChevronDown, LogOut, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import {
   DropdownMenu,
@@ -47,6 +47,7 @@ export function AppNav() {
             <span className="max-w-[10rem] truncate text-sm font-medium">
               {user?.username}
             </span>
+            <ChevronDown className="size-3.5 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={8}>
             <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>

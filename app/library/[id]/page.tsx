@@ -3,12 +3,13 @@
 import { use, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Music, Pencil, Trash2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { ArrowLeft, Music, Pencil, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
-import { TrackUploader } from '@/components/app/track-uploader'
-import { TrackRow } from '@/components/app/track-row'
+import { TrackUploader, type TrackUploaderHandle } from '@/components/app/track-uploader'
+import { ReorderableTrackList } from '@/components/app/reorderable-track-list'
 import { EditTrackDialog } from '@/components/app/edit-track-dialog'
 import { ShareTrackDialog } from '@/components/app/share-track-dialog'
 import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
@@ -38,6 +39,10 @@ export default function PlaylistPage({
   const [deletePlaylistOpen, setDeletePlaylistOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<AudioFile | null>(null)
   const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
+
+  const [isDragOver, setIsDragOver] = useState(false)
+  const dragCounter = useRef(0)
+  const uploaderRef = useRef<TrackUploaderHandle>(null)
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -83,7 +88,8 @@ export default function PlaylistPage({
   }, [tracks, id])
 
   function handleUploaded(track: AudioFile) {
-    setTracks((prev) => [track, ...(prev ?? [])])
+    // New uploads are appended at the end, matching how the backend orders them.
+    setTracks((prev) => [...(prev ?? []), track])
   }
 
   function handleTrackDeleted(trackId: string) {
@@ -94,6 +100,24 @@ export default function PlaylistPage({
     setTracks((prev) =>
       (prev ?? []).map((t) => (t._id === updated._id ? { ...t, ...updated } : t)),
     )
+    // Reflect the change live in the player if this track is currently queued,
+    // without restarting playback.
+    player.patchTrack(updated._id, {
+      title: updated.title,
+      artist: updated.artist,
+      coverUrl: updated.coverUrl || playlist?.coverUrl || null,
+    })
+  }
+
+  function handlePlaylistUpdated(updated: Playlist) {
+    setPlaylist(updated)
+    // Any queued track that has no own cover falls back to the playlist cover -
+    // patch those live in the player so a cover change shows immediately.
+    for (const track of tracks ?? []) {
+      if (!track.coverKey) {
+        player.patchTrack(track._id, { coverUrl: updated.coverUrl || null })
+      }
+    }
   }
 
   function playTrack(track: AudioFile) {
@@ -111,7 +135,7 @@ export default function PlaylistPage({
         id: t._id,
         title: t.title,
         artist: t.artist,
-        coverUrl: t.coverUrl,
+        coverUrl: t.coverUrl || playlist?.coverUrl || null,
         duration: t.duration,
         getStreamUrl: async () => {
           const res = await audioApi.stream(t._id)
@@ -132,6 +156,35 @@ export default function PlaylistPage({
     }
   }
 
+  function onDragEnter(e: React.DragEvent) {
+    if (!e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+    dragCounter.current += 1
+    setIsDragOver(true)
+  }
+
+  function onDragOver(e: React.DragEvent) {
+    if (!e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+  }
+
+  function onDragLeave(e: React.DragEvent) {
+    if (!e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+    dragCounter.current -= 1
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0
+      setIsDragOver(false)
+    }
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault()
+    dragCounter.current = 0
+    setIsDragOver(false)
+    uploaderRef.current?.handleFiles(e.dataTransfer.files)
+  }
+
   if (notFound) {
     return (
       <RequireAuth>
@@ -146,7 +199,13 @@ export default function PlaylistPage({
 
   return (
     <RequireAuth>
-      <div className="relative min-h-dvh pb-32">
+      <div
+        className="relative min-h-dvh pb-32"
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-[400px]"
@@ -155,6 +214,25 @@ export default function PlaylistPage({
               'radial-gradient(70% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.18), transparent 70%)',
           }}
         />
+
+        <AnimatePresence>
+          {isDragOver && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="pointer-events-none fixed inset-0 z-[65] flex items-center justify-center bg-background/80 backdrop-blur-sm"
+            >
+              <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-primary/60 bg-card/80 px-12 py-10 text-center">
+                <Upload className="size-8 text-primary" />
+                <p className="font-medium">Tracks hier ablegen</p>
+                <p className="text-sm text-muted-foreground">
+                  Audiodateien werden zu dieser Playlist hinzugefügt.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="relative">
           <AppNav />
@@ -218,7 +296,10 @@ export default function PlaylistPage({
             )}
 
             <div className="mb-6">
-              <TrackUploader playlistId={id} onUploaded={handleUploaded} />
+              <TrackUploader ref={uploaderRef} playlistId={id} onUploaded={handleUploaded} />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Du kannst Audiodateien auch per Drag &amp; Drop hier ablegen.
+              </p>
             </div>
 
             {tracks === null ? (
@@ -246,21 +327,19 @@ export default function PlaylistPage({
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-1">
-                {tracks.map((track) => (
-                  <TrackRow
-                    key={track._id}
-                    track={track}
-                    isCurrent={player.current?.id === track._id}
-                    isPlaying={player.isPlaying}
-                    isLoading={player.isLoading}
-                    onPlay={() => playTrack(track)}
-                    onEdit={() => setEditingTrack(track)}
-                    onShare={() => setSharingTrack(track)}
-                    onDeleted={handleTrackDeleted}
-                  />
-                ))}
-              </div>
+              <ReorderableTrackList
+                playlistId={id}
+                tracks={tracks}
+                fallbackCoverUrl={playlist?.coverUrl}
+                currentId={player.current?.id ?? null}
+                isPlaying={player.isPlaying}
+                isLoading={player.isLoading}
+                onPlay={playTrack}
+                onEdit={setEditingTrack}
+                onShare={setSharingTrack}
+                onDeleted={handleTrackDeleted}
+                onChange={setTracks}
+              />
             )}
           </main>
         </div>
@@ -270,7 +349,7 @@ export default function PlaylistPage({
         playlist={playlist}
         open={editPlaylistOpen}
         onOpenChange={setEditPlaylistOpen}
-        onUpdated={setPlaylist}
+        onUpdated={handlePlaylistUpdated}
       />
       <EditTrackDialog
         track={editingTrack}
