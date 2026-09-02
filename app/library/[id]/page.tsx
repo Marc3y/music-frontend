@@ -4,7 +4,7 @@ import { use, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, ImagePlus, Music, Pencil, Trash2, Upload, X } from 'lucide-react'
+import { ArrowLeft, ImagePlus, Music, Pencil, Share2, Trash2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
@@ -14,6 +14,7 @@ import { EditTrackDialog } from '@/components/app/edit-track-dialog'
 import { ShareTrackDialog } from '@/components/app/share-track-dialog'
 import { VersionsDialog } from '@/components/app/versions-dialog'
 import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
+import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -54,6 +55,7 @@ export default function PlaylistPage({
   const [notFound, setNotFound] = useState(false)
 
   const [editPlaylistOpen, setEditPlaylistOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const [deletePlaylistOpen, setDeletePlaylistOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<AudioFile | null>(null)
   const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
@@ -65,6 +67,8 @@ export default function PlaylistPage({
   const coverInputRef = useRef<HTMLInputElement>(null)
 
   const [filter, setFilter] = useLibraryFilter()
+
+  const isOwner = playlist?.role !== 'collaborator'
 
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -418,13 +422,24 @@ export default function PlaylistPage({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {isOwner && (
+                      <Button variant="outline" onClick={() => setShareOpen(true)}>
+                        <Share2 className="size-4" />
+                        Teilen
+                      </Button>
+                    )}
                     <Button variant="outline" onClick={() => setEditPlaylistOpen(true)}>
                       <Pencil className="size-4" />
                       Bearbeiten
                     </Button>
-                    <Button variant="destructive" onClick={() => setDeletePlaylistOpen(true)}>
-                      <Trash2 className="size-4" />
-                    </Button>
+                    {isOwner && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => setDeletePlaylistOpen(true)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -562,7 +577,13 @@ export default function PlaylistPage({
         onOpenChange={(open) => !open && setVersionsTrack(null)}
         onUpdated={handleTrackUpdated}
       />
-      {playlist && (
+      <PlaylistShareDialog
+        playlist={playlist}
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        onUpdated={(p) => setPlaylist(p)}
+      />
+      {playlist && isOwner && (
         <ConfirmDeleteDialog
           open={deletePlaylistOpen}
           onOpenChange={setDeletePlaylistOpen}

@@ -11,7 +11,7 @@ export function AddToLibraryButton({
   type,
 }: {
   token: string
-  type: 'audio' | 'project'
+  type: 'audio' | 'project' | 'playlist'
 }) {
   const { user, loading } = useAuth()
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle')

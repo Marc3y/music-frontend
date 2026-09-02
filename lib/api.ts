@@ -1,6 +1,7 @@
 import type {
   AudioFile,
   Playlist,
+  PublicPlaylist,
   SavedShare,
   StorageSummary,
   UsageInfo,
@@ -142,7 +143,7 @@ export const accountApi = {
   usage: () => apiClient<UsageInfo>('/account/usage'),
 
   savedShares: () => apiClient<SavedShare[]>('/account/saved-shares'),
-  addSavedShare: (body: { token: string; type: 'audio' | 'project' }) =>
+  addSavedShare: (body: { token: string; type: 'audio' | 'project' | 'playlist' }) =>
     apiClient<{ message: string }>('/account/saved-shares', { method: 'POST', body }),
   removeSavedShare: (id: string) =>
     apiClient<{ message: string }>(`/account/saved-shares/${id}`, { method: 'DELETE' }),
@@ -197,6 +198,40 @@ export const playlistApi = {
       method: 'POST',
       body,
     }),
+
+  updateShare: (
+    id: string,
+    body: {
+      shareEnabled?: boolean
+      shareRestricted?: boolean
+      shareAllowDownload?: boolean
+      allowedUsernames?: string[]
+    },
+  ) => apiClient<Playlist>(`/playlists/${id}/share`, { method: 'PATCH', body }),
+
+  setCollaborators: (id: string, usernames: string[]) =>
+    apiClient<{ collabToken: string | null; collaborators: { username: string; joined: boolean }[] }>(
+      `/playlists/${id}/collaborators`,
+      { method: 'PATCH', body: { usernames } },
+    ),
+
+  join: (token: string) =>
+    apiClient<{ playlistId: string; name: string }>(`/playlists/join/${token}`, {
+      method: 'POST',
+    }),
+
+  publicGet: (token: string) =>
+    apiClient<PublicPlaylist>(`/playlists/public/${token}`, { skipRefresh: true }),
+  publicStream: (token: string, trackId: string) =>
+    apiClient<{ streamUrl: string }>(
+      `/playlists/public/${token}/tracks/${trackId}/stream`,
+      { skipRefresh: true },
+    ),
+  publicProject: (token: string, trackId: string) =>
+    apiClient<{ url: string; filename: string }>(
+      `/playlists/public/${token}/tracks/${trackId}/project`,
+      { skipRefresh: true },
+    ),
 }
 
 /* -------------------------- Audio files -------------------------- */

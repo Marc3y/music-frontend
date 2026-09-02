@@ -13,6 +13,35 @@ export interface Playlist {
   owner: string
   createdAt: string
   updatedAt: string
+  role?: 'owner' | 'collaborator'
+  shareEnabled?: boolean
+  shareToken?: string
+  shareRestricted?: boolean
+  shareAllowDownload?: boolean
+  allowedUsernames?: string[]
+  collabToken?: string
+  collaborators?: { username: string; userId?: string }[]
+}
+
+export interface PublicPlaylistTrack {
+  _id: string
+  title: string
+  artist?: string
+  bpm?: number | null
+  musicalKey?: string | null
+  duration?: number | null
+  kind: 'track' | 'project'
+  hasProject: boolean
+}
+
+export interface PublicPlaylist {
+  accessible: boolean
+  needsLogin?: boolean
+  name: string
+  coverUrl?: string | null
+  trackCount?: number
+  canDownload?: boolean
+  tracks?: PublicPlaylistTrack[]
 }
 
 export interface StorageSummary {
@@ -48,7 +77,7 @@ export interface UsageInfo extends StorageSummary {
 
 export interface SavedShare {
   _id: string
-  type: 'audio' | 'project'
+  type: 'audio' | 'project' | 'playlist' | 'collab'
   token: string
   title: string
   artist?: string
@@ -56,6 +85,9 @@ export interface SavedShare {
   musicalKey?: string | null
   projectFilename?: string
   projectSize?: number
+  playlistId?: string
+  coverUrl?: string | null
+  trackCount?: number
   addedAt: string
 }
 

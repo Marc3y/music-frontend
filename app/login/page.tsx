@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState, type FormEvent } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,11 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-context'
 import { ApiError } from '@/lib/api'
 
-export default function LoginPage() {
+function LoginInner() {
   const router = useRouter()
+  const params = useSearchParams()
+  const next = params.get('next')
+  const dest = next && next.startsWith('/') ? next : '/library'
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,7 +28,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(email, password)
-      router.push('/library')
+      router.push(dest)
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
         router.push(`/verify-email?email=${encodeURIComponent(email)}`)
@@ -95,5 +98,13 @@ export default function LoginPage() {
         </Button>
       </form>
     </AuthShell>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
   )
 }
