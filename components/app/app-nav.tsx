@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'motion/react'
-import { ChevronDown, LogOut, User } from 'lucide-react'
+import { ChevronDown, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import {
   DropdownMenu,
@@ -42,9 +42,18 @@ export function AppNav() {
 
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card/60 px-3 py-2 backdrop-blur-xl outline-none transition-colors hover:bg-card">
-            <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent">
-              <User className="size-3.5 text-primary-foreground" />
-            </span>
+            {user?.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatarUrl}
+                alt=""
+                className="size-6 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent">
+                <User className="size-3.5 text-primary-foreground" />
+              </span>
+            )}
             <span className="max-w-[10rem] truncate text-sm font-medium">
               {user?.username}
             </span>
@@ -54,6 +63,11 @@ export function AppNav() {
             <DropdownMenuGroup>
               <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <Settings className="size-4" />
+              Account-Einstellungen
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={handleLogout}>
               <LogOut className="size-4" />

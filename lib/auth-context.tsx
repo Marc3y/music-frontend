@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { authApi, playlistApi } from './api'
+import { accountApi, authApi } from './api'
 import type { User } from './types'
 
 const STORAGE_KEY = 'music.user'
@@ -34,8 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else window.localStorage.removeItem(STORAGE_KEY)
   }, [])
 
-  // Restore session on mount: read cached user, then validate the cookie
-  // against a protected route (which also triggers the refresh flow).
+  // Restore session on mount: read cached user for an instant paint, then
+  // validate the cookie against /account/me (which also triggers the refresh
+  // flow) and refresh the cached profile (username, avatar).
   useEffect(() => {
     let cancelled = false
     const raw =
@@ -52,10 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ignore malformed cache
     }
 
-    playlistApi
-      .list()
-      .then(() => {
+    accountApi
+      .me()
+      .then((fresh) => {
         if (cancelled) return
+        setUserState(fresh)
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh))
+        }
         setLoading(false)
       })
       .catch(() => {

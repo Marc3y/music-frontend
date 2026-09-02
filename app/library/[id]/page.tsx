@@ -297,9 +297,6 @@ export default function PlaylistPage({
 
             <div className="mb-6">
               <TrackUploader ref={uploaderRef} playlistId={id} onUploaded={handleUploaded} />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Du kannst Audiodateien auch per Drag &amp; Drop hier ablegen.
-              </p>
             </div>
 
             {tracks === null ? (

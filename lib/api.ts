@@ -125,6 +125,45 @@ export const authApi = {
     apiClient<{ message: string }>('/auth/reset-password', { method: 'POST', body }),
 }
 
+/* ---------------------------- Account --------------------------- */
+
+export const accountApi = {
+  me: () => apiClient<User>('/account/me'),
+
+  updateUsername: (username: string) =>
+    apiClient<User>('/account/username', { method: 'PATCH', body: { username } }),
+
+  avatarUploadUrl: (body: { filename: string; contentType: string }) =>
+    apiClient<{ uploadUrl: string; key: string }>('/account/avatar-upload-url', {
+      method: 'POST',
+      body,
+    }),
+
+  deleteAvatar: () =>
+    apiClient<{ message: string }>('/account/avatar', { method: 'DELETE' }),
+
+  requestPasswordChange: (body: { currentPassword: string; newPassword: string }) =>
+    apiClient<{ message: string }>('/account/password/request', { method: 'POST', body }),
+
+  confirmPasswordChange: (code: string) =>
+    apiClient<{ message: string }>('/account/password/confirm', {
+      method: 'POST',
+      body: { code },
+    }),
+
+  requestDeletion: (password: string) =>
+    apiClient<{ message: string }>('/account/delete/request', {
+      method: 'POST',
+      body: { password },
+    }),
+
+  confirmDeletion: (code: string) =>
+    apiClient<{ message: string }>('/account/delete/confirm', {
+      method: 'POST',
+      body: { code },
+    }),
+}
+
 /* --------------------------- Playlists --------------------------- */
 
 export const playlistApi = {

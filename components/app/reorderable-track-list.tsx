@@ -8,7 +8,7 @@ import { TrackRow } from '@/components/app/track-row'
 import { audioApi, ApiError } from '@/lib/api'
 import type { AudioFile } from '@/lib/types'
 
-const LONG_PRESS_MS = 380
+const LONG_PRESS_MS = 240
 const MOVE_CANCEL_THRESHOLD = 6
 
 export function ReorderableTrackList({
@@ -181,7 +181,13 @@ export function ReorderableTrackList({
             }
           >
             <div className="flex items-center">
-              <div className="flex w-5 shrink-0 items-center justify-center text-muted-foreground/0 transition-colors group-hover:text-muted-foreground/60 sm:text-muted-foreground/30">
+              <div
+                className={
+                  isDragging
+                    ? 'flex w-5 shrink-0 items-center justify-center text-muted-foreground transition-colors'
+                    : 'flex w-5 shrink-0 items-center justify-center text-transparent transition-colors'
+                }
+              >
                 <GripVertical className="size-4" />
               </div>
               <div className="min-w-0 flex-1">
