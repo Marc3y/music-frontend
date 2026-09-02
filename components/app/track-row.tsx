@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
+import { ChevronDown, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
+import { TrackProjectPanel } from '@/components/app/track-project-panel'
 import { formatDate, formatTime } from '@/lib/format'
 import { audioApi, ApiError } from '@/lib/api'
 import type { AudioFile } from '@/lib/types'
@@ -24,6 +25,7 @@ export function TrackRow({
   onEdit,
   onShare,
   onVersions,
+  onUpdated,
   onDeleted,
 }: {
   track: AudioFile
@@ -35,10 +37,12 @@ export function TrackRow({
   onEdit: () => void
   onShare: () => void
   onVersions: () => void
+  onUpdated: (track: AudioFile) => void
   onDeleted: (id: string) => void
 }) {
   const isReady = track.status === 'ready'
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const displayCover = track.coverUrl || fallbackCoverUrl
 
   async function handleDelete() {
@@ -52,6 +56,7 @@ export function TrackRow({
   }
 
   return (
+    <div className="flex flex-col">
     <div
       className={
         'group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-card/60 sm:gap-4 sm:px-3' +
@@ -120,6 +125,17 @@ export function TrackRow({
         </span>
       )}
 
+      <button
+        onClick={() => setExpanded((e) => !e)}
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Track einklappen' : 'Track aufklappen'}
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <ChevronDown
+          className={'size-4 transition-transform ' + (expanded ? 'rotate-180' : '')}
+        />
+      </button>
+
       <DropdownMenu>
         <DropdownMenuTrigger className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground">
           <MoreHorizontal className="size-4" />
@@ -151,6 +167,13 @@ export function TrackRow({
         description={`"${track.title}" wird unwiderruflich gelöscht.`}
         onConfirm={handleDelete}
       />
+    </div>
+
+      {expanded && (
+        <div className="pb-2">
+          <TrackProjectPanel track={track} onUpdated={onUpdated} />
+        </div>
+      )}
     </div>
   )
 }

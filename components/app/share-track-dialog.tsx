@@ -68,7 +68,7 @@ export function ShareTrackDialog({
 
   async function toggleShareProject(next: boolean) {
     setShareProject(next)
-    if (!track || !track.shareEnabled) return
+    if (!track || !shareUrl) return
     try {
       const res = await audioApi.share(track._id, next)
       onUpdated({ ...track, shareProject: res.shareProject })

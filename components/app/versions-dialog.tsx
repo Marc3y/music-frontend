@@ -345,20 +345,19 @@ function VersionRow({
             </button>
           </>
         ) : (
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
+            type="button"
             disabled={projectBusy}
             onClick={() => projectInputRef.current?.click()}
-            className="text-muted-foreground"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
           >
             {projectBusy ? (
-              <Loader2 className="size-3.5 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
-              <Paperclip className="size-3.5" />
+              <Paperclip className="size-4" />
             )}
-            Projektdatei hinzufügen (.zip/.rar)
-          </Button>
+            Projektdatei hinzufügen (.zip / .rar)
+          </button>
         )}
       </div>
     </div>

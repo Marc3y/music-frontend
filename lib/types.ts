@@ -81,6 +81,8 @@ export interface AudioFile {
   shareEnabled: boolean
   shareToken?: string
   shareProject?: boolean
+  projectShareEnabled?: boolean
+  projectShareToken?: string
   bpm?: number | null
   musicalKey?: string | null
   versions: TrackVersion[]

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'motion/react'
-import { ChevronDown, HardDrive, LogOut, Settings, User } from 'lucide-react'
+import { ChevronDown, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import {
   DropdownMenu,
@@ -41,7 +41,7 @@ export function AppNav() {
         </Link>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card/60 px-3 py-2 backdrop-blur-xl outline-none transition-colors hover:bg-card">
+          <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-2xl border border-border/60 bg-card/60 px-3 py-2 backdrop-blur-xl outline-none transition-colors hover:border-border hover:bg-card">
             {user?.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -63,6 +63,11 @@ export function AppNav() {
             <DropdownMenuGroup>
               <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/library')}>
+              <ListMusic className="size-4" />
+              Mediathek
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push('/settings')}>
               <Settings className="size-4" />

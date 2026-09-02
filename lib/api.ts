@@ -231,6 +231,17 @@ export const audioApi = {
     ),
   unshare: (id: string) =>
     apiClient<{ message: string }>(`/audio-files/${id}/unshare`, { method: 'POST' }),
+  enableProjectShare: (id: string) =>
+    apiClient<{ token: string; shareUrl: string }>(`/audio-files/${id}/project-share`, {
+      method: 'POST',
+    }),
+  disableProjectShare: (id: string) =>
+    apiClient<{ message: string }>(`/audio-files/${id}/project-unshare`, { method: 'POST' }),
+  publicProjectShare: (token: string) =>
+    apiClient<{ url: string; filename: string; trackTitle: string }>(
+      `/audio-files/public/project/${token}`,
+      { skipRefresh: true },
+    ),
   publicStream: (shareToken: string) =>
     apiClient<{
       streamUrl: string

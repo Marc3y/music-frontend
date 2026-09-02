@@ -4,7 +4,7 @@ import { use, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, Music, Pencil, Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, ImagePlus, Music, Pencil, Trash2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
@@ -17,7 +17,7 @@ import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { playlistApi, audioApi, ApiError } from '@/lib/api'
+import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
 import type { AudioFile, Playlist } from '@/lib/types'
 
@@ -41,6 +41,11 @@ export default function PlaylistPage({
   const [editingTrack, setEditingTrack] = useState<AudioFile | null>(null)
   const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
   const [versionsTrack, setVersionsTrack] = useState<AudioFile | null>(null)
+
+  const [nameDraft, setNameDraft] = useState<string | null>(null)
+  const [savingName, setSavingName] = useState(false)
+  const [coverEditing, setCoverEditing] = useState(false)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -103,6 +108,8 @@ export default function PlaylistPage({
       (prev ?? []).map((t) => (t._id === updated._id ? { ...t, ...updated } : t)),
     )
     setVersionsTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
+    setSharingTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
+    setEditingTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
     // Reflect the change live in the player if this track is currently queued,
     // without restarting playback.
     player.patchTrack(updated._id, {
@@ -120,6 +127,42 @@ export default function PlaylistPage({
       if (!track.coverKey) {
         player.patchTrack(track._id, { coverUrl: updated.coverUrl || null })
       }
+    }
+  }
+
+  async function commitName() {
+    if (nameDraft === null || !playlist) return
+    const next = nameDraft.trim()
+    setNameDraft(null)
+    if (!next || next === playlist.name) return
+    setSavingName(true)
+    try {
+      const updated = await playlistApi.update(playlist._id, next)
+      handlePlaylistUpdated({ ...updated, coverUrl: playlist.coverUrl })
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Umbenennen fehlgeschlagen')
+    } finally {
+      setSavingName(false)
+    }
+  }
+
+  async function handleCoverSelect(file: File | undefined) {
+    if (!file || !playlist) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Bitte eine Bilddatei auswählen')
+      return
+    }
+    setCoverEditing(false)
+    try {
+      const { uploadUrl } = await playlistApi.coverUploadUrl(playlist._id, {
+        filename: file.name,
+        contentType: file.type,
+      })
+      await uploadToPresignedUrl(uploadUrl, file, file.type)
+      handlePlaylistUpdated({ ...playlist, coverUrl: URL.createObjectURL(file) })
+      toast.success('Cover aktualisiert')
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Cover-Upload fehlgeschlagen')
     }
   }
 
@@ -259,7 +302,10 @@ export default function PlaylistPage({
               </div>
             ) : (
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
-                <div className="size-32 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-xl sm:size-40">
+                <div
+                  onDoubleClick={() => setCoverEditing(true)}
+                  className="relative size-32 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-xl select-none sm:size-40"
+                >
                   {playlist.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -272,17 +318,84 @@ export default function PlaylistPage({
                       <Music className="size-10 text-foreground/40" />
                     </div>
                   )}
+                  {coverEditing && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/75 backdrop-blur-sm">
+                      <button
+                        type="button"
+                        onClick={() => coverInputRef.current?.click()}
+                        className="flex flex-col items-center gap-1 text-xs font-medium"
+                      >
+                        <ImagePlus className="size-6" />
+                        Bild wählen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCoverEditing(false)}
+                        aria-label="Abbrechen"
+                        className="absolute top-1.5 right-1.5 rounded-md p-1 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                  )}
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => {
+                      handleCoverSelect(e.target.files?.[0])
+                      e.target.value = ''
+                    }}
+                  />
                 </div>
                 <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
                       Playlist
                     </p>
-                    <h1 className="mt-1 text-3xl font-semibold tracking-tight text-balance">
-                      {playlist.name}
-                    </h1>
+                    {nameDraft !== null ? (
+                      <input
+                        autoFocus
+                        value={nameDraft}
+                        maxLength={100}
+                        onChange={(e) => setNameDraft(e.target.value)}
+                        onBlur={commitName}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            commitName()
+                          } else if (e.key === 'Escape') {
+                            setNameDraft(null)
+                          }
+                        }}
+                        className="mt-1 w-full max-w-md rounded-lg border border-input bg-background px-2 py-1 text-3xl font-semibold tracking-tight outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                      />
+                    ) : (
+                      <h1
+                        onDoubleClick={() => setNameDraft(playlist.name)}
+                        title="Doppelklick zum Umbenennen"
+                        className="mt-1 text-3xl font-semibold tracking-tight text-balance"
+                      >
+                        {playlist.name}
+                        {savingName && (
+                          <span className="ml-2 text-sm font-normal text-muted-foreground">
+                            speichert…
+                          </span>
+                        )}
+                      </h1>
+                    )}
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {tracks?.length ?? 0} {tracks?.length === 1 ? 'Track' : 'Tracks'}
+                      {(() => {
+                        const t = tracks ?? []
+                        const versions = t.reduce((s, x) => s + (x.versions?.length ?? 0), 0)
+                        const projects = t.reduce(
+                          (s, x) =>
+                            s + (x.versions ?? []).filter((v) => v.projectFilename).length,
+                          0,
+                        )
+                        return `${t.length} ${t.length === 1 ? 'Track' : 'Tracks'} · ${versions} ${versions === 1 ? 'Version' : 'Versionen'} · ${projects} ${projects === 1 ? 'Projekt' : 'Projekte'}`
+                      })()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -343,6 +456,7 @@ export default function PlaylistPage({
                 onEdit={setEditingTrack}
                 onShare={setSharingTrack}
                 onVersions={setVersionsTrack}
+                onUpdated={handleTrackUpdated}
                 onDeleted={handleTrackDeleted}
                 onChange={setTracks}
               />
