@@ -21,6 +21,11 @@ const ALLOWED_TYPES = [
 ]
 const MAX_SIZE = 500 * 1024 * 1024
 
+function isProjectFile(file: File) {
+  const n = file.name.toLowerCase()
+  return n.endsWith('.zip') || n.endsWith('.rar')
+}
+
 interface UploadItem {
   id: string
   filename: string
@@ -52,12 +57,13 @@ export const TrackUploader = forwardRef<
 
     for (const file of files) {
       const id = `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+      const project = isProjectFile(file)
 
-      if (!ALLOWED_TYPES.includes(file.type)) {
+      if (!project && !ALLOWED_TYPES.includes(file.type)) {
         toast.error(`${file.name}: Dateityp nicht unterstützt`)
         continue
       }
-      if (file.size > MAX_SIZE) {
+      if (!project && file.size > MAX_SIZE) {
         toast.error(`${file.name}: Datei zu groß (max. 500 MB)`)
         continue
       }
@@ -67,8 +73,9 @@ export const TrackUploader = forwardRef<
         { id, filename: file.name, size: file.size, progress: 0, status: 'uploading' },
       ])
 
-      uploadOne(file, id).catch(() => {
-        // errors are handled inside uploadOne
+      const run = project ? uploadProjectOne(file, id) : uploadOne(file, id)
+      run.catch(() => {
+        // errors are handled inside the upload fns
       })
     }
   }
@@ -128,6 +135,46 @@ export const TrackUploader = forwardRef<
     }
   }
 
+  async function uploadProjectOne(file: File, id: string) {
+    try {
+      const ct = file.type || 'application/octet-stream'
+      const { uploadUrl, key } = await audioApi.initProjectUpload(playlistId, {
+        filename: file.name,
+        contentType: ct,
+        fileSize: file.size,
+      })
+
+      await uploadToPresignedUrl(uploadUrl, file, ct, (percent) => {
+        setItems((prev) =>
+          prev.map((it) => (it.id === id ? { ...it, progress: percent } : it)),
+        )
+      })
+
+      setItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, status: 'confirming' } : it)),
+      )
+
+      const track = await audioApi.confirmProjectUpload(playlistId, {
+        key,
+        filename: file.name,
+        fileSize: file.size,
+      })
+
+      setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: 'done' } : it)))
+      onUploaded(track)
+
+      setTimeout(() => {
+        setItems((prev) => prev.filter((it) => it.id !== id))
+      }, 1500)
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Upload fehlgeschlagen'
+      setItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, status: 'error', error: message } : it)),
+      )
+      toast.error(`${file.name}: ${message}`)
+    }
+  }
+
   function dismiss(id: string) {
     setItems((prev) => prev.filter((it) => it.id !== id))
   }
@@ -137,7 +184,7 @@ export const TrackUploader = forwardRef<
       <input
         ref={inputRef}
         type="file"
-        accept="audio/*"
+        accept="audio/*,.zip,.rar"
         multiple
         hidden
         onChange={(e) => {
@@ -147,7 +194,7 @@ export const TrackUploader = forwardRef<
       />
       <Button size="lg" onClick={() => inputRef.current?.click()}>
         <Upload className="size-4" />
-        Tracks hochladen
+        Hochladen (Audio oder Projekt)
       </Button>
 
       {items.length > 0 && (

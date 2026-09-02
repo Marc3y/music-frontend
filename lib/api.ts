@@ -208,6 +208,24 @@ export const audioApi = {
       method: 'POST',
       body,
     }),
+
+  // Reiner Projekt-Eintrag (nur .zip/.rar, keine Audiodatei)
+  initProjectUpload: (
+    playlistId: string,
+    body: { filename: string; contentType: string; fileSize: number },
+  ) =>
+    apiClient<{ uploadUrl: string; key: string }>(
+      `/audio-files/playlists/${playlistId}/project-init`,
+      { method: 'POST', body },
+    ),
+  confirmProjectUpload: (
+    playlistId: string,
+    body: { key: string; filename: string; fileSize: number },
+  ) =>
+    apiClient<AudioFile>(`/audio-files/playlists/${playlistId}/project-confirm`, {
+      method: 'POST',
+      body,
+    }),
   update: (
     id: string,
     body: { title?: string; artist?: string; description?: string },

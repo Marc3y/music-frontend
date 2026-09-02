@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
+import { ChevronDown, FileArchive, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
@@ -40,15 +40,17 @@ export function TrackRow({
   onUpdated: (track: AudioFile) => void
   onDeleted: (id: string) => void
 }) {
+  const isProject = track.kind === 'project'
   const isReady = track.status === 'ready'
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const displayCover = track.coverUrl || fallbackCoverUrl
+  const shared = isProject ? track.projectShareEnabled : track.shareEnabled
 
   async function handleDelete() {
     try {
       await audioApi.remove(track._id)
-      toast.success('Track gelöscht')
+      toast.success(isProject ? 'Projekt gelöscht' : 'Track gelöscht')
       onDeleted(track._id)
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Löschen fehlgeschlagen')
@@ -63,43 +65,56 @@ export function TrackRow({
         (isCurrent ? ' bg-card/60' : '')
       }
     >
-      <button
-        onClick={onPlay}
-        disabled={!isReady}
-        aria-label={isPlaying && isCurrent ? 'Pause' : 'Abspielen'}
-        className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {displayCover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={displayCover} alt="" className="size-full object-cover" />
-        ) : (
-          <Music className="size-4 text-foreground/40" />
-        )}
-        {isReady && (
-          <span className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 transition-opacity group-hover:opacity-100">
-            {isLoading && isCurrent ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : isPlaying && isCurrent ? (
-              <Pause className="size-4" />
-            ) : (
-              <Play className="size-4 translate-x-px" />
-            )}
-          </span>
-        )}
-      </button>
+      {isProject ? (
+        <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
+          {displayCover ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={displayCover} alt="" className="size-full object-cover" />
+          ) : (
+            <FileArchive className="size-4 text-foreground/40" />
+          )}
+        </div>
+      ) : (
+        <button
+          onClick={onPlay}
+          disabled={!isReady}
+          aria-label={isPlaying && isCurrent ? 'Pause' : 'Abspielen'}
+          className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {displayCover ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={displayCover} alt="" className="size-full object-cover" />
+          ) : (
+            <Music className="size-4 text-foreground/40" />
+          )}
+          {isReady && (
+            <span className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 transition-opacity group-hover:opacity-100">
+              {isLoading && isCurrent ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : isPlaying && isCurrent ? (
+                <Pause className="size-4" />
+              ) : (
+                <Play className="size-4 translate-x-px" />
+              )}
+            </span>
+          )}
+        </button>
+      )}
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{track.title}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {track.artist || 'Unbekannter Interpret'}
+          {isProject
+            ? 'Projekt'
+            : track.artist || 'Unbekannter Interpret'}
         </p>
       </div>
 
       <div className="hidden w-16 shrink-0 text-right text-xs text-muted-foreground lg:block">
-        {track.bpm ? `${track.bpm} BPM` : '—'}
+        {isProject ? '' : track.bpm ? `${track.bpm} BPM` : '—'}
       </div>
       <div className="hidden w-12 shrink-0 text-right text-xs text-muted-foreground lg:block">
-        {track.musicalKey || '—'}
+        {isProject ? '' : track.musicalKey || '—'}
       </div>
 
       <div className="hidden shrink-0 text-xs text-muted-foreground xl:block">
@@ -107,7 +122,9 @@ export function TrackRow({
       </div>
 
       <div className="hidden shrink-0 text-xs text-muted-foreground sm:block">
-        {track.status === 'processing' ? (
+        {isProject ? (
+          'Projekt'
+        ) : track.status === 'processing' ? (
           <span className="flex items-center gap-1.5">
             <Loader2 className="size-3 animate-spin" />
             Wird verarbeitet
@@ -119,7 +136,7 @@ export function TrackRow({
         )}
       </div>
 
-      {track.shareEnabled && (
+      {shared && (
         <span className="hidden shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary sm:inline-block">
           Geteilt
         </span>
@@ -163,8 +180,8 @@ export function TrackRow({
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Track löschen?"
-        description={`"${track.title}" wird unwiderruflich gelöscht.`}
+        title={isProject ? 'Projekt löschen?' : 'Track löschen?'}
+        description={`"${track.title}" wird mit allen Versionen unwiderruflich gelöscht.`}
         onConfirm={handleDelete}
       />
     </div>

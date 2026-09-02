@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Download, Loader2, Music, Paperclip, Plus, Trash2 } from 'lucide-react'
+import { Download, FileArchive, Loader2, Music, Paperclip, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -37,9 +37,17 @@ export function VersionsDialog({
   const [progress, setProgress] = useState<number | null>(null)
 
   const trackId = track?._id
+  const isProject = track?.kind === 'project'
 
   async function handleNewVersion(file: File | undefined) {
     if (!file || !trackId) return
+    if (isProject) {
+      const n = file.name.toLowerCase()
+      if (!n.endsWith('.zip') && !n.endsWith('.rar')) {
+        toast.error('Nur .zip- oder .rar-Dateien')
+        return
+      }
+    }
     setBusy(true)
     setProgress(0)
     try {
@@ -58,13 +66,15 @@ export function VersionsDialog({
       onUpdated(updated)
       toast.success('Version hochgeladen')
 
-      const { bpm, musicalKey } = await analyzeAudioFile(file)
-      if (bpm != null || musicalKey != null) {
-        updated = await audioApi.updateVersion(trackId, updated.selectedVersionId, {
-          bpm,
-          musicalKey,
-        })
-        onUpdated(updated)
+      if (!isProject) {
+        const { bpm, musicalKey } = await analyzeAudioFile(file)
+        if (bpm != null || musicalKey != null) {
+          updated = await audioApi.updateVersion(trackId, updated.selectedVersionId, {
+            bpm,
+            musicalKey,
+          })
+          onUpdated(updated)
+        }
       }
     } catch (err) {
       toast.error(errMsg(err, 'Upload fehlgeschlagen'))
@@ -100,16 +110,21 @@ export function VersionsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Versionen{track ? ` – ${track.title}` : ''}</DialogTitle>
+          <DialogTitle>
+            {isProject ? 'Projekt-Versionen' : 'Versionen'}
+            {track ? ` – ${track.title}` : ''}
+          </DialogTitle>
           <DialogDescription>
-            Lade weitere Versionen hoch und wähle, welche abgespielt und geteilt wird.
+            {isProject
+              ? 'Lade weitere Projekt-Zips hoch und wähle, welche geteilt wird.'
+              : 'Lade weitere Versionen hoch und wähle, welche abgespielt und geteilt wird.'}
           </DialogDescription>
         </DialogHeader>
 
         <input
           ref={audioInputRef}
           type="file"
-          accept="audio/*"
+          accept={isProject ? '.zip,.rar' : 'audio/*'}
           hidden
           onChange={(e) => {
             handleNewVersion(e.target.files?.[0])
@@ -123,8 +138,14 @@ export function VersionsDialog({
             disabled={busy || !track}
             onClick={() => audioInputRef.current?.click()}
           >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            Neue Version hochladen
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : isProject ? (
+              <FileArchive className="size-4" />
+            ) : (
+              <Plus className="size-4" />
+            )}
+            {isProject ? 'Neue Projekt-Version hochladen' : 'Neue Version hochladen'}
           </Button>
           {progress !== null && (
             <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
@@ -142,6 +163,7 @@ export function VersionsDialog({
               key={`${v._id}-${v.bpm ?? ''}-${v.musicalKey ?? ''}-${v.projectFilename ?? ''}-${v.status}`}
               trackId={trackId!}
               version={v}
+              isProject={!!isProject}
               isSelected={v._id === track?.selectedVersionId}
               canDelete={(track?.versions.length ?? 0) > 1}
               onSelect={() => selectVersion(v._id)}
@@ -158,6 +180,7 @@ export function VersionsDialog({
 function VersionRow({
   trackId,
   version,
+  isProject,
   isSelected,
   canDelete,
   onSelect,
@@ -166,6 +189,7 @@ function VersionRow({
 }: {
   trackId: string
   version: TrackVersion
+  isProject: boolean
   isSelected: boolean
   canDelete: boolean
   onSelect: () => void
@@ -270,12 +294,21 @@ function VersionRow({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{version.label}</p>
           <p className="text-xs text-muted-foreground">
-            {formatBytes(version.fileSize)}
+            {formatBytes((isProject ? version.projectSize : version.fileSize) ?? 0)}
             {isSelected && ' · Hauptversion'}
             {version.status === 'processing' && ' · wird verarbeitet…'}
             {version.status === 'failed' && ' · fehlgeschlagen'}
           </p>
         </div>
+        {isProject && (
+          <button
+            onClick={downloadProject}
+            aria-label="Projektdatei herunterladen"
+            className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Download className="size-4" />
+          </button>
+        )}
         <button
           onClick={onDelete}
           disabled={!canDelete}
@@ -286,80 +319,84 @@ function VersionRow({
         </button>
       </div>
 
-      <div className="flex items-center gap-2 pl-7">
-        <Input
-          value={bpm}
-          onChange={(e) => setBpm(e.target.value.replace(/[^\d]/g, ''))}
-          onBlur={saveMeta}
-          inputMode="numeric"
-          placeholder="BPM"
-          className="h-7 w-20 text-xs"
-        />
-        <Input
-          value={musicalKey}
-          onChange={(e) => setMusicalKey(e.target.value)}
-          onBlur={saveMeta}
-          placeholder="Key (z. B. A moll)"
-          maxLength={20}
-          className="h-7 flex-1 text-xs"
-        />
-        {savingMeta && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
-      </div>
+      {!isProject && (
+        <>
+          <div className="flex items-center gap-2 pl-7">
+            <Input
+              value={bpm}
+              onChange={(e) => setBpm(e.target.value.replace(/[^\d]/g, ''))}
+              onBlur={saveMeta}
+              inputMode="numeric"
+              placeholder="BPM"
+              className="h-7 w-20 text-xs"
+            />
+            <Input
+              value={musicalKey}
+              onChange={(e) => setMusicalKey(e.target.value)}
+              onBlur={saveMeta}
+              placeholder="Key (z. B. A moll)"
+              maxLength={20}
+              className="h-7 flex-1 text-xs"
+            />
+            {savingMeta && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
+          </div>
 
-      <div className="flex items-center gap-2 pl-7 text-xs">
-        <input
-          ref={projectInputRef}
-          type="file"
-          accept=".zip,.rar"
-          hidden
-          onChange={(e) => {
-            uploadProject(e.target.files?.[0])
-            e.target.value = ''
-          }}
-        />
-        {version.projectFilename ? (
-          <>
-            <Music className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1 truncate">{version.projectFilename}</span>
-            <span className="shrink-0 text-muted-foreground">
-              {formatBytes(version.projectSize ?? 0)}
-            </span>
-            <button
-              onClick={downloadProject}
-              aria-label="Projektdatei herunterladen"
-              className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground"
-            >
-              <Download className="size-3.5" />
-            </button>
-            <button
-              onClick={removeProject}
-              disabled={projectBusy}
-              aria-label="Projektdatei entfernen"
-              className="shrink-0 rounded p-1 text-muted-foreground hover:text-destructive disabled:opacity-40"
-            >
-              {projectBusy ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Trash2 className="size-3.5" />
-              )}
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            disabled={projectBusy}
-            onClick={() => projectInputRef.current?.click()}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
-          >
-            {projectBusy ? (
-              <Loader2 className="size-4 animate-spin" />
+          <div className="flex items-center gap-2 pl-7 text-xs">
+            <input
+              ref={projectInputRef}
+              type="file"
+              accept=".zip,.rar"
+              hidden
+              onChange={(e) => {
+                uploadProject(e.target.files?.[0])
+                e.target.value = ''
+              }}
+            />
+            {version.projectFilename ? (
+              <>
+                <Music className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate">{version.projectFilename}</span>
+                <span className="shrink-0 text-muted-foreground">
+                  {formatBytes(version.projectSize ?? 0)}
+                </span>
+                <button
+                  onClick={downloadProject}
+                  aria-label="Projektdatei herunterladen"
+                  className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground"
+                >
+                  <Download className="size-3.5" />
+                </button>
+                <button
+                  onClick={removeProject}
+                  disabled={projectBusy}
+                  aria-label="Projektdatei entfernen"
+                  className="shrink-0 rounded p-1 text-muted-foreground hover:text-destructive disabled:opacity-40"
+                >
+                  {projectBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-3.5" />
+                  )}
+                </button>
+              </>
             ) : (
-              <Paperclip className="size-4" />
+              <button
+                type="button"
+                disabled={projectBusy}
+                onClick={() => projectInputRef.current?.click()}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+              >
+                {projectBusy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Paperclip className="size-4" />
+                )}
+                Projektdatei hinzufügen (.zip / .rar)
+              </button>
             )}
-            Projektdatei hinzufügen (.zip / .rar)
-          </button>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

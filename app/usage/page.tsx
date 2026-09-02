@@ -224,6 +224,7 @@ export default function UsagePage() {
                     <Row
                       key={track._id}
                       title={track.title}
+                      badge={track.kind === 'project' ? 'Projekt' : undefined}
                       subtitle={
                         (track.playlistName ?? 'Ohne Playlist') +
                         (track.versionCount > 1 ? ` · ${track.versionCount} Versionen` : '')
@@ -320,12 +321,14 @@ function EmptyState({ text }: { text: string }) {
 function Row({
   title,
   subtitle,
+  badge,
   size,
   deleting,
   onDelete,
 }: {
   title: string
   subtitle: string
+  badge?: string
   size: number
   deleting: boolean
   onDelete: () => void
@@ -333,7 +336,14 @@ function Row({
   return (
     <div className="flex items-center gap-3 bg-card/40 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{title}</p>
+        <p className="flex items-center gap-1.5 truncate text-sm font-medium">
+          <span className="truncate">{title}</span>
+          {badge && (
+            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {badge}
+            </span>
+          )}
+        </p>
         <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
       </div>
       <span className="shrink-0 font-mono text-sm tabular-nums">{formatBytes(size)}</span>

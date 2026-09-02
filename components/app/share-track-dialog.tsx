@@ -15,6 +15,10 @@ import { Input } from '@/components/ui/input'
 import { audioApi, ApiError } from '@/lib/api'
 import type { AudioFile } from '@/lib/types'
 
+function errMsg(err: unknown, fallback: string) {
+  return err instanceof ApiError ? err.message : fallback
+}
+
 export function ShareTrackDialog({
   track,
   open,
@@ -26,41 +30,72 @@ export function ShareTrackDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: (track: AudioFile) => void
 }) {
+  const isProject = track?.kind === 'project'
   const [loading, setLoading] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [shareProject, setShareProject] = useState(false)
 
-  const selectedVersion = track?.versions?.find(
-    (v) => v._id === track.selectedVersionId,
-  )
+  const selectedVersion = track?.versions?.find((v) => v._id === track.selectedVersionId)
   const hasProject = Boolean(selectedVersion?.projectFilename)
 
   useEffect(() => {
-    if (track?.shareEnabled && track.shareToken) {
+    if (isProject) {
+      setShareUrl(
+        track?.projectShareEnabled && track.projectShareToken
+          ? `${window.location.origin}/share/project/${track.projectShareToken}`
+          : null,
+      )
+    } else if (track?.shareEnabled && track.shareToken) {
       setShareUrl(`${window.location.origin}/share/${track.shareToken}`)
     } else {
       setShareUrl(null)
     }
     setShareProject(Boolean(track?.shareProject))
     setCopied(false)
-  }, [track])
+  }, [track, isProject])
 
   async function enableShare() {
     if (!track) return
     setLoading(true)
     try {
-      const res = await audioApi.share(track._id, hasProject ? shareProject : false)
-      setShareUrl(res.shareUrl)
-      onUpdated({
-        ...track,
-        shareEnabled: true,
-        shareToken: res.shareToken,
-        shareProject: res.shareProject,
-      })
+      if (isProject) {
+        const res = await audioApi.enableProjectShare(track._id)
+        setShareUrl(res.shareUrl)
+        onUpdated({ ...track, projectShareEnabled: true, projectShareToken: res.token })
+      } else {
+        const res = await audioApi.share(track._id, hasProject ? shareProject : false)
+        setShareUrl(res.shareUrl)
+        onUpdated({
+          ...track,
+          shareEnabled: true,
+          shareToken: res.shareToken,
+          shareProject: res.shareProject,
+        })
+      }
       toast.success('Teilen aktiviert')
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Aktivieren fehlgeschlagen')
+      toast.error(errMsg(err, 'Aktivieren fehlgeschlagen'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function disableShare() {
+    if (!track) return
+    setLoading(true)
+    try {
+      if (isProject) {
+        await audioApi.disableProjectShare(track._id)
+        onUpdated({ ...track, projectShareEnabled: false })
+      } else {
+        await audioApi.unshare(track._id)
+        onUpdated({ ...track, shareEnabled: false })
+      }
+      setShareUrl(null)
+      toast.success('Teilen deaktiviert')
+    } catch (err) {
+      toast.error(errMsg(err, 'Deaktivieren fehlgeschlagen'))
     } finally {
       setLoading(false)
     }
@@ -74,22 +109,7 @@ export function ShareTrackDialog({
       onUpdated({ ...track, shareProject: res.shareProject })
     } catch (err) {
       setShareProject(!next)
-      toast.error(err instanceof ApiError ? err.message : 'Änderung fehlgeschlagen')
-    }
-  }
-
-  async function disableShare() {
-    if (!track) return
-    setLoading(true)
-    try {
-      await audioApi.unshare(track._id)
-      setShareUrl(null)
-      onUpdated({ ...track, shareEnabled: false })
-      toast.success('Teilen deaktiviert')
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Deaktivieren fehlgeschlagen')
-    } finally {
-      setLoading(false)
+      toast.error(errMsg(err, 'Änderung fehlgeschlagen'))
     }
   }
 
@@ -105,30 +125,34 @@ export function ShareTrackDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Track teilen</DialogTitle>
+          <DialogTitle>{isProject ? 'Projekt teilen' : 'Track teilen'}</DialogTitle>
           <DialogDescription>
-            Wer den Link hat, kann "{track?.title}" (Hauptversion) ohne Login anhören.
+            {isProject
+              ? `Wer den Link hat, kann die Projektdatei von "${track?.title}" (Hauptversion) herunterladen.`
+              : `Wer den Link hat, kann "${track?.title}" (Hauptversion) ohne Login anhören.`}
           </DialogDescription>
         </DialogHeader>
 
-        <label
-          className={
-            'flex items-start gap-2 text-sm ' +
-            (hasProject ? 'text-foreground' : 'text-muted-foreground')
-          }
-        >
-          <input
-            type="checkbox"
-            checked={hasProject && shareProject}
-            disabled={!hasProject}
-            onChange={(e) => toggleShareProject(e.target.checked)}
-            className="mt-0.5 size-4 accent-primary"
-          />
-          <span>
-            Projektdatei der Hauptversion mitteilen
-            {!hasProject && ' (Hauptversion hat keine Projektdatei)'}
-          </span>
-        </label>
+        {!isProject && (
+          <label
+            className={
+              'flex items-start gap-2 text-sm ' +
+              (hasProject ? 'text-foreground' : 'text-muted-foreground')
+            }
+          >
+            <input
+              type="checkbox"
+              checked={hasProject && shareProject}
+              disabled={!hasProject}
+              onChange={(e) => toggleShareProject(e.target.checked)}
+              className="mt-0.5 size-4 accent-primary"
+            />
+            <span>
+              Projektdatei der Hauptversion mitteilen
+              {!hasProject && ' (Hauptversion hat keine Projektdatei)'}
+            </span>
+          </label>
+        )}
 
         {shareUrl ? (
           <div className="flex flex-col gap-3">
@@ -138,12 +162,7 @@ export function ShareTrackDialog({
                 {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
               </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading}
-              onClick={disableShare}
-            >
+            <Button type="button" variant="outline" disabled={loading} onClick={disableShare}>
               {loading && <Loader2 className="size-4 animate-spin" />}
               Teilen deaktivieren
             </Button>

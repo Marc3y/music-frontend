@@ -23,6 +23,7 @@ export interface StorageSummary {
 export interface UsageTrack {
   _id: string
   title: string
+  kind?: 'track' | 'project'
   size: number
   versionCount: number
   playlistId: string
@@ -50,9 +51,9 @@ export type AudioStatus = 'processing' | 'ready' | 'failed'
 export interface TrackVersion {
   _id: string
   label: string
-  originalFilename: string
-  fileSize: number
-  mimeType: string
+  originalFilename?: string
+  fileSize?: number
+  mimeType?: string
   duration?: number
   bpm?: number | null
   musicalKey?: string | null
@@ -66,16 +67,17 @@ export interface AudioFile {
   _id: string
   playlistId: string
   owner: string
-  key: string
+  kind?: 'track' | 'project'
+  key?: string
   coverKey?: string
   coverUrl?: string | null
-  originalFilename: string
+  originalFilename?: string
   title: string
   artist?: string
   description?: string
   duration?: number
-  fileSize: number
-  mimeType: string
+  fileSize?: number
+  mimeType?: string
   status: AudioStatus
   order?: number
   shareEnabled: boolean

@@ -19,7 +19,15 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
+import { useLibraryFilter } from '@/lib/use-library-filter'
 import type { AudioFile, Playlist } from '@/lib/types'
+
+// Neue sichtbare Reihenfolge in die volle Liste zurückmergen (versteckte behalten Position)
+function mergeVisibleOrder(full: AudioFile[], visible: AudioFile[]): AudioFile[] {
+  const visibleIds = new Set(visible.map((t) => t._id))
+  let vi = 0
+  return full.map((t) => (visibleIds.has(t._id) ? visible[vi++] : t))
+}
 
 const POLL_INTERVAL = 4000
 
@@ -46,6 +54,8 @@ export default function PlaylistPage({
   const [savingName, setSavingName] = useState(false)
   const [coverEditing, setCoverEditing] = useState(false)
   const coverInputRef = useRef<HTMLInputElement>(null)
+
+  const [filter, setFilter] = useLibraryFilter()
 
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -167,7 +177,10 @@ export default function PlaylistPage({
   }
 
   function playTrack(track: AudioFile) {
-    const readyTracks = (tracks ?? []).filter((t) => t.status === 'ready')
+    // Reine Projekt-Einträge werden bei der Wiedergabe ignoriert
+    const readyTracks = (tracks ?? []).filter(
+      (t) => t.status === 'ready' && (t.kind ?? 'track') !== 'project',
+    )
     const startIndex = readyTracks.findIndex((t) => t._id === track._id)
     if (startIndex === -1) return
 
@@ -271,9 +284,9 @@ export default function PlaylistPage({
             >
               <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-primary/60 bg-card/80 px-12 py-10 text-center">
                 <Upload className="size-8 text-primary" />
-                <p className="font-medium">Tracks hier ablegen</p>
+                <p className="font-medium">Hier ablegen</p>
                 <p className="text-sm text-muted-foreground">
-                  Audiodateien werden zu dieser Playlist hinzugefügt.
+                  Audiodateien oder Projekte (.zip/.rar) werden hinzugefügt.
                 </p>
               </div>
             </motion.div>
@@ -388,13 +401,10 @@ export default function PlaylistPage({
                     <p className="mt-1 text-sm text-muted-foreground">
                       {(() => {
                         const t = tracks ?? []
+                        const audio = t.filter((x) => (x.kind ?? 'track') !== 'project').length
+                        const projects = t.length - audio
                         const versions = t.reduce((s, x) => s + (x.versions?.length ?? 0), 0)
-                        const projects = t.reduce(
-                          (s, x) =>
-                            s + (x.versions ?? []).filter((v) => v.projectFilename).length,
-                          0,
-                        )
-                        return `${t.length} ${t.length === 1 ? 'Track' : 'Tracks'} · ${versions} ${versions === 1 ? 'Version' : 'Versionen'} · ${projects} ${projects === 1 ? 'Projekt' : 'Projekte'}`
+                        return `${audio} ${audio === 1 ? 'Track' : 'Tracks'} · ${versions} ${versions === 1 ? 'Version' : 'Versionen'} · ${projects} ${projects === 1 ? 'Projekt' : 'Projekte'}`
                       })()}
                     </p>
                   </div>
@@ -438,28 +448,80 @@ export default function PlaylistPage({
                   <Music className="size-6 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium">Noch keine Tracks</p>
+                  <p className="font-medium">Noch nichts hier</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Lade deinen ersten Track in diese Playlist hoch.
+                    Lade einen Track (Audio) oder ein Projekt (.zip/.rar) hoch.
                   </p>
                 </div>
               </div>
             ) : (
-              <ReorderableTrackList
-                playlistId={id}
-                tracks={tracks}
-                fallbackCoverUrl={playlist?.coverUrl}
-                currentId={player.current?.id ?? null}
-                isPlaying={player.isPlaying}
-                isLoading={player.isLoading}
-                onPlay={playTrack}
-                onEdit={setEditingTrack}
-                onShare={setSharingTrack}
-                onVersions={setVersionsTrack}
-                onUpdated={handleTrackUpdated}
-                onDeleted={handleTrackDeleted}
-                onChange={setTracks}
-              />
+              (() => {
+                const hasAudio = tracks.some((t) => (t.kind ?? 'track') !== 'project')
+                const hasProjects = tracks.some((t) => (t.kind ?? 'track') === 'project')
+                const visibleTracks =
+                  filter === 'all'
+                    ? tracks
+                    : tracks.filter((t) =>
+                        filter === 'projects'
+                          ? (t.kind ?? 'track') === 'project'
+                          : (t.kind ?? 'track') !== 'project',
+                      )
+                return (
+                  <>
+                    {hasAudio && hasProjects && (
+                      <div className="mb-3 flex justify-end">
+                        <div className="flex gap-1 rounded-xl bg-muted/60 p-1 text-xs">
+                          {(
+                            [
+                              ['all', 'Alle'],
+                              ['tracks', 'Tracks'],
+                              ['projects', 'Projekte'],
+                            ] as const
+                          ).map(([value, label]) => (
+                            <button
+                              key={value}
+                              onClick={() => setFilter(value)}
+                              className={
+                                'rounded-lg px-3 py-1 font-medium transition-colors ' +
+                                (filter === value
+                                  ? 'bg-background text-foreground shadow-sm'
+                                  : 'text-muted-foreground hover:text-foreground')
+                              }
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {visibleTracks.length === 0 ? (
+                      <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+                        Nichts in dieser Ansicht.
+                      </p>
+                    ) : (
+                      <ReorderableTrackList
+                        playlistId={id}
+                        tracks={visibleTracks}
+                        fallbackCoverUrl={playlist?.coverUrl}
+                        currentId={player.current?.id ?? null}
+                        isPlaying={player.isPlaying}
+                        isLoading={player.isLoading}
+                        onPlay={playTrack}
+                        onEdit={setEditingTrack}
+                        onShare={setSharingTrack}
+                        onVersions={setVersionsTrack}
+                        onUpdated={handleTrackUpdated}
+                        onDeleted={handleTrackDeleted}
+                        onChange={(reordered) =>
+                          setTracks((prev) =>
+                            prev ? mergeVisibleOrder(prev, reordered) : reordered,
+                          )
+                        }
+                      />
+                    )}
+                  </>
+                )
+              })()
             )}
           </main>
         </div>

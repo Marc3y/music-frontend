@@ -93,9 +93,13 @@ export function EditTrackDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Track bearbeiten</DialogTitle>
+          <DialogTitle>
+            {track?.kind === 'project' ? 'Projekt bearbeiten' : 'Track bearbeiten'}
+          </DialogTitle>
           <DialogDescription>
-            Titel, Interpret, Beschreibung und Cover anpassen.
+            {track?.kind === 'project'
+              ? 'Name, Beschreibung und Cover anpassen.'
+              : 'Titel, Interpret, Beschreibung und Cover anpassen.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -131,7 +135,9 @@ export function EditTrackDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="track-title">Titel</Label>
+            <Label htmlFor="track-title">
+              {track?.kind === 'project' ? 'Name' : 'Titel'}
+            </Label>
             <Input
               id="track-title"
               required
@@ -140,16 +146,18 @@ export function EditTrackDialog({
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="track-artist">Interpret</Label>
-            <Input
-              id="track-artist"
-              maxLength={200}
-              value={artist}
-              onChange={(e) => setArtist(e.target.value)}
-              placeholder="Optional"
-            />
-          </div>
+          {track?.kind !== 'project' && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="track-artist">Interpret</Label>
+              <Input
+                id="track-artist"
+                maxLength={200}
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                placeholder="Optional"
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="track-description">Beschreibung</Label>
             <Textarea
