@@ -221,10 +221,14 @@ export const audioApi = {
     }),
   stream: (id: string) =>
     apiClient<{ streamUrl: string }>(`/audio-files/${id}/stream`),
-  share: (id: string) =>
-    apiClient<{ shareToken: string; shareUrl: string }>(`/audio-files/${id}/share`, {
-      method: 'POST',
-    }),
+  share: (id: string, shareProject?: boolean) =>
+    apiClient<{ shareToken: string; shareUrl: string; shareProject: boolean }>(
+      `/audio-files/${id}/share`,
+      {
+        method: 'POST',
+        body: shareProject === undefined ? undefined : { shareProject },
+      },
+    ),
   unshare: (id: string) =>
     apiClient<{ message: string }>(`/audio-files/${id}/unshare`, { method: 'POST' }),
   publicStream: (shareToken: string) =>
@@ -233,7 +237,69 @@ export const audioApi = {
       title: string
       artist?: string
       description?: string
+      bpm?: number | null
+      musicalKey?: string | null
+      projectUrl?: string
+      projectFilename?: string
     }>(`/audio-files/public/stream/${shareToken}`, { skipRefresh: true }),
+
+  /* --- Versionen --- */
+  initVersionUpload: (
+    id: string,
+    body: { filename: string; contentType: string; fileSize: number },
+  ) =>
+    apiClient<{ uploadUrl: string; key: string }>(`/audio-files/${id}/versions/init`, {
+      method: 'POST',
+      body,
+    }),
+  confirmVersionUpload: (
+    id: string,
+    body: { key: string; originalFilename: string; fileSize: number; mimeType: string },
+  ) =>
+    apiClient<AudioFile>(`/audio-files/${id}/versions/confirm`, { method: 'POST', body }),
+  updateVersion: (
+    id: string,
+    versionId: string,
+    body: { bpm?: number | null; musicalKey?: string | null; label?: string },
+  ) =>
+    apiClient<AudioFile>(`/audio-files/${id}/versions/${versionId}`, {
+      method: 'PATCH',
+      body,
+    }),
+  selectVersion: (id: string, versionId: string) =>
+    apiClient<AudioFile>(`/audio-files/${id}/versions/${versionId}/select`, {
+      method: 'POST',
+    }),
+  deleteVersion: (id: string, versionId: string) =>
+    apiClient<AudioFile>(`/audio-files/${id}/versions/${versionId}`, { method: 'DELETE' }),
+
+  /* --- Projektdatei einer Version --- */
+  initVersionProject: (
+    id: string,
+    versionId: string,
+    body: { filename: string; contentType: string; fileSize: number },
+  ) =>
+    apiClient<{ uploadUrl: string; key: string }>(
+      `/audio-files/${id}/versions/${versionId}/project/init`,
+      { method: 'POST', body },
+    ),
+  confirmVersionProject: (
+    id: string,
+    versionId: string,
+    body: { key: string; filename: string; fileSize: number },
+  ) =>
+    apiClient<AudioFile>(`/audio-files/${id}/versions/${versionId}/project/confirm`, {
+      method: 'POST',
+      body,
+    }),
+  versionProjectDownload: (id: string, versionId: string) =>
+    apiClient<{ url: string }>(
+      `/audio-files/${id}/versions/${versionId}/project/download`,
+    ),
+  deleteVersionProject: (id: string, versionId: string) =>
+    apiClient<AudioFile>(`/audio-files/${id}/versions/${versionId}/project`, {
+      method: 'DELETE',
+    }),
   reorder: (playlistId: string, orderedIds: string[]) =>
     apiClient<{ message: string }>(`/audio-files/playlists/${playlistId}/reorder`, {
       method: 'POST',

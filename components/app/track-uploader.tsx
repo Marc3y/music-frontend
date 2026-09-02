@@ -5,6 +5,7 @@ import { Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
+import { analyzeAudioFile } from '@/lib/audio-analysis'
 import { formatBytes } from '@/lib/format'
 import type { AudioFile } from '@/lib/types'
 
@@ -38,8 +39,9 @@ export const TrackUploader = forwardRef<
   {
     playlistId: string
     onUploaded: (track: AudioFile) => void
+    onPatched?: (track: AudioFile) => void
   }
->(function TrackUploader({ playlistId, onUploaded }, ref) {
+>(function TrackUploader({ playlistId, onUploaded, onPatched }, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [items, setItems] = useState<UploadItem[]>([])
 
@@ -100,6 +102,18 @@ export const TrackUploader = forwardRef<
 
       setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: 'done' } : it)))
       onUploaded(track)
+
+      // BPM/Key im Browser ermitteln und nachtragen (blockt den Upload nicht)
+      void analyzeAudioFile(file)
+        .then(({ bpm, musicalKey }) => {
+          if (bpm == null && musicalKey == null) return
+          return audioApi
+            .updateVersion(track._id, track.selectedVersionId, { bpm, musicalKey })
+            .then((updated) => onPatched?.(updated))
+        })
+        .catch(() => {
+          /* Analyse ist best effort */
+        })
 
       // Remove finished item from the list after a short delay
       setTimeout(() => {

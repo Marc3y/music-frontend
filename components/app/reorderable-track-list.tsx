@@ -21,6 +21,7 @@ export function ReorderableTrackList({
   onPlay,
   onEdit,
   onShare,
+  onVersions,
   onDeleted,
   onChange,
 }: {
@@ -33,6 +34,7 @@ export function ReorderableTrackList({
   onPlay: (track: AudioFile) => void
   onEdit: (track: AudioFile) => void
   onShare: (track: AudioFile) => void
+  onVersions: (track: AudioFile) => void
   onDeleted: (id: string) => void
   onChange: (tracks: AudioFile[]) => void
 }) {
@@ -200,6 +202,7 @@ export function ReorderableTrackList({
                   onPlay={() => onPlay(track)}
                   onEdit={() => onEdit(track)}
                   onShare={() => onShare(track)}
+                  onVersions={() => onVersions(track)}
                   onDeleted={onDeleted}
                 />
               </div>

@@ -29,6 +29,12 @@ export function ShareTrackDialog({
   const [loading, setLoading] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [shareProject, setShareProject] = useState(false)
+
+  const selectedVersion = track?.versions?.find(
+    (v) => v._id === track.selectedVersionId,
+  )
+  const hasProject = Boolean(selectedVersion?.projectFilename)
 
   useEffect(() => {
     if (track?.shareEnabled && track.shareToken) {
@@ -36,6 +42,7 @@ export function ShareTrackDialog({
     } else {
       setShareUrl(null)
     }
+    setShareProject(Boolean(track?.shareProject))
     setCopied(false)
   }, [track])
 
@@ -43,14 +50,31 @@ export function ShareTrackDialog({
     if (!track) return
     setLoading(true)
     try {
-      const res = await audioApi.share(track._id)
+      const res = await audioApi.share(track._id, hasProject ? shareProject : false)
       setShareUrl(res.shareUrl)
-      onUpdated({ ...track, shareEnabled: true, shareToken: res.shareToken })
+      onUpdated({
+        ...track,
+        shareEnabled: true,
+        shareToken: res.shareToken,
+        shareProject: res.shareProject,
+      })
       toast.success('Teilen aktiviert')
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Aktivieren fehlgeschlagen')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function toggleShareProject(next: boolean) {
+    setShareProject(next)
+    if (!track || !track.shareEnabled) return
+    try {
+      const res = await audioApi.share(track._id, next)
+      onUpdated({ ...track, shareProject: res.shareProject })
+    } catch (err) {
+      setShareProject(!next)
+      toast.error(err instanceof ApiError ? err.message : 'Änderung fehlgeschlagen')
     }
   }
 
@@ -83,9 +107,28 @@ export function ShareTrackDialog({
         <DialogHeader>
           <DialogTitle>Track teilen</DialogTitle>
           <DialogDescription>
-            Wer den Link hat, kann "{track?.title}" ohne Login anhören.
+            Wer den Link hat, kann "{track?.title}" (Hauptversion) ohne Login anhören.
           </DialogDescription>
         </DialogHeader>
+
+        <label
+          className={
+            'flex items-start gap-2 text-sm ' +
+            (hasProject ? 'text-foreground' : 'text-muted-foreground')
+          }
+        >
+          <input
+            type="checkbox"
+            checked={hasProject && shareProject}
+            disabled={!hasProject}
+            onChange={(e) => toggleShareProject(e.target.checked)}
+            className="mt-0.5 size-4 accent-primary"
+          />
+          <span>
+            Projektdatei der Hauptversion mitteilen
+            {!hasProject && ' (Hauptversion hat keine Projektdatei)'}
+          </span>
+        </label>
 
         {shareUrl ? (
           <div className="flex flex-col gap-3">

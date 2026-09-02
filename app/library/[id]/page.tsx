@@ -12,6 +12,7 @@ import { TrackUploader, type TrackUploaderHandle } from '@/components/app/track-
 import { ReorderableTrackList } from '@/components/app/reorderable-track-list'
 import { EditTrackDialog } from '@/components/app/edit-track-dialog'
 import { ShareTrackDialog } from '@/components/app/share-track-dialog'
+import { VersionsDialog } from '@/components/app/versions-dialog'
 import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ export default function PlaylistPage({
   const [deletePlaylistOpen, setDeletePlaylistOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<AudioFile | null>(null)
   const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
+  const [versionsTrack, setVersionsTrack] = useState<AudioFile | null>(null)
 
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -100,6 +102,7 @@ export default function PlaylistPage({
     setTracks((prev) =>
       (prev ?? []).map((t) => (t._id === updated._id ? { ...t, ...updated } : t)),
     )
+    setVersionsTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
     // Reflect the change live in the player if this track is currently queued,
     // without restarting playback.
     player.patchTrack(updated._id, {
@@ -296,7 +299,12 @@ export default function PlaylistPage({
             )}
 
             <div className="mb-6">
-              <TrackUploader ref={uploaderRef} playlistId={id} onUploaded={handleUploaded} />
+              <TrackUploader
+                ref={uploaderRef}
+                playlistId={id}
+                onUploaded={handleUploaded}
+                onPatched={handleTrackUpdated}
+              />
             </div>
 
             {tracks === null ? (
@@ -334,6 +342,7 @@ export default function PlaylistPage({
                 onPlay={playTrack}
                 onEdit={setEditingTrack}
                 onShare={setSharingTrack}
+                onVersions={setVersionsTrack}
                 onDeleted={handleTrackDeleted}
                 onChange={setTracks}
               />
@@ -358,6 +367,12 @@ export default function PlaylistPage({
         track={sharingTrack}
         open={sharingTrack !== null}
         onOpenChange={(open) => !open && setSharingTrack(null)}
+        onUpdated={handleTrackUpdated}
+      />
+      <VersionsDialog
+        track={versionsTrack}
+        open={versionsTrack !== null}
+        onOpenChange={(open) => !open && setVersionsTrack(null)}
         onUpdated={handleTrackUpdated}
       />
       {playlist && (

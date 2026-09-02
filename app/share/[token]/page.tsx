@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Loader2, Music, Pause, Play } from 'lucide-react'
+import { Download, Loader2, Music, Pause, Play } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { audioApi, ApiError } from '@/lib/api'
@@ -13,6 +13,10 @@ interface SharedTrack {
   title: string
   artist?: string
   description?: string
+  bpm?: number | null
+  musicalKey?: string | null
+  projectUrl?: string
+  projectFilename?: string
 }
 
 export default function SharePage({
@@ -30,7 +34,15 @@ export default function SharePage({
     audioApi
       .publicStream(token)
       .then((res) =>
-        setTrack({ title: res.title, artist: res.artist, description: res.description }),
+        setTrack({
+          title: res.title,
+          artist: res.artist,
+          description: res.description,
+          bpm: res.bpm,
+          musicalKey: res.musicalKey,
+          projectUrl: res.projectUrl,
+          projectFilename: res.projectFilename,
+        }),
       )
       .catch((err) =>
         setError(
@@ -97,6 +109,13 @@ export default function SharePage({
             <p className="mt-1 text-muted-foreground">
               {track.artist || 'Unbekannter Interpret'}
             </p>
+            {(track.bpm || track.musicalKey) && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {[track.bpm ? `${track.bpm} BPM` : null, track.musicalKey || null]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            )}
             {track.description && (
               <p className="mt-3 text-sm text-pretty text-muted-foreground">
                 {track.description}
@@ -111,6 +130,16 @@ export default function SharePage({
               )}
               {isCurrent && player.isPlaying ? 'Pause' : 'Abspielen'}
             </Button>
+
+            {track.projectUrl && (
+              <a
+                href={track.projectUrl}
+                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium transition-colors hover:bg-muted"
+              >
+                <Download className="size-4" />
+                Projektdatei herunterladen
+              </a>
+            )}
           </>
         )}
       </motion.div>

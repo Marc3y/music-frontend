@@ -19,13 +19,20 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { accountApi, audioApi, ApiError } from '@/lib/api'
 import { formatBytes } from '@/lib/format'
-import type { UsageInfo, UsageTrack } from '@/lib/types'
+import type { UsageInfo, UsageProject, UsageTrack } from '@/lib/types'
 
 const SKIP_CONFIRM_KEY = 'music.usage.skipDeleteConfirm'
 
+type Tab = 'tracks' | 'projects'
+
+type DeleteTarget =
+  | { kind: 'track'; item: UsageTrack }
+  | { kind: 'project'; item: UsageProject }
+
 export default function UsagePage() {
   const [usage, setUsage] = useState<UsageInfo | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<UsageTrack | null>(null)
+  const [tab, setTab] = useState<Tab>('tracks')
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [dontAskAgain, setDontAskAgain] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -37,7 +44,7 @@ export default function UsagePage() {
         toast.error(
           err instanceof ApiError ? err.message : 'Speichernutzung konnte nicht geladen werden',
         )
-        setUsage({ used: 0, limit: 0, tracks: [] })
+        setUsage({ used: 0, limit: 0, tracks: [], projects: [] })
       })
   }, [])
 
@@ -49,7 +56,7 @@ export default function UsagePage() {
     }
   }
 
-  async function deleteNow(track: UsageTrack) {
+  async function deleteTrackNow(track: UsageTrack) {
     setDeletingId(track._id)
     try {
       await audioApi.remove(track._id)
@@ -57,8 +64,9 @@ export default function UsagePage() {
         prev
           ? {
               ...prev,
-              used: Math.max(0, prev.used - track.fileSize),
+              used: Math.max(0, prev.used - track.size),
               tracks: prev.tracks.filter((t) => t._id !== track._id),
+              projects: prev.projects.filter((p) => p.trackId !== track._id),
             }
           : prev,
       )
@@ -70,12 +78,43 @@ export default function UsagePage() {
     }
   }
 
-  function handleDeleteClick(track: UsageTrack) {
+  async function deleteProjectNow(project: UsageProject) {
+    setDeletingId(project.versionId)
+    try {
+      await audioApi.deleteVersionProject(project.trackId, project.versionId)
+      setUsage((prev) =>
+        prev
+          ? {
+              ...prev,
+              used: Math.max(0, prev.used - project.size),
+              projects: prev.projects.filter((p) => p.versionId !== project.versionId),
+              tracks: prev.tracks.map((t) =>
+                t._id === project.trackId
+                  ? { ...t, size: Math.max(0, t.size - project.size) }
+                  : t,
+              ),
+            }
+          : prev,
+      )
+      toast.success('Projektdatei gelöscht')
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Löschen fehlgeschlagen')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  function runDelete(target: DeleteTarget) {
+    if (target.kind === 'track') void deleteTrackNow(target.item)
+    else void deleteProjectNow(target.item)
+  }
+
+  function handleDeleteClick(target: DeleteTarget) {
     if (skipConfirm()) {
-      void deleteNow(track)
+      runDelete(target)
     } else {
       setDontAskAgain(false)
-      setDeleteTarget(track)
+      setDeleteTarget(target)
     }
   }
 
@@ -90,7 +129,7 @@ export default function UsagePage() {
     }
     const target = deleteTarget
     setDeleteTarget(null)
-    void deleteNow(target)
+    runDelete(target)
   }
 
   const overLimit = usage && usage.limit > 0 && usage.used >= usage.limit
@@ -116,7 +155,7 @@ export default function UsagePage() {
                 Speichernutzung
               </h1>
               <p className="mt-1 text-muted-foreground">
-                Dein belegter Speicher und deine größten Tracks.
+                Dein belegter Speicher – Tracks (alle Versionen) und Projektdateien.
               </p>
             </div>
 
@@ -135,7 +174,7 @@ export default function UsagePage() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {overLimit
-                          ? 'Limit erreicht – lösche Tracks, um wieder hochladen zu können.'
+                          ? 'Limit erreicht – lösche etwas, um wieder hochladen zu können.'
                           : `${formatBytes(Math.max(0, usage.limit - usage.used))} frei`}
                       </p>
                     </div>
@@ -145,9 +184,24 @@ export default function UsagePage() {
               )}
             </div>
 
-            <h2 className="mt-8 mb-3 text-sm font-medium text-muted-foreground">
-              Tracks nach Größe
-            </h2>
+            <div className="mt-8 mb-3 flex gap-1 rounded-xl bg-muted/60 p-1 text-sm">
+              {(['tracks', 'projects'] as Tab[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={
+                    'flex-1 rounded-lg px-3 py-1.5 font-medium transition-colors ' +
+                    (tab === t
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground')
+                  }
+                >
+                  {t === 'tracks'
+                    ? `Tracks${usage ? ` (${usage.tracks.length})` : ''}`
+                    : `Projekte${usage ? ` (${usage.projects.length})` : ''}`}
+                </button>
+              ))}
+            </div>
 
             {usage === null ? (
               <div className="flex flex-col gap-1">
@@ -161,41 +215,41 @@ export default function UsagePage() {
                   </div>
                 ))}
               </div>
-            ) : usage.tracks.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-                Noch keine Tracks hochgeladen.
-              </div>
+            ) : tab === 'tracks' ? (
+              usage.tracks.length === 0 ? (
+                <EmptyState text="Noch keine Tracks hochgeladen." />
+              ) : (
+                <List>
+                  {usage.tracks.map((track) => (
+                    <Row
+                      key={track._id}
+                      title={track.title}
+                      subtitle={
+                        (track.playlistName ?? 'Ohne Playlist') +
+                        (track.versionCount > 1 ? ` · ${track.versionCount} Versionen` : '')
+                      }
+                      size={track.size}
+                      deleting={deletingId === track._id}
+                      onDelete={() => handleDeleteClick({ kind: 'track', item: track })}
+                    />
+                  ))}
+                </List>
+              )
+            ) : usage.projects.length === 0 ? (
+              <EmptyState text="Keine Projektdateien hochgeladen." />
             ) : (
-              <div className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl border border-border">
-                {usage.tracks.map((track) => (
-                  <div
-                    key={track._id}
-                    className="flex items-center gap-3 bg-card/40 px-4 py-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{track.title}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {track.playlistName ?? 'Ohne Playlist'}
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-mono text-sm tabular-nums">
-                      {formatBytes(track.fileSize)}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteClick(track)}
-                      disabled={deletingId === track._id}
-                      aria-label={`"${track.title}" löschen`}
-                      className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
-                    >
-                      {deletingId === track._id ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="size-4" />
-                      )}
-                    </button>
-                  </div>
+              <List>
+                {usage.projects.map((project) => (
+                  <Row
+                    key={project.versionId}
+                    title={project.filename}
+                    subtitle={`${project.trackTitle} · ${project.versionLabel}`}
+                    size={project.size}
+                    deleting={deletingId === project.versionId}
+                    onDelete={() => handleDeleteClick({ kind: 'project', item: project })}
+                  />
                 ))}
-              </div>
+              </List>
             )}
           </main>
         </div>
@@ -207,11 +261,15 @@ export default function UsagePage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Track löschen?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteTarget?.kind === 'project' ? 'Projektdatei löschen?' : 'Track löschen?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget
-                ? `"${deleteTarget.title}" (${formatBytes(deleteTarget.fileSize)}) wird unwiderruflich gelöscht.`
-                : ''}
+              {deleteTarget?.kind === 'track'
+                ? `"${deleteTarget.item.title}" wird mit allen Versionen und Projektdateien unwiderruflich gelöscht.`
+                : deleteTarget?.kind === 'project'
+                  ? `"${deleteTarget.item.filename}" (${formatBytes(deleteTarget.item.size)}) wird unwiderruflich gelöscht.`
+                  : ''}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -240,5 +298,53 @@ export default function UsagePage() {
         </AlertDialogContent>
       </AlertDialog>
     </RequireAuth>
+  )
+}
+
+function List({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl border border-border">
+      {children}
+    </div>
+  )
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+      {text}
+    </div>
+  )
+}
+
+function Row({
+  title,
+  subtitle,
+  size,
+  deleting,
+  onDelete,
+}: {
+  title: string
+  subtitle: string
+  size: number
+  deleting: boolean
+  onDelete: () => void
+}) {
+  return (
+    <div className="flex items-center gap-3 bg-card/40 px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{title}</p>
+        <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+      <span className="shrink-0 font-mono text-sm tabular-nums">{formatBytes(size)}</span>
+      <button
+        onClick={onDelete}
+        disabled={deleting}
+        aria-label={`"${title}" löschen`}
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
+      >
+        {deleting ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+      </button>
+    </div>
   )
 }

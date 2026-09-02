@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
+import { Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
@@ -23,6 +23,7 @@ export function TrackRow({
   onPlay,
   onEdit,
   onShare,
+  onVersions,
   onDeleted,
 }: {
   track: AudioFile
@@ -33,6 +34,7 @@ export function TrackRow({
   onPlay: () => void
   onEdit: () => void
   onShare: () => void
+  onVersions: () => void
   onDeleted: (id: string) => void
 }) {
   const isReady = track.status === 'ready'
@@ -88,6 +90,13 @@ export function TrackRow({
         </p>
       </div>
 
+      <div className="hidden w-16 shrink-0 text-right text-xs text-muted-foreground lg:block">
+        {track.bpm ? `${track.bpm} BPM` : '—'}
+      </div>
+      <div className="hidden w-12 shrink-0 text-right text-xs text-muted-foreground lg:block">
+        {track.musicalKey || '—'}
+      </div>
+
       <div className="hidden shrink-0 text-xs text-muted-foreground xl:block">
         {formatDate(track.createdAt)}
       </div>
@@ -123,6 +132,10 @@ export function TrackRow({
           <DropdownMenuItem onClick={onShare}>
             <Share2 className="size-4" />
             Teilen
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onVersions}>
+            <Layers className="size-4" />
+            Versionen
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="size-4" />
