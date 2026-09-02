@@ -9,14 +9,17 @@ import { AppNav } from '@/components/app/app-nav'
 import { PlaylistCard } from '@/components/app/playlist-card'
 import { CreatePlaylistDialog } from '@/components/app/create-playlist-dialog'
 import { UsageBar } from '@/components/app/usage-bar'
+import { SharedItemsList } from '@/components/app/shared-items-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Reveal } from '@/components/reveal'
 import { accountApi, playlistApi, ApiError } from '@/lib/api'
-import type { Playlist, StorageSummary } from '@/lib/types'
+import type { Playlist, SavedShare, StorageSummary } from '@/lib/types'
 
 export default function LibraryPage() {
   const [playlists, setPlaylists] = useState<Playlist[] | null>(null)
   const [storage, setStorage] = useState<StorageSummary | null>(null)
+  const [saved, setSaved] = useState<SavedShare[]>([])
+  const [tab, setTab] = useState<'own' | 'shared'>('own')
 
   useEffect(() => {
     playlistApi
@@ -32,6 +35,11 @@ export default function LibraryPage() {
       .storage()
       .then(setStorage)
       .catch(() => setStorage(null))
+
+    accountApi
+      .savedShares()
+      .then(setSaved)
+      .catch(() => setSaved([]))
   }, [])
 
   const storageWarning =
@@ -66,9 +74,46 @@ export default function LibraryPage() {
                   Alle deine Playlists an einem Ort.
                 </p>
               </div>
-              <CreatePlaylistDialog onCreated={handleCreated} />
+              {tab === 'own' && <CreatePlaylistDialog onCreated={handleCreated} />}
             </div>
 
+            {saved.length > 0 && (
+              <div className="mb-6 flex gap-1 rounded-xl bg-muted/60 p-1 text-sm sm:w-fit">
+                {(
+                  [
+                    ['own', 'Meine Playlists'],
+                    ['shared', `Von anderen (${saved.length})`],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setTab(value)}
+                    className={
+                      'flex-1 rounded-lg px-3 py-1.5 font-medium transition-colors sm:flex-none ' +
+                      (tab === value
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground')
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {tab === 'shared' ? (
+              <SharedItemsList
+                items={saved}
+                onRemoved={(id) => {
+                  setSaved((prev) => {
+                    const next = prev.filter((s) => s._id !== id)
+                    if (next.length === 0) setTab('own')
+                    return next
+                  })
+                }}
+              />
+            ) : (
+              <>
             {storageWarning && storage && (
               <Link
                 href="/usage"
@@ -116,6 +161,8 @@ export default function LibraryPage() {
                   </Reveal>
                 ))}
               </div>
+            )}
+              </>
             )}
           </main>
         </div>

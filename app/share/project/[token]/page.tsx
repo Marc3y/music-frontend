@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { Download, FileArchive, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/logo'
+import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
 
 export default function ShareProjectPage({
@@ -73,6 +74,8 @@ export default function ShareProjectPage({
               <Download className="size-4" />
               Projekt herunterladen
             </a>
+
+            <AddToLibraryButton token={token} type="project" />
           </>
         )}
       </motion.div>

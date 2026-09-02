@@ -1,4 +1,11 @@
-import type { AudioFile, Playlist, StorageSummary, UsageInfo, User } from './types'
+import type {
+  AudioFile,
+  Playlist,
+  SavedShare,
+  StorageSummary,
+  UsageInfo,
+  User,
+} from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.marcey.xyz'
 
@@ -133,6 +140,12 @@ export const accountApi = {
   storage: () => apiClient<StorageSummary>('/account/storage'),
 
   usage: () => apiClient<UsageInfo>('/account/usage'),
+
+  savedShares: () => apiClient<SavedShare[]>('/account/saved-shares'),
+  addSavedShare: (body: { token: string; type: 'audio' | 'project' }) =>
+    apiClient<{ message: string }>('/account/saved-shares', { method: 'POST', body }),
+  removeSavedShare: (id: string) =>
+    apiClient<{ message: string }>(`/account/saved-shares/${id}`, { method: 'DELETE' }),
 
   updateUsername: (username: string) =>
     apiClient<User>('/account/username', { method: 'PATCH', body: { username } }),

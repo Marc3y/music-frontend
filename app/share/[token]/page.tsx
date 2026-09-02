@@ -6,6 +6,7 @@ import { motion } from 'motion/react'
 import { Download, Loader2, Music, Pause, Play } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
+import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
 
@@ -140,6 +141,8 @@ export default function SharePage({
                 Projektdatei herunterladen
               </a>
             )}
+
+            <AddToLibraryButton token={token} type="audio" />
           </>
         )}
       </motion.div>

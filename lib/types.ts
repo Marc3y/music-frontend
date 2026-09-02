@@ -46,6 +46,19 @@ export interface UsageInfo extends StorageSummary {
   projects: UsageProject[]
 }
 
+export interface SavedShare {
+  _id: string
+  type: 'audio' | 'project'
+  token: string
+  title: string
+  artist?: string
+  bpm?: number | null
+  musicalKey?: string | null
+  projectFilename?: string
+  projectSize?: number
+  addedAt: string
+}
+
 export type AudioStatus = 'processing' | 'ready' | 'failed'
 
 export interface TrackVersion {

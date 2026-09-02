@@ -29,6 +29,15 @@ function mergeVisibleOrder(full: AudioFile[], visible: AudioFile[]): AudioFile[]
   return full.map((t) => (visibleIds.has(t._id) ? visible[vi++] : t))
 }
 
+// Hat der Eintrag auf der Hauptversion eine Projektdatei?
+function hasSelectedProject(t: AudioFile): boolean {
+  return !!t.versions?.find((v) => v._id === t.selectedVersionId)?.projectFilename
+}
+// Zählt der Eintrag als "Projekt" (reiner Projekt-Eintrag ODER Audio mit verknüpftem Projekt)?
+function countsAsProject(t: AudioFile): boolean {
+  return (t.kind ?? 'track') === 'project' || hasSelectedProject(t)
+}
+
 const POLL_INTERVAL = 4000
 
 export default function PlaylistPage({
@@ -402,7 +411,7 @@ export default function PlaylistPage({
                       {(() => {
                         const t = tracks ?? []
                         const audio = t.filter((x) => (x.kind ?? 'track') !== 'project').length
-                        const projects = t.length - audio
+                        const projects = t.filter(countsAsProject).length
                         const versions = t.reduce((s, x) => s + (x.versions?.length ?? 0), 0)
                         return `${audio} ${audio === 1 ? 'Track' : 'Tracks'} · ${versions} ${versions === 1 ? 'Version' : 'Versionen'} · ${projects} ${projects === 1 ? 'Projekt' : 'Projekte'}`
                       })()}
@@ -457,13 +466,13 @@ export default function PlaylistPage({
             ) : (
               (() => {
                 const hasAudio = tracks.some((t) => (t.kind ?? 'track') !== 'project')
-                const hasProjects = tracks.some((t) => (t.kind ?? 'track') === 'project')
+                const hasProjects = tracks.some(countsAsProject)
                 const visibleTracks =
                   filter === 'all'
                     ? tracks
                     : tracks.filter((t) =>
                         filter === 'projects'
-                          ? (t.kind ?? 'track') === 'project'
+                          ? countsAsProject(t)
                           : (t.kind ?? 'track') !== 'project',
                       )
                 return (
@@ -502,6 +511,7 @@ export default function PlaylistPage({
                       <ReorderableTrackList
                         playlistId={id}
                         tracks={visibleTracks}
+                        projectView={filter === 'projects'}
                         fallbackCoverUrl={playlist?.coverUrl}
                         currentId={player.current?.id ?? null}
                         isPlaying={player.isPlaying}
@@ -542,6 +552,7 @@ export default function PlaylistPage({
       <ShareTrackDialog
         track={sharingTrack}
         open={sharingTrack !== null}
+        forceProject={filter === 'projects'}
         onOpenChange={(open) => !open && setSharingTrack(null)}
         onUpdated={handleTrackUpdated}
       />

@@ -14,6 +14,7 @@ const MOVE_CANCEL_THRESHOLD = 6
 export function ReorderableTrackList({
   playlistId,
   tracks,
+  projectView,
   fallbackCoverUrl,
   currentId,
   isPlaying,
@@ -28,6 +29,7 @@ export function ReorderableTrackList({
 }: {
   playlistId: string
   tracks: AudioFile[]
+  projectView?: boolean
   fallbackCoverUrl?: string | null
   currentId: string | null
   isPlaying: boolean
@@ -197,6 +199,7 @@ export function ReorderableTrackList({
               <div className="min-w-0 flex-1">
                 <TrackRow
                   track={track}
+                  projectView={projectView}
                   fallbackCoverUrl={fallbackCoverUrl}
                   isCurrent={currentId === track._id}
                   isPlaying={isPlaying}

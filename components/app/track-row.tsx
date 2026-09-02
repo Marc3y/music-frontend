@@ -11,12 +11,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { TrackProjectPanel } from '@/components/app/track-project-panel'
-import { formatDate, formatTime } from '@/lib/format'
+import { formatBytes, formatDate, formatTime } from '@/lib/format'
 import { audioApi, ApiError } from '@/lib/api'
 import type { AudioFile } from '@/lib/types'
 
 export function TrackRow({
   track,
+  projectView,
   fallbackCoverUrl,
   isCurrent,
   isPlaying,
@@ -29,6 +30,7 @@ export function TrackRow({
   onDeleted,
 }: {
   track: AudioFile
+  projectView?: boolean
   fallbackCoverUrl?: string | null
   isCurrent: boolean
   isPlaying: boolean
@@ -45,7 +47,11 @@ export function TrackRow({
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const displayCover = track.coverUrl || fallbackCoverUrl
-  const shared = isProject ? track.projectShareEnabled : track.shareEnabled
+
+  const selVersion = track.versions?.find((v) => v._id === track.selectedVersionId)
+  // In der Projekt-Ansicht auch Audio-mit-Projekt als Projekt darstellen
+  const showAsProject = isProject || (!!projectView && !!selVersion?.projectFilename)
+  const shared = showAsProject ? track.projectShareEnabled : track.shareEnabled
 
   async function handleDelete() {
     try {
@@ -65,7 +71,7 @@ export function TrackRow({
         (isCurrent ? ' bg-card/60' : '')
       }
     >
-      {isProject ? (
+      {showAsProject ? (
         <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
           {displayCover ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -104,17 +110,17 @@ export function TrackRow({
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{track.title}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {isProject
-            ? 'Projekt'
+          {showAsProject
+            ? selVersion?.projectFilename || 'Projekt'
             : track.artist || 'Unbekannter Interpret'}
         </p>
       </div>
 
       <div className="hidden w-16 shrink-0 text-right text-xs text-muted-foreground lg:block">
-        {isProject ? '' : track.bpm ? `${track.bpm} BPM` : '—'}
+        {showAsProject ? '' : track.bpm ? `${track.bpm} BPM` : '—'}
       </div>
       <div className="hidden w-12 shrink-0 text-right text-xs text-muted-foreground lg:block">
-        {isProject ? '' : track.musicalKey || '—'}
+        {showAsProject ? '' : track.musicalKey || '—'}
       </div>
 
       <div className="hidden shrink-0 text-xs text-muted-foreground xl:block">
@@ -122,8 +128,8 @@ export function TrackRow({
       </div>
 
       <div className="hidden shrink-0 text-xs text-muted-foreground sm:block">
-        {isProject ? (
-          'Projekt'
+        {showAsProject ? (
+          selVersion?.projectSize ? formatBytes(selVersion.projectSize) : 'Projekt'
         ) : track.status === 'processing' ? (
           <span className="flex items-center gap-1.5">
             <Loader2 className="size-3 animate-spin" />

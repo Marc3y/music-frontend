@@ -22,15 +22,17 @@ function errMsg(err: unknown, fallback: string) {
 export function ShareTrackDialog({
   track,
   open,
+  forceProject,
   onOpenChange,
   onUpdated,
 }: {
   track: AudioFile | null
   open: boolean
+  forceProject?: boolean
   onOpenChange: (open: boolean) => void
   onUpdated: (track: AudioFile) => void
 }) {
-  const isProject = track?.kind === 'project'
+  const isProject = track?.kind === 'project' || !!forceProject
   const [loading, setLoading] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
