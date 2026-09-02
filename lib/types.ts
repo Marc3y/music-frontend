@@ -15,6 +15,24 @@ export interface Playlist {
   updatedAt: string
 }
 
+export interface StorageSummary {
+  used: number
+  limit: number
+}
+
+export interface UsageTrack {
+  _id: string
+  title: string
+  fileSize: number
+  playlistId: string
+  playlistName: string | null
+  status: AudioStatus
+}
+
+export interface UsageInfo extends StorageSummary {
+  tracks: UsageTrack[]
+}
+
 export type AudioStatus = 'processing' | 'ready' | 'failed'
 
 export interface AudioFile {

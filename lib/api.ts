@@ -1,4 +1,4 @@
-import type { AudioFile, Playlist, User } from './types'
+import type { AudioFile, Playlist, StorageSummary, UsageInfo, User } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.marcey.xyz'
 
@@ -129,6 +129,10 @@ export const authApi = {
 
 export const accountApi = {
   me: () => apiClient<User>('/account/me'),
+
+  storage: () => apiClient<StorageSummary>('/account/storage'),
+
+  usage: () => apiClient<UsageInfo>('/account/usage'),
 
   updateUsername: (username: string) =>
     apiClient<User>('/account/username', { method: 'PATCH', body: { username } }),

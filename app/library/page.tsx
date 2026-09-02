@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Music } from 'lucide-react'
 import { toast } from 'sonner'
@@ -7,13 +8,15 @@ import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
 import { PlaylistCard } from '@/components/app/playlist-card'
 import { CreatePlaylistDialog } from '@/components/app/create-playlist-dialog'
+import { UsageBar } from '@/components/app/usage-bar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Reveal } from '@/components/reveal'
-import { playlistApi, ApiError } from '@/lib/api'
-import type { Playlist } from '@/lib/types'
+import { accountApi, playlistApi, ApiError } from '@/lib/api'
+import type { Playlist, StorageSummary } from '@/lib/types'
 
 export default function LibraryPage() {
   const [playlists, setPlaylists] = useState<Playlist[] | null>(null)
+  const [storage, setStorage] = useState<StorageSummary | null>(null)
 
   useEffect(() => {
     playlistApi
@@ -23,7 +26,16 @@ export default function LibraryPage() {
         toast.error(err instanceof ApiError ? err.message : 'Playlists konnten nicht geladen werden')
         setPlaylists([])
       })
+
+    // Speicher-Balken ist optional – Fehler still schlucken
+    accountApi
+      .storage()
+      .then(setStorage)
+      .catch(() => setStorage(null))
   }, [])
+
+  const storageWarning =
+    storage && storage.limit > 0 && storage.used / storage.limit > 0.8
 
   function handleCreated(playlist: Playlist) {
     setPlaylists((prev) => [playlist, ...(prev ?? [])])
@@ -56,6 +68,21 @@ export default function LibraryPage() {
               </div>
               <CreatePlaylistDialog onCreated={handleCreated} />
             </div>
+
+            {storageWarning && storage && (
+              <Link
+                href="/usage"
+                className="mb-8 flex flex-col gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-4 transition-colors hover:bg-amber-500/10"
+              >
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="font-medium">
+                    Dein Speicher ist zu {Math.round((storage.used / storage.limit) * 100)} % voll
+                  </span>
+                  <span className="text-xs text-muted-foreground">Speicher verwalten →</span>
+                </div>
+                <UsageBar used={storage.used} limit={storage.limit} />
+              </Link>
+            )}
 
             {playlists === null ? (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

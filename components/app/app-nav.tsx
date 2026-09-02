@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'motion/react'
-import { ChevronDown, LogOut, Settings, User } from 'lucide-react'
+import { ChevronDown, HardDrive, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import {
   DropdownMenu,
@@ -67,6 +67,10 @@ export function AppNav() {
             <DropdownMenuItem onClick={() => router.push('/settings')}>
               <Settings className="size-4" />
               Account-Einstellungen
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/usage')}>
+              <HardDrive className="size-4" />
+              Usage
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={handleLogout}>
