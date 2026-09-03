@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { AuthShell } from '@/components/auth/auth-shell'
+import { GoogleButton } from '@/components/auth/google-button'
+import { AuthDivider } from '@/components/auth/auth-divider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -54,6 +56,9 @@ function LoginInner() {
         </>
       }
     >
+      <GoogleButton next={next ?? undefined} />
+      <AuthDivider />
+
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">{t('auth.emailLabel')}</Label>

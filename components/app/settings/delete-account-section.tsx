@@ -22,8 +22,9 @@ import { accountApi, ApiError } from '@/lib/api'
 
 export function DeleteAccountSection() {
   const router = useRouter()
-  const { setUser } = useAuth()
+  const { user, setUser } = useAuth()
   const t = useT()
+  const isGoogle = user?.hasPassword === false
 
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<'confirm' | 'code'>('confirm')
@@ -45,7 +46,7 @@ export function DeleteAccountSection() {
     setError(null)
     setLoading(true)
     try {
-      await accountApi.requestDeletion(password)
+      await accountApi.requestDeletion(isGoogle ? undefined : password)
       toast.success(t('toast.verificationCodeSent'))
       setStep('code')
     } catch (err) {
@@ -98,20 +99,26 @@ export function DeleteAccountSection() {
             <form onSubmit={handleRequest} className="flex flex-col gap-4">
               <DialogHeader>
                 <DialogTitle>{t('settings.deleteConfirmTitle')}</DialogTitle>
-                <DialogDescription>{t('settings.deleteConfirmBody')}</DialogDescription>
+                <DialogDescription>
+                  {isGoogle
+                    ? t('settings.deleteGoogleBody')
+                    : t('settings.deleteConfirmBody')}
+                </DialogDescription>
               </DialogHeader>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="delete-password">{t('auth.passwordLabel')}</Label>
-                <Input
-                  id="delete-password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+              {!isGoogle && (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="delete-password">{t('auth.passwordLabel')}</Label>
+                  <Input
+                    id="delete-password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              )}
 
               {error && (
                 <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -128,7 +135,11 @@ export function DeleteAccountSection() {
                 >
                   {t('common.cancel')}
                 </Button>
-                <Button type="submit" variant="destructive" disabled={loading || !password}>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  disabled={loading || (!isGoogle && !password)}
+                >
                   {loading && <Loader2 className="size-4 animate-spin" />}
                   {t('settings.requestDeleteCode')}
                 </Button>

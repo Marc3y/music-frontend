@@ -124,6 +124,20 @@ export const authApi = {
       skipRefresh: true,
     }),
 
+  google: (body: { accessToken: string }) =>
+    apiClient<{ user: User } | { needsUsername: true; email: string }>('/auth/google', {
+      method: 'POST',
+      body,
+      skipRefresh: true,
+    }),
+
+  googleComplete: (body: { accessToken: string; username: string }) =>
+    apiClient<{ user: User }>('/auth/google/complete', {
+      method: 'POST',
+      body,
+      skipRefresh: true,
+    }),
+
   logout: () => apiClient<{ message: string }>('/auth/logout', { method: 'POST' }),
 
   forgotPassword: (body: { email: string }) =>
@@ -169,10 +183,10 @@ export const accountApi = {
       body: { code },
     }),
 
-  requestDeletion: (password: string) =>
+  requestDeletion: (password?: string) =>
     apiClient<{ message: string }>('/account/delete/request', {
       method: 'POST',
-      body: { password },
+      body: password ? { password } : {},
     }),
 
   confirmDeletion: (code: string) =>

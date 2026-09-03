@@ -90,7 +90,17 @@
     "verifyResend": "Resend code",
     "verifyResendSuccess": "If the email exists, a new code has been sent.",
     "verifyResendFailed": "Sending failed.",
-    "verifyEnterEmailFirst": "Please enter your email address first."
+    "verifyEnterEmailFirst": "Please enter your email address first.",
+
+    "continueWithGoogle": "Continue with Google",
+    "orDivider": "or",
+    "googleSigningIn": "Signing you in…",
+    "googleFailed": "Google sign-in failed. Please try again.",
+    "googleFailedTitle": "Sign-in failed",
+    "chooseUsernameTitle": "Choose a username",
+    "chooseUsernameSubtitle": "Almost done — pick a username for your account.",
+    "usernameTaken": "This username is already taken.",
+    "finishSignup": "Finish sign-up"
   },
 
   "landing": {
@@ -224,6 +234,8 @@
 
     "passwordTitle": "Change password",
     "passwordDesc": "For security you confirm the change with a code from your email. You will be signed out afterwards.",
+    "googlePasswordNote": "You signed in with Google, so there is no password to manage here.",
+    "deleteGoogleBody": "This action is final. All your playlists, uploaded tracks and images will be deleted from the server. We'll send a confirmation code to your email.",
     "currentPassword": "Current password",
     "newPassword": "New password",
     "repeatNewPassword": "Repeat new password",

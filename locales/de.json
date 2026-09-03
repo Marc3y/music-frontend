@@ -90,7 +90,17 @@
     "verifyResend": "Code erneut senden",
     "verifyResendSuccess": "Falls die E-Mail existiert, wurde ein neuer Code gesendet.",
     "verifyResendFailed": "Senden fehlgeschlagen.",
-    "verifyEnterEmailFirst": "Bitte gib zuerst deine E-Mail-Adresse ein."
+    "verifyEnterEmailFirst": "Bitte gib zuerst deine E-Mail-Adresse ein.",
+
+    "continueWithGoogle": "Mit Google fortfahren",
+    "orDivider": "oder",
+    "googleSigningIn": "Anmeldung läuft…",
+    "googleFailed": "Google-Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
+    "googleFailedTitle": "Anmeldung fehlgeschlagen",
+    "chooseUsernameTitle": "Username wählen",
+    "chooseUsernameSubtitle": "Fast fertig — wähle einen Username für dein Konto.",
+    "usernameTaken": "Dieser Username ist bereits vergeben.",
+    "finishSignup": "Registrierung abschließen"
   },
 
   "landing": {
@@ -224,6 +234,8 @@
 
     "passwordTitle": "Passwort ändern",
     "passwordDesc": "Aus Sicherheitsgründen bestätigst du die Änderung mit einem Code aus deiner E-Mail. Danach wirst du abgemeldet.",
+    "googlePasswordNote": "Du hast dich mit Google angemeldet – hier gibt es kein Passwort zu verwalten.",
+    "deleteGoogleBody": "Diese Aktion ist endgültig. Alle deine Playlists, hochgeladenen Tracks und Bilder werden vom Server gelöscht. Wir senden dir einen Bestätigungscode per E-Mail.",
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
     "repeatNewPassword": "Neues Passwort wiederholen",

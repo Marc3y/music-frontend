@@ -14,7 +14,7 @@ import { accountApi, ApiError } from '@/lib/api'
 
 export function PasswordSection() {
   const router = useRouter()
-  const { setUser } = useAuth()
+  const { user, setUser } = useAuth()
   const t = useT()
 
   const [step, setStep] = useState<'form' | 'code'>('form')
@@ -62,6 +62,14 @@ export function PasswordSection() {
       setError(err instanceof ApiError ? err.message : t('settings.confirmFailed'))
       setLoading(false)
     }
+  }
+
+  if (user && user.hasPassword === false) {
+    return (
+      <SettingsCard title={t('settings.passwordTitle')}>
+        <p className="text-sm text-muted-foreground">{t('settings.googlePasswordNote')}</p>
+      </SettingsCard>
+    )
   }
 
   return (

@@ -1,20 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState, type FormEvent } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AuthShell } from '@/components/auth/auth-shell'
+import { GoogleButton } from '@/components/auth/google-button'
+import { AuthDivider } from '@/components/auth/auth-divider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 
-export default function RegisterPage() {
+function RegisterInner() {
   const router = useRouter()
   const t = useT()
+  const nextParam = useSearchParams().get('next')
+  const next = nextParam && nextParam.startsWith('/') ? nextParam : undefined
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -56,6 +60,9 @@ export default function RegisterPage() {
         </>
       }
     >
+      <GoogleButton next={next} />
+      <AuthDivider />
+
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">{t('auth.emailLabel')}</Label>
@@ -108,5 +115,13 @@ export default function RegisterPage() {
         </Button>
       </form>
     </AuthShell>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterInner />
+    </Suspense>
   )
 }
