@@ -1,15 +1,29 @@
 'use client'
 
+import { memo } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 type Variant = 'page' | 'auth' | 'minimal'
 
+const DRIFT = {
+  animate: { x: [0, 24, -12, 0], y: [0, -18, 12, 0], scale: [1, 1.06, 0.97, 1] },
+  transition: { duration: 26, repeat: Infinity, ease: 'easeInOut' as const },
+}
+const DRIFT2 = {
+  animate: { x: [0, -28, 14, 0], y: [0, 16, -14, 0], scale: [1, 0.95, 1.05, 1] },
+  transition: { duration: 32, repeat: Infinity, ease: 'easeInOut' as const },
+}
+
 /**
  * Ruhiger Seitenhintergrund: ein kühler + ein warmer weicher Blob, dazu ein
  * sehr feines Raster. Ersetzt die überall duplizierten inline-Gradient-Blöcke.
+ *
+ * `memo` + module-level animation configs: the page re-renders on every dialog
+ * open/close, and without this the drifting blobs' keyframe animations would
+ * restart on each render and visibly jump.
  */
-export function AuroraBackground({
+export const AuroraBackground = memo(function AuroraBackground({
   variant = 'page',
   className,
 }: {
@@ -17,19 +31,8 @@ export function AuroraBackground({
   className?: string
 }) {
   const reduce = useReducedMotion()
-
-  const drift = reduce
-    ? {}
-    : {
-        animate: { x: [0, 24, -12, 0], y: [0, -18, 12, 0], scale: [1, 1.06, 0.97, 1] },
-        transition: { duration: 26, repeat: Infinity, ease: 'easeInOut' as const },
-      }
-  const drift2 = reduce
-    ? {}
-    : {
-        animate: { x: [0, -28, 14, 0], y: [0, 16, -14, 0], scale: [1, 0.95, 1.05, 1] },
-        transition: { duration: 32, repeat: Infinity, ease: 'easeInOut' as const },
-      }
+  const drift = reduce ? {} : DRIFT
+  const drift2 = reduce ? {} : DRIFT2
 
   return (
     <div
@@ -64,4 +67,4 @@ export function AuroraBackground({
       />
     </div>
   )
-}
+})

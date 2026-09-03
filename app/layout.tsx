@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/lib/auth-context'
 import { PlayerProvider } from '@/lib/player-context'
 import { ThemeProvider } from '@/lib/theme-context'
@@ -8,9 +8,11 @@ import { GlobalPlayer } from '@/components/player/global-player'
 import { AppToaster } from '@/components/app-toaster'
 import './globals.css'
 
-const geistSans = Geist({
+// Loaded as the fallback for non-Apple platforms; Apple devices use their
+// native SF Pro via the `-apple-system` entry in --font-sans (globals.css).
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-geist-sans',
+  variable: '--font-inter',
 })
 
 const geistMono = Geist_Mono({
@@ -42,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable}`}
+      className={`dark ${inter.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <head>

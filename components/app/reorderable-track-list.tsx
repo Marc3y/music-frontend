@@ -159,6 +159,11 @@ export function ReorderableTrackList({
     clearLongPress()
   }
 
+  // `layout` re-measures every row on every commit — while idle that turns any
+  // sub-pixel reflow (e.g. a dialog's scroll-lock toggling the scrollbar) into a
+  // visible flicker. Only enable it while a drag is actually happening.
+  const reordering = draggingId !== null
+
   return (
     <div className="flex flex-col gap-1">
       {tracks.map((track) => {
@@ -166,7 +171,7 @@ export function ReorderableTrackList({
         return (
           <motion.div
             key={track._id}
-            layout
+            layout={reordering ? 'position' : false}
             transition={{ type: 'spring', stiffness: 500, damping: 40 }}
             ref={(el) => {
               if (el) rowRefs.current.set(track._id, el)

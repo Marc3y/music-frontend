@@ -34,7 +34,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    var(--font-inter), 'Inter Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) * 0.6);

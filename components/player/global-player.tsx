@@ -21,6 +21,7 @@ import { usePlayer } from '@/lib/player-context'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { ease, spring } from '@/lib/motion'
+import { useCoverGlow } from '@/lib/use-cover-glow'
 import { Slider } from '@/components/ui/slider'
 import { useWaveSurfer } from './use-wavesurfer'
 import { BarsWaveform } from './bars-waveform'
@@ -33,6 +34,7 @@ export function GlobalPlayer() {
   const { current, isPlaying, isLoading, shuffle, loop, expanded } = player
   const progress = duration > 0 ? currentTime / duration : 0
   const hasTrack = Boolean(current)
+  const coverGlow = useCoverGlow(current?.coverUrl)
 
   function seekFromClientX(el: HTMLElement, clientX: number) {
     const rect = el.getBoundingClientRect()
@@ -48,21 +50,23 @@ export function GlobalPlayer() {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 34, stiffness: 320, mass: 0.9 }}
+            transition={{ duration: 0.46, ease: [0.32, 0.72, 0, 1] }}
             className="fixed inset-0 z-[70] flex flex-col bg-background"
           >
             <div
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none absolute inset-0 transition-[background] duration-700 ease-out"
               style={{
-                background:
-                  'radial-gradient(110% 60% at 50% -5%, var(--glow-cool), transparent 62%)',
+                background: coverGlow
+                  ? `radial-gradient(120% 62% at 50% -8%, rgb(${coverGlow} / 0.5), transparent 60%)`
+                  : 'radial-gradient(110% 60% at 50% -5%, var(--glow-cool), transparent 62%)',
               }}
             />
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 transition-[background] duration-700 ease-out"
               style={{
-                background:
-                  'radial-gradient(80% 100% at 80% 100%, var(--glow-warm), transparent 70%)',
+                background: coverGlow
+                  ? `radial-gradient(80% 100% at 78% 100%, rgb(${coverGlow} / 0.32), transparent 70%)`
+                  : 'radial-gradient(80% 100% at 80% 100%, var(--glow-warm), transparent 70%)',
               }}
             />
 
@@ -86,7 +90,17 @@ export function GlobalPlayer() {
                 initial={{ scale: 0.86, opacity: 0, y: 24 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 transition={{ ...spring.soft, delay: 0.08 }}
-                className="relative aspect-square w-full max-w-[19rem] overflow-hidden rounded-[2rem] glow-primary"
+                style={
+                  coverGlow
+                    ? {
+                        boxShadow: `0 32px 120px -24px rgb(${coverGlow} / 0.65), 0 0 60px -12px rgb(${coverGlow} / 0.45)`,
+                      }
+                    : undefined
+                }
+                className={cn(
+                  'relative aspect-square w-full max-w-[19rem] overflow-hidden rounded-[2rem] transition-shadow duration-700 ease-out',
+                  !coverGlow && 'glow-primary',
+                )}
               >
                 {current.coverUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element

@@ -1,14 +1,13 @@
 'use client'
 
-import { motion, useReducedMotion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { motion, useInView, useReducedMotion } from 'motion/react'
+import { useRef, type ReactNode } from 'react'
 import { ease } from '@/lib/motion'
 
 export function Reveal({
   children,
   className,
   delayIndex = 0,
-  once = true,
   y = 20,
 }: {
   children: ReactNode
@@ -18,14 +17,26 @@ export function Reveal({
   y?: number
 }) {
   const reduce = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null)
+  // `once: true` latches — stays true across re-renders, so closing a dialog
+  // (or any parent re-render) can never snap the content back to hidden.
+  const inView = useInView(ref, { once: true, amount: 0.25 })
+
+  if (reduce) {
+    return (
+      <div ref={ref} className={className}>
+        {children}
+      </div>
+    )
+  }
 
   return (
     <motion.div
+      ref={ref}
       className={className}
-      initial={reduce ? false : { opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y }}
       transition={{ duration: 0.6, delay: delayIndex * 0.07, ease: ease.out }}
-      viewport={{ once, amount: 0.25 }}
     >
       {children}
     </motion.div>

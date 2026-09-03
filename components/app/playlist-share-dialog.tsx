@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { playlistApi, ApiError } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import type { Playlist } from '@/lib/types'
 
 function errMsg(err: unknown, fallback: string) {
@@ -282,11 +283,15 @@ export function PlaylistShareDialog({
             )}
           </section>
 
-          {busy && (
-            <p className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> Speichert…
-            </p>
-          )}
+          <p
+            className={cn(
+              'flex h-4 items-center gap-2 text-xs text-muted-foreground transition-opacity duration-200',
+              busy ? 'opacity-100' : 'opacity-0',
+            )}
+            aria-hidden={!busy}
+          >
+            <Loader2 className="size-3.5 animate-spin" /> Speichert…
+          </p>
         </div>
       </DialogContent>
     </Dialog>
