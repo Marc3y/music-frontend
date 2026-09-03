@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from 'react'
 import { accountApi, authApi } from './api'
-import { getSupabase, googleOAuthConfigured } from './supabase'
 import type { User } from './types'
 
 const STORAGE_KEY = 'music.user'
@@ -89,13 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout()
     } finally {
-      if (googleOAuthConfigured) {
-        try {
-          await getSupabase().auth.signOut()
-        } catch {
-          /* ignore */
-        }
-      }
       setUser(null)
     }
   }, [setUser])
