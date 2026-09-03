@@ -3,6 +3,20 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import { usePlayer } from '@/lib/player-context'
+import { useTheme } from '@/lib/theme-context'
+
+function waveColors() {
+  if (typeof window === 'undefined') {
+    return { waveColor: 'rgba(120,120,140,0.3)', progressColor: '#5b6ee0' }
+  }
+  const cs = getComputedStyle(document.documentElement)
+  const primary = cs.getPropertyValue('--primary').trim() || '#5b6ee0'
+  const mutedFg = cs.getPropertyValue('--muted-foreground').trim() || '#8a8a9c'
+  return {
+    waveColor: `color-mix(in oklch, ${mutedFg}, transparent 62%)`,
+    progressColor: primary,
+  }
+}
 
 interface WaveSurferState {
   currentTime: number
@@ -20,6 +34,7 @@ export function useWaveSurfer(
   containerRef: RefObject<HTMLDivElement | null>,
 ): WaveSurferState {
   const { streamUrl, playToken, isPlaying, loop, volume, setIsPlaying, next } = usePlayer()
+  const { theme } = useTheme()
 
   const wsRef = useRef<WaveSurfer | null>(null)
   const shouldPlayRef = useRef(false)
@@ -42,8 +57,7 @@ export function useWaveSurfer(
     const ws = WaveSurfer.create({
       container: containerRef.current,
       height: 40,
-      waveColor: 'rgba(255,255,255,0.28)',
-      progressColor: '#a855f7',
+      ...waveColors(),
       cursorColor: 'transparent',
       barWidth: 2,
       barGap: 2,
@@ -117,6 +131,19 @@ export function useWaveSurfer(
   useEffect(() => {
     wsRef.current?.setVolume(volume)
   }, [volume])
+
+  // Re-tint the waveform when the theme changes (no reload).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const id = requestAnimationFrame(() => {
+      try {
+        wsRef.current?.setOptions(waveColors())
+      } catch {
+        /* ignore */
+      }
+    })
+    return () => cancelAnimationFrame(id)
+  }, [theme])
 
   const seekTo = (fraction: number) => {
     const ws = wsRef.current

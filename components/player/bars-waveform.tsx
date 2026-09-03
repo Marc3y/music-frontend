@@ -62,10 +62,14 @@ export function BarsWaveform({
           <div
             key={i}
             className={cn(
-              'flex-1 rounded-full transition-colors duration-150',
-              played ? 'bg-primary' : 'bg-foreground/20',
+              'flex-1 rounded-full transition-[background-color,transform] duration-200 ease-apple',
+              played ? 'bg-primary' : 'bg-muted-foreground/25',
             )}
-            style={{ height: `${Math.round(h * 100)}%` }}
+            style={{
+              height: `${Math.round(h * 100)}%`,
+              transform: played ? 'scaleY(1)' : 'scaleY(0.86)',
+              transformOrigin: 'center',
+            }}
           />
         )
       })}

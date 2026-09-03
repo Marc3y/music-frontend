@@ -5,16 +5,21 @@ import { motion } from 'motion/react'
 import {
   AudioLines,
   FolderPlus,
+  Play,
   Share2,
+  SkipBack,
+  SkipForward,
   Sparkles,
   UploadCloud,
   Waves,
 } from 'lucide-react'
 import { LandingNav } from '@/components/landing/landing-nav'
+import { AuroraBackground } from '@/components/aurora-background'
 import { Reveal } from '@/components/reveal'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
+import { ease, liftHover } from '@/lib/motion'
 
 const features = [
   {
@@ -55,14 +60,7 @@ export default function LandingPage() {
 
   return (
     <main className="relative min-h-dvh overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[600px]"
-        style={{
-          background:
-            'radial-gradient(80% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.28), transparent 70%)',
-        }}
-      />
+      <AuroraBackground variant="page" />
 
       <LandingNav />
 
@@ -72,7 +70,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur-xl"
+          className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs text-muted-foreground"
         >
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
@@ -106,16 +104,11 @@ export default function LandingPage() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
         >
-          <Button render={<Link href={primaryHref} />} size="lg" className="h-11 px-6 text-base">
+          <Button render={<Link href={primaryHref} />} size="lg">
             {user ? 'Zur Mediathek' : 'Kostenlos starten'}
           </Button>
           {!user && (
-            <Button
-              render={<Link href="/login" />}
-              variant="outline"
-              size="lg"
-              className="h-11 px-6 text-base"
-            >
+            <Button render={<Link href="/login" />} variant="outline" size="lg">
               Ich habe ein Konto
             </Button>
           )}
@@ -125,7 +118,7 @@ export default function LandingPage() {
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, delay: 0.35, ease: ease.out }}
           className="mt-20 w-full max-w-2xl"
         >
           <PlayerMock />
@@ -147,15 +140,22 @@ export default function LandingPage() {
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
             <Reveal key={f.title} delayIndex={i % 3}>
-              <div className="group h-full rounded-2xl border border-border bg-card/50 p-6 transition-colors hover:border-primary/40 hover:bg-card">
-                <div className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/12 text-primary transition-transform group-hover:scale-110">
+              <motion.div
+                {...liftHover}
+                className="group glass h-full rounded-2xl p-6 shadow-(--elevate-1) transition-shadow duration-300 hover:shadow-(--elevate-2)"
+              >
+                <motion.div
+                  whileHover={{ scale: 1.08, rotate: -3 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                  className="inline-flex size-11 items-center justify-center rounded-xl bg-primary/12 text-primary"
+                >
                   <f.icon className="size-5" />
-                </div>
+                </motion.div>
                 <h3 className="mt-5 text-lg font-medium">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {f.desc}
                 </p>
-              </div>
+              </motion.div>
             </Reveal>
           ))}
         </div>
@@ -164,12 +164,12 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="relative mx-auto max-w-6xl px-4 py-20">
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-card/60 px-6 py-16 text-center sm:px-16">
+          <div className="glass relative overflow-hidden rounded-3xl px-6 py-16 text-center shadow-(--elevate-2) sm:px-16">
             <div
               className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  'radial-gradient(60% 100% at 50% 100%, oklch(0.55 0.27 295 / 0.25), transparent 70%)',
+                  'radial-gradient(70% 120% at 15% 0%, var(--glow-cool), transparent 60%), radial-gradient(60% 120% at 100% 100%, var(--glow-warm), transparent 60%)',
               }}
             />
             <div className="relative">
@@ -182,7 +182,7 @@ export default function LandingPage() {
               <Button
                 render={<Link href={primaryHref} />}
                 size="lg"
-                className="mt-8 h-11 px-6 text-base"
+                className="mt-8"
               >
                 {user ? 'Zur Mediathek' : 'Jetzt starten'}
               </Button>
@@ -204,14 +204,25 @@ export default function LandingPage() {
 function PlayerMock() {
   const bars = Array.from({ length: 48 }, (_, i) => 0.2 + Math.abs(Math.sin(i * 0.5)) * 0.8)
   return (
-    <div className="rounded-3xl border border-border bg-card/70 p-5 shadow-2xl backdrop-blur-xl glow-primary">
+    <div className="glass rounded-3xl p-5 shadow-(--elevate-3) glow-primary">
       <div className="flex items-center gap-4">
-        <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
+        <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_24px_-8px_var(--primary)]">
           <AudioLines className="size-6 text-primary-foreground" />
         </div>
         <div className="min-w-0 flex-1 text-left">
           <p className="truncate font-medium">Midnight Frequencies</p>
           <p className="truncate text-sm text-muted-foreground">Nova</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1 rounded-full bg-secondary/60 p-1.5">
+          <span className="flex size-8 items-center justify-center rounded-full text-muted-foreground">
+            <SkipBack className="size-4" />
+          </span>
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-(--elevate-1)">
+            <Play className="size-4 translate-x-px fill-current" />
+          </span>
+          <span className="flex size-8 items-center justify-center rounded-full text-muted-foreground">
+            <SkipForward className="size-4" />
+          </span>
         </div>
       </div>
       <div className="mt-5 flex h-16 items-center gap-[3px]">

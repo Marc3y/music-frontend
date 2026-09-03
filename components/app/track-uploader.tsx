@@ -198,7 +198,7 @@ export const TrackUploader = forwardRef<
       </Button>
 
       {items.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card/60 p-3">
+        <div className="glass flex flex-col gap-2 rounded-2xl p-3 shadow-(--elevate-1)">
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-3 text-sm">
               <div className="min-w-0 flex-1">

@@ -7,6 +7,7 @@ import { motion } from 'motion/react'
 import { Loader2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Logo } from '@/components/logo'
+import { AuroraBackground } from '@/components/aurora-background'
 import { useAuth } from '@/lib/auth-context'
 import { playlistApi, ApiError } from '@/lib/api'
 
@@ -47,14 +48,14 @@ export default function JoinPlaylistPage({
 
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center px-4 py-16">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
+      <AuroraBackground variant="auth" />
       <Link href="/" className="relative mb-8">
         <Logo className="[&_span]:text-xl" />
       </Link>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-sm rounded-3xl border border-border bg-card/70 p-7 text-center shadow-2xl backdrop-blur-xl"
+        className="glass relative w-full max-w-sm rounded-3xl p-7 text-center shadow-(--elevate-3)"
       >
         {error ? (
           <>

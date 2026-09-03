@@ -8,6 +8,7 @@ import { ArrowLeft, ImagePlus, Music, Pencil, Share2, Trash2, Upload, X } from '
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
+import { AuroraBackground } from '@/components/aurora-background'
 import { TrackUploader, type TrackUploaderHandle } from '@/components/app/track-uploader'
 import { ReorderableTrackList } from '@/components/app/reorderable-track-list'
 import { EditTrackDialog } from '@/components/app/edit-track-dialog'
@@ -21,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
 import { useLibraryFilter } from '@/lib/use-library-filter'
+import { spring } from '@/lib/motion'
 import type { AudioFile, Playlist } from '@/lib/types'
 
 // Neue sichtbare Reihenfolge in die volle Liste zurückmergen (versteckte behalten Position)
@@ -278,14 +280,7 @@ export default function PlaylistPage({
         onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[400px]"
-          style={{
-            background:
-              'radial-gradient(70% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.18), transparent 70%)',
-          }}
-        />
+        <AuroraBackground variant="page" />
 
         <AnimatePresence>
           {isDragOver && (
@@ -293,15 +288,22 @@ export default function PlaylistPage({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="pointer-events-none fixed inset-0 z-[65] flex items-center justify-center bg-background/80 backdrop-blur-sm"
+              transition={{ duration: 0.2 }}
+              className="pointer-events-none fixed inset-0 z-[65] flex items-center justify-center bg-background/70 backdrop-blur-md"
             >
-              <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-primary/60 bg-card/80 px-12 py-10 text-center">
+              <motion.div
+                initial={{ scale: 0.94, y: 8 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.94, y: 8 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+                className="glass flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-primary/60 px-12 py-10 text-center shadow-(--elevate-3)"
+              >
                 <Upload className="size-8 text-primary" />
                 <p className="font-medium">Hier ablegen</p>
                 <p className="text-sm text-muted-foreground">
                   Audiodateien oder Projekte (.zip/.rar) werden hinzugefügt.
                 </p>
-              </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -328,9 +330,11 @@ export default function PlaylistPage({
               </div>
             ) : (
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
-                <div
+                <motion.div
+                  whileHover={{ y: -3 }}
+                  transition={spring.soft}
                   onDoubleClick={() => setCoverEditing(true)}
-                  className="relative size-32 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-xl select-none sm:size-40"
+                  className="group/cover relative size-32 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40"
                 >
                   {playlist.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -374,7 +378,7 @@ export default function PlaylistPage({
                       e.target.value = ''
                     }}
                   />
-                </div>
+                </motion.div>
                 <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">

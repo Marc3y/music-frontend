@@ -14,10 +14,7 @@ export function SettingsCard({
 }) {
   return (
     <section
-      className={cn(
-        'rounded-2xl border border-border bg-card/60 p-5 backdrop-blur-xl',
-        className,
-      )}
+      className={cn('glass rounded-2xl p-5 shadow-(--elevate-1)', className)}
     >
       <h2 className="text-base font-medium">{title}</h2>
       {description && (

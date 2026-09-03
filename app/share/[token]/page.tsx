@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { Download, Loader2, Music, Pause, Play } from 'lucide-react'
 import { Logo } from '@/components/logo'
+import { AuroraBackground } from '@/components/aurora-background'
 import { Button } from '@/components/ui/button'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
@@ -76,14 +77,7 @@ export default function SharePage({
 
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-16">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[500px]"
-        style={{
-          background:
-            'radial-gradient(70% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.25), transparent 70%)',
-        }}
-      />
+      <AuroraBackground variant="auth" />
 
       <Link href="/" className="relative mb-8">
         <Logo className="[&_span]:text-xl" />
@@ -93,7 +87,7 @@ export default function SharePage({
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-sm rounded-3xl border border-border bg-card/70 p-7 text-center shadow-2xl backdrop-blur-xl"
+        className="glass relative w-full max-w-sm rounded-3xl p-7 text-center shadow-(--elevate-3)"
       >
         {error ? (
           <p className="text-sm text-muted-foreground">{error}</p>

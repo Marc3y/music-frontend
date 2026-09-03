@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'motion/react'
 import { Music } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
+import { AuroraBackground } from '@/components/aurora-background'
 import { PlaylistCard } from '@/components/app/playlist-card'
 import { CreatePlaylistDialog } from '@/components/app/create-playlist-dialog'
 import { UsageBar } from '@/components/app/usage-bar'
@@ -79,14 +81,7 @@ export default function LibraryPage() {
   return (
     <RequireAuth>
       <div className="relative min-h-dvh pb-32">
-        <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[400px]"
-          style={{
-            background:
-              'radial-gradient(70% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.18), transparent 70%)',
-          }}
-        />
+        <AuroraBackground variant="page" />
 
         <div className="relative">
           <AppNav />
@@ -111,12 +106,19 @@ export default function LibraryPage() {
                     key={value}
                     onClick={() => setTab(value)}
                     className={
-                      'flex-1 rounded-lg px-3 py-1.5 font-medium transition-colors sm:flex-none ' +
+                      'relative flex-1 rounded-lg px-3 py-1.5 font-medium transition-colors sm:flex-none ' +
                       (tab === value
-                        ? 'bg-background text-foreground shadow-sm'
+                        ? 'text-foreground'
                         : 'text-muted-foreground hover:text-foreground')
                     }
                   >
+                    {tab === value && (
+                      <motion.span
+                        layoutId="library-tab"
+                        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                        className="absolute inset-0 -z-10 rounded-lg bg-background shadow-sm"
+                      />
+                    )}
                     {label}
                   </button>
                 ))}

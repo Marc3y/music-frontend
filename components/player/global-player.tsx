@@ -20,6 +20,7 @@ import {
 import { usePlayer } from '@/lib/player-context'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { ease, spring } from '@/lib/motion'
 import { Slider } from '@/components/ui/slider'
 import { useWaveSurfer } from './use-wavesurfer'
 import { BarsWaveform } from './bars-waveform'
@@ -33,6 +34,11 @@ export function GlobalPlayer() {
   const progress = duration > 0 ? currentTime / duration : 0
   const hasTrack = Boolean(current)
 
+  function seekFromClientX(el: HTMLElement, clientX: number) {
+    const rect = el.getBoundingClientRect()
+    seekTo((clientX - rect.left) / rect.width)
+  }
+
   return (
     <>
       {/* Expanded full-screen view */}
@@ -42,67 +48,82 @@ export function GlobalPlayer() {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 34, stiffness: 320, mass: 0.9 }}
             className="fixed inset-0 z-[70] flex flex-col bg-background"
           >
             <div
-              className="pointer-events-none absolute inset-0 opacity-60"
+              className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  'radial-gradient(120% 80% at 50% -10%, oklch(0.55 0.27 295 / 0.35), transparent 60%)',
+                  'radial-gradient(110% 60% at 50% -5%, var(--glow-cool), transparent 62%)',
               }}
             />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+              style={{
+                background:
+                  'radial-gradient(80% 100% at 80% 100%, var(--glow-warm), transparent 70%)',
+              }}
+            />
+
             <div className="relative z-10 flex items-center justify-between p-4 sm:p-6">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => player.setExpanded(false)}
                 className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label="Player schließen"
               >
                 <ChevronDown className="size-6" />
-              </button>
-              <span className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+              </motion.button>
+              <span className="text-[0.7rem] font-medium tracking-[0.2em] text-muted-foreground uppercase">
                 Wiedergabe
               </span>
               <div className="size-10" />
             </div>
 
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-6 pb-10">
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-10">
               <motion.div
-                initial={{ scale: 0.92, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="relative aspect-square w-full max-w-xs overflow-hidden rounded-3xl glow-primary"
+                initial={{ scale: 0.86, opacity: 0, y: 24 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{ ...spring.soft, delay: 0.08 }}
+                className="relative aspect-square w-full max-w-[19rem] overflow-hidden rounded-[2rem] glow-primary"
               >
                 {current.coverUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={current.coverUrl || '/placeholder.svg'}
-                    alt=""
-                    className="size-full object-cover"
-                  />
+                  <img src={current.coverUrl} alt="" className="size-full object-cover" />
                 ) : (
-                  <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/30 to-accent/20">
+                  <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/25 to-accent/20">
                     <Music className="size-20 text-foreground/40" />
                   </div>
                 )}
               </motion.div>
 
-              <div className="w-full max-w-md text-center">
-                <h2 className="truncate text-2xl font-semibold text-balance">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.16, ease: ease.out }}
+                className="w-full max-w-md text-center"
+              >
+                <h2 className="truncate text-2xl font-semibold tracking-tight text-balance">
                   {current.title}
                 </h2>
                 <p className="mt-1 truncate text-muted-foreground">
                   {current.artist || 'Unbekannter Interpret'}
                 </p>
-              </div>
+              </motion.div>
 
-              <div className="w-full max-w-md">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.22, ease: ease.out }}
+                className="w-full max-w-md"
+              >
                 <BarsWaveform peaks={peaks} progress={progress} onSeek={seekTo} />
-                <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground">
+                <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground tabular-nums">
                   <span>{formatTime(currentTime)}</span>
                   <span>{formatTime(duration || current.duration)}</span>
                 </div>
-              </div>
+              </motion.div>
 
               <Controls player={player} isPlaying={isPlaying} isLoading={isLoading} large />
 
@@ -113,95 +134,154 @@ export function GlobalPlayer() {
       </AnimatePresence>
 
       {/* Mini bar (always mounted so wavesurfer keeps its container) */}
-      <div
+      <motion.div
+        initial={false}
+        animate={{ y: hasTrack ? 0 : 96, opacity: hasTrack ? 1 : 0 }}
+        transition={spring.soft}
         className={cn(
-          'fixed inset-x-0 bottom-0 z-[60] transition-transform duration-500',
-          hasTrack ? 'translate-y-0' : 'translate-y-full',
+          'fixed inset-x-0 bottom-0 z-[60]',
+          !hasTrack && 'pointer-events-none',
         )}
       >
-        <div className="mx-auto max-w-6xl px-3 pb-3 sm:px-4 sm:pb-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/80 p-2.5 shadow-2xl backdrop-blur-xl sm:gap-4 sm:p-3">
-            <button
-              onClick={() => player.setExpanded(true)}
-              className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition-opacity hover:opacity-80"
-              aria-label="Player vergrößern"
-            >
-              <div className="relative size-11 shrink-0 overflow-hidden rounded-lg sm:size-12">
-                {current?.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={current.coverUrl || '/placeholder.svg'}
-                    alt=""
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/30 to-accent/20">
-                    <Music className="size-5 text-foreground/50" />
+        <div className="mx-auto max-w-xl px-3 pb-3 sm:px-4 sm:pb-4">
+          <div className="glass relative overflow-hidden rounded-2xl shadow-(--elevate-3)">
+                {/* progress line along the top edge */}
+                <div
+                  className="group/prog absolute inset-x-0 top-0 z-10 h-2 cursor-pointer"
+                  onClick={(e) => seekFromClientX(e.currentTarget, e.clientX)}
+                  role="slider"
+                  aria-label="Wiedergabeposition"
+                  aria-valuenow={Math.round(progress * 100)}
+                >
+                  <div className="absolute inset-x-0 top-0 h-[3px] bg-border transition-[height] duration-200 group-hover/prog:h-[5px]">
+                    <div
+                      className="h-full bg-primary transition-[width] duration-150 ease-linear"
+                      style={{ width: `${Math.max(progress * 100, 0)}%` }}
+                    />
                   </div>
-                )}
+                </div>
+
+                <div className="flex items-center gap-3 p-2.5 pt-3 sm:gap-4 sm:p-3 sm:pt-3.5">
+                  <button
+                    onClick={() => player.setExpanded(true)}
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition-opacity hover:opacity-80"
+                    aria-label="Player vergrößern"
+                  >
+                    <div className="relative size-11 shrink-0 overflow-hidden rounded-xl ring-1 ring-border/70 sm:size-12">
+                      {current?.coverUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={current.coverUrl} alt="" className="size-full object-cover" />
+                      ) : (
+                        <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/30 to-accent/20">
+                          <Music className="size-5 text-foreground/50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {current?.title || 'Kein Titel'}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {current?.artist || 'Unbekannter Interpret'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Real waveform lives here (hidden on small screens, container stays mounted) */}
+                  <div className="hidden min-w-0 max-w-[9rem] flex-1 md:block lg:max-w-[12rem]">
+                    <div ref={containerRef} className="w-full" />
+                  </div>
+
+                  <VolumeControl className="hidden w-24 shrink-0 xl:flex" />
+
+                  {/* transport pill */}
+                  <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-secondary/60 p-1">
+                    <IconButton
+                      onClick={player.toggleShuffle}
+                      active={shuffle}
+                      label="Zufallswiedergabe"
+                      className="hidden size-8 sm:inline-flex"
+                    >
+                      <Shuffle className="size-3.5" />
+                    </IconButton>
+                    <IconButton onClick={player.prev} label="Vorheriger Titel" className="size-8">
+                      <SkipBack className="size-4" />
+                    </IconButton>
+                    <PlayButton
+                      isPlaying={isPlaying}
+                      isLoading={isLoading}
+                      onClick={player.togglePlay}
+                      size="sm"
+                    />
+                    <IconButton
+                      onClick={() => player.next()}
+                      label="Nächster Titel"
+                      className="size-8"
+                    >
+                      <SkipForward className="size-4" />
+                    </IconButton>
+                    <IconButton
+                      onClick={player.cycleLoop}
+                      active={loop !== 'none'}
+                      label="Wiederholen"
+                      className="hidden size-8 sm:inline-flex"
+                    >
+                      {loop === 'one' ? (
+                        <Repeat1 className="size-3.5" />
+                      ) : (
+                        <Repeat className="size-3.5" />
+                      )}
+                    </IconButton>
+                  </div>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
-                  {current?.title || 'Kein Titel'}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {current?.artist || 'Unbekannter Interpret'}
-                </p>
-              </div>
-            </button>
-
-            {/* Real waveform lives here (hidden on small screens, container stays mounted) */}
-            <div className="hidden min-w-0 flex-1 md:block">
-              <div ref={containerRef} className="w-full" />
             </div>
-
-            <VolumeControl className="hidden w-28 shrink-0 lg:flex" />
-
-            <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-              <IconButton
-                onClick={player.toggleShuffle}
-                active={shuffle}
-                label="Zufallswiedergabe"
-                className="hidden sm:inline-flex"
-              >
-                <Shuffle className="size-4" />
-              </IconButton>
-              <IconButton onClick={player.prev} label="Vorheriger Titel">
-                <SkipBack className="size-5" />
-              </IconButton>
-              <button
-                onClick={player.togglePlay}
-                className="inline-flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 active:scale-95"
-                aria-label={isPlaying ? 'Pause' : 'Abspielen'}
-              >
-                {isLoading ? (
-                  <Loader2 className="size-5 animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="size-5" />
-                ) : (
-                  <Play className="size-5 translate-x-px" />
-                )}
-              </button>
-              <IconButton onClick={() => player.next()} label="Nächster Titel">
-                <SkipForward className="size-5" />
-              </IconButton>
-              <IconButton
-                onClick={player.cycleLoop}
-                active={loop !== 'none'}
-                label="Wiederholen"
-                className="hidden sm:inline-flex"
-              >
-                {loop === 'one' ? (
-                  <Repeat1 className="size-4" />
-                ) : (
-                  <Repeat className="size-4" />
-                )}
-              </IconButton>
-            </div>
-          </div>
-        </div>
-      </div>
+      </motion.div>
     </>
+  )
+}
+
+function PlayButton({
+  isPlaying,
+  isLoading,
+  onClick,
+  size,
+}: {
+  isPlaying: boolean
+  isLoading: boolean
+  onClick: () => void
+  size: 'sm' | 'lg'
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileTap={{ scale: 0.88 }}
+      transition={{ duration: 0.12, ease: ease.apple }}
+      aria-label={isPlaying ? 'Pause' : 'Abspielen'}
+      className={cn(
+        'relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-(--elevate-2)',
+        size === 'lg' ? 'size-16' : 'size-9',
+      )}
+    >
+      <AnimatePresence initial={false} mode="wait">
+        <motion.span
+          key={isLoading ? 'load' : isPlaying ? 'pause' : 'play'}
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.6 }}
+          transition={{ duration: 0.16, ease: ease.out }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          {isLoading ? (
+            <Loader2 className={cn(size === 'lg' ? 'size-7' : 'size-4', 'animate-spin')} />
+          ) : isPlaying ? (
+            <Pause className={size === 'lg' ? 'size-7' : 'size-4'} />
+          ) : (
+            <Play className={cn(size === 'lg' ? 'size-7' : 'size-4', 'translate-x-px')} />
+          )}
+        </motion.span>
+      </AnimatePresence>
+    </motion.button>
   )
 }
 
@@ -222,13 +302,14 @@ function VolumeControl({ className }: { className?: string }) {
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <button
+      <motion.button
+        whileTap={{ scale: 0.9 }}
         onClick={toggleMute}
         aria-label={volume === 0 ? 'Stummschaltung aufheben' : 'Stummschalten'}
         className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <VolumeIcon className="size-4" />
-      </button>
+      </motion.button>
       <Slider
         value={[Math.round(volume * 100)]}
         max={100}
@@ -258,20 +339,20 @@ function IconButton({
   className?: string
 }) {
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      whileTap={{ scale: 0.85 }}
+      transition={{ duration: 0.12, ease: ease.apple }}
       aria-label={label}
       aria-pressed={active}
       className={cn(
         'inline-flex size-9 items-center justify-center rounded-full transition-colors',
-        active
-          ? 'text-primary'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        active ? 'text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
         className,
       )}
     >
       {children}
-    </button>
+    </motion.button>
   )
 }
 
@@ -287,7 +368,7 @@ function Controls({
   large?: boolean
 }) {
   return (
-    <div className="flex items-center justify-center gap-3 sm:gap-5">
+    <div className="flex items-center justify-center gap-3 sm:gap-4">
       <IconButton
         onClick={player.toggleShuffle}
         active={player.shuffle}
@@ -295,46 +376,28 @@ function Controls({
       >
         <Shuffle className="size-5" />
       </IconButton>
-      <button
-        onClick={player.prev}
-        aria-label="Vorheriger Titel"
-        className="inline-flex size-12 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <SkipBack className="size-6" />
-      </button>
-      <button
-        onClick={player.togglePlay}
-        aria-label={isPlaying ? 'Pause' : 'Abspielen'}
-        className={cn(
-          'inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95',
-          large ? 'size-16' : 'size-12',
-        )}
-      >
-        {isLoading ? (
-          <Loader2 className={cn(large ? 'size-7' : 'size-6', 'animate-spin')} />
-        ) : isPlaying ? (
-          <Pause className={large ? 'size-7' : 'size-6'} />
-        ) : (
-          <Play className={cn(large ? 'size-7' : 'size-6', 'translate-x-0.5')} />
-        )}
-      </button>
-      <button
-        onClick={() => player.next()}
-        aria-label="Nächster Titel"
-        className="inline-flex size-12 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <SkipForward className="size-6" />
-      </button>
+
+      <div className="flex items-center gap-1 rounded-full bg-secondary/60 p-1.5">
+        <IconButton onClick={player.prev} label="Vorheriger Titel" className="size-11">
+          <SkipBack className="size-6" />
+        </IconButton>
+        <PlayButton
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          onClick={player.togglePlay}
+          size={large ? 'lg' : 'sm'}
+        />
+        <IconButton onClick={() => player.next()} label="Nächster Titel" className="size-11">
+          <SkipForward className="size-6" />
+        </IconButton>
+      </div>
+
       <IconButton
         onClick={player.cycleLoop}
         active={player.loop !== 'none'}
         label="Wiederholen"
       >
-        {player.loop === 'one' ? (
-          <Repeat1 className="size-5" />
-        ) : (
-          <Repeat className="size-5" />
-        )}
+        {player.loop === 'one' ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
       </IconButton>
     </div>
   )

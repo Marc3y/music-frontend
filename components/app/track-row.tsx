@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown, FileArchive, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -155,7 +156,10 @@ export function TrackRow({
         className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <ChevronDown
-          className={'size-4 transition-transform ' + (expanded ? 'rotate-180' : '')}
+          className={
+            'size-4 transition-transform duration-200 ease-apple ' +
+            (expanded ? 'rotate-180' : '')
+          }
         />
       </button>
 
@@ -192,11 +196,21 @@ export function TrackRow({
       />
     </div>
 
-      {expanded && (
-        <div className="pb-2">
-          <TrackProjectPanel track={track} onUpdated={onUpdated} />
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pb-2">
+              <TrackProjectPanel track={track} onUpdated={onUpdated} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

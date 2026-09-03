@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion } from 'motion/react'
 import { HardDrive, Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
+import { AuroraBackground } from '@/components/aurora-background'
 import { UsageBar } from '@/components/app/usage-bar'
 import {
   AlertDialog,
@@ -137,14 +139,7 @@ export default function UsagePage() {
   return (
     <RequireAuth>
       <div className="relative min-h-dvh pb-32">
-        <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[400px]"
-          style={{
-            background:
-              'radial-gradient(70% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.18), transparent 70%)',
-          }}
-        />
+        <AuroraBackground variant="page" />
 
         <div className="relative">
           <AppNav />
@@ -159,7 +154,7 @@ export default function UsagePage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card/60 p-5 backdrop-blur-xl">
+            <div className="glass rounded-2xl p-5 shadow-(--elevate-1)">
               {usage === null ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -190,12 +185,19 @@ export default function UsagePage() {
                   key={t}
                   onClick={() => setTab(t)}
                   className={
-                    'flex-1 rounded-lg px-3 py-1.5 font-medium transition-colors ' +
+                    'relative flex-1 rounded-lg px-3 py-1.5 font-medium transition-colors ' +
                     (tab === t
-                      ? 'bg-background text-foreground shadow-sm'
+                      ? 'text-foreground'
                       : 'text-muted-foreground hover:text-foreground')
                   }
                 >
+                  {tab === t && (
+                    <motion.span
+                      layoutId="usage-tab"
+                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                      className="absolute inset-0 -z-10 rounded-lg bg-background shadow-sm"
+                    />
+                  )}
                   {t === 'tracks'
                     ? `Tracks${usage ? ` (${usage.tracks.length})` : ''}`
                     : `Projekte${usage ? ` (${usage.projects.length})` : ''}`}

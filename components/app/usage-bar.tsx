@@ -1,5 +1,7 @@
+import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { formatBytes } from '@/lib/format'
+import { spring } from '@/lib/motion'
 
 export function UsageBar({
   used,
@@ -18,7 +20,7 @@ export function UsageBar({
     ? 'bg-destructive'
     : warn
       ? 'bg-amber-500'
-      : 'bg-primary'
+      : 'bg-gradient-to-r from-primary/80 to-primary'
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -31,9 +33,11 @@ export function UsageBar({
         </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn('h-full rounded-full transition-all duration-500', barColor)}
-          style={{ width: `${Math.max(pct, 2)}%` }}
+        <motion.div
+          className={cn('h-full rounded-full', barColor)}
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.max(pct, 2)}%` }}
+          transition={spring.gentle}
         />
       </div>
     </div>

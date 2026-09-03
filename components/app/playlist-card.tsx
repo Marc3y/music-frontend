@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { motion } from 'motion/react'
 import { Music, X } from 'lucide-react'
+import { liftHover } from '@/lib/motion'
 import type { Playlist } from '@/lib/types'
 
 export function PlaylistCard({
@@ -16,7 +18,7 @@ export function PlaylistCard({
   onRemove?: () => void
 }) {
   return (
-    <div className="group relative">
+    <motion.div {...liftHover} className="group relative">
       {onRemove && (
         <button
           onClick={(e) => {
@@ -34,7 +36,7 @@ export function PlaylistCard({
         href={href ?? `/library/${playlist._id}`}
         className="flex flex-col gap-3 rounded-2xl p-2 transition-colors hover:bg-card/60"
       >
-        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-lg transition-transform duration-300 group-hover:scale-[1.02]">
+        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-all duration-300 group-hover:shadow-(--elevate-3) group-hover:ring-primary/30">
           {playlist.coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -53,6 +55,6 @@ export function PlaylistCard({
           <p className="text-xs text-muted-foreground">{badge ?? 'Playlist'}</p>
         </div>
       </Link>
-    </div>
+    </motion.div>
   )
 }

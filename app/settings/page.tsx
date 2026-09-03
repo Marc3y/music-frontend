@@ -2,7 +2,9 @@
 
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
+import { AuroraBackground } from '@/components/aurora-background'
 import { Reveal } from '@/components/reveal'
+import { AppearanceSection } from '@/components/app/settings/appearance-section'
 import { ProfileSection } from '@/components/app/settings/profile-section'
 import { PasswordSection } from '@/components/app/settings/password-section'
 import { DeleteAccountSection } from '@/components/app/settings/delete-account-section'
@@ -11,14 +13,7 @@ export default function SettingsPage() {
   return (
     <RequireAuth>
       <div className="relative min-h-dvh pb-32">
-        <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[400px]"
-          style={{
-            background:
-              'radial-gradient(70% 60% at 50% 0%, oklch(0.55 0.27 295 / 0.18), transparent 70%)',
-          }}
-        />
+        <AuroraBackground variant="page" />
 
         <div className="relative">
           <AppNav />
@@ -35,12 +30,15 @@ export default function SettingsPage() {
 
             <div className="flex flex-col gap-4">
               <Reveal>
-                <ProfileSection />
+                <AppearanceSection />
               </Reveal>
               <Reveal delayIndex={1}>
-                <PasswordSection />
+                <ProfileSection />
               </Reveal>
               <Reveal delayIndex={2}>
+                <PasswordSection />
+              </Reveal>
+              <Reveal delayIndex={3}>
                 <DeleteAccountSection />
               </Reveal>
             </div>
