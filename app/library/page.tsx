@@ -4,18 +4,20 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { Music } from 'lucide-react'
-import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
 import { PlaylistCard } from '@/components/app/playlist-card'
 import { CreatePlaylistDialog } from '@/components/app/create-playlist-dialog'
+import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
+import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { UsageBar } from '@/components/app/usage-bar'
 import { SharedItemsList } from '@/components/app/shared-items-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Reveal } from '@/components/reveal'
-import { accountApi, playlistApi, ApiError } from '@/lib/api'
-import type { Playlist, SavedShare, StorageSummary } from '@/lib/types'
+import { useLibraryData } from '@/lib/use-library-data'
+import { accountApi } from '@/lib/api'
+import type { Playlist } from '@/lib/types'
 
 type Tab = 'own' | 'shared' | 'collab'
 
@@ -28,22 +30,10 @@ function PlaylistGrid({ children }: { children: React.ReactNode }) {
 }
 
 export default function LibraryPage() {
-  const [playlists, setPlaylists] = useState<Playlist[] | null>(null)
-  const [storage, setStorage] = useState<StorageSummary | null>(null)
-  const [saved, setSaved] = useState<SavedShare[]>([])
+  const { playlists, saved, storage, setPlaylists, setSaved } = useLibraryData()
   const [tab, setTab] = useState<Tab>('own')
-
-  useEffect(() => {
-    playlistApi
-      .list()
-      .then(setPlaylists)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : 'Playlists konnten nicht geladen werden')
-        setPlaylists([])
-      })
-    accountApi.storage().then(setStorage).catch(() => setStorage(null))
-    accountApi.savedShares().then(setSaved).catch(() => setSaved([]))
-  }, [])
+  const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null)
+  const [sharingPlaylist, setSharingPlaylist] = useState<Playlist | null>(null)
 
   const items = useMemo(
     () => saved.filter((s) => s.type === 'audio' || s.type === 'project'),
@@ -64,7 +54,17 @@ export default function LibraryPage() {
     storage && storage.limit > 0 && storage.used / storage.limit > 0.8
 
   function handleCreated(playlist: Playlist) {
-    setPlaylists((prev) => [playlist, ...(prev ?? [])])
+    setPlaylists((prev) => [playlist, ...prev])
+  }
+
+  function handlePlaylistUpdated(updated: Playlist) {
+    setPlaylists((prev) =>
+      prev.map((p) =>
+        p._id === updated._id
+          ? { ...p, ...updated, coverUrl: updated.coverUrl ?? p.coverUrl }
+          : p,
+      ),
+    )
   }
 
   function removeSaved(id: string) {
@@ -204,7 +204,11 @@ export default function LibraryPage() {
                   <PlaylistGrid>
                     {playlists.map((playlist, i) => (
                       <Reveal key={playlist._id} delayIndex={i % 10}>
-                        <PlaylistCard playlist={playlist} />
+                        <PlaylistCard
+                          playlist={playlist}
+                          onEdit={() => setEditingPlaylist(playlist)}
+                          onShare={() => setSharingPlaylist(playlist)}
+                        />
                       </Reveal>
                     ))}
                   </PlaylistGrid>
@@ -214,6 +218,25 @@ export default function LibraryPage() {
           </main>
         </div>
       </div>
+
+      <EditPlaylistDialog
+        playlist={editingPlaylist}
+        open={editingPlaylist !== null}
+        onOpenChange={(o) => !o && setEditingPlaylist(null)}
+        onUpdated={(p) => {
+          handlePlaylistUpdated(p)
+          setEditingPlaylist(null)
+        }}
+      />
+      <PlaylistShareDialog
+        playlist={sharingPlaylist}
+        open={sharingPlaylist !== null}
+        onOpenChange={(o) => !o && setSharingPlaylist(null)}
+        onUpdated={(p) => {
+          handlePlaylistUpdated(p)
+          setSharingPlaylist((prev) => (prev && prev._id === p._id ? p : prev))
+        }}
+      />
     </RequireAuth>
   )
 }

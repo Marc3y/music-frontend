@@ -36,11 +36,6 @@ export function GlobalPlayer() {
   const hasTrack = Boolean(current)
   const coverGlow = useCoverGlow(current?.coverUrl)
 
-  function seekFromClientX(el: HTMLElement, clientX: number) {
-    const rect = el.getBoundingClientRect()
-    seekTo((clientX - rect.left) / rect.width)
-  }
-
   return (
     <>
       {/* Expanded full-screen view */}
@@ -159,23 +154,7 @@ export function GlobalPlayer() {
       >
         <div className="mx-auto max-w-xl px-3 pb-3 sm:px-4 sm:pb-4">
           <div className="glass relative overflow-hidden rounded-2xl shadow-(--elevate-3)">
-                {/* progress line along the top edge */}
-                <div
-                  className="group/prog absolute inset-x-0 top-0 z-10 h-2 cursor-pointer"
-                  onClick={(e) => seekFromClientX(e.currentTarget, e.clientX)}
-                  role="slider"
-                  aria-label="Wiedergabeposition"
-                  aria-valuenow={Math.round(progress * 100)}
-                >
-                  <div className="absolute inset-x-0 top-0 h-[3px] bg-border transition-[height] duration-200 group-hover/prog:h-[5px]">
-                    <div
-                      className="h-full bg-primary transition-[width] duration-150 ease-linear"
-                      style={{ width: `${Math.max(progress * 100, 0)}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-2.5 pt-3 sm:gap-4 sm:p-3 sm:pt-3.5">
+                <div className="flex items-center gap-3 p-2.5 sm:gap-4 sm:p-3">
                   <button
                     onClick={() => player.setExpanded(true)}
                     className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition-opacity hover:opacity-80"

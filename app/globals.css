@@ -158,6 +158,9 @@
   }
   html {
     @apply bg-background;
+    /* Reserve the scrollbar gutter permanently so opening a modal (base-ui locks
+       page scroll) doesn't shift the whole layout sideways = no flicker. */
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;

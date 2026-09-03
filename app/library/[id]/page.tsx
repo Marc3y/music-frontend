@@ -17,6 +17,7 @@ import { VersionsDialog } from '@/components/app/versions-dialog'
 import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
+import { ImageCropDialog } from '@/components/app/image-crop-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
@@ -66,6 +67,7 @@ export default function PlaylistPage({
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [savingName, setSavingName] = useState(false)
   const [coverEditing, setCoverEditing] = useState(false)
+  const [pendingCover, setPendingCover] = useState<File | null>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
   const [filter, setFilter] = useLibraryFilter()
@@ -171,13 +173,19 @@ export default function PlaylistPage({
     }
   }
 
-  async function handleCoverSelect(file: File | undefined) {
-    if (!file || !playlist) return
+  function handleCoverSelect(file: File | undefined) {
+    if (!file) return
     if (!file.type.startsWith('image/')) {
       toast.error('Bitte eine Bilddatei auswählen')
       return
     }
     setCoverEditing(false)
+    setPendingCover(file)
+  }
+
+  async function handleCoverCropped(blob: Blob) {
+    if (!playlist) return
+    const file = new File([blob], 'cover.jpg', { type: 'image/jpeg' })
     try {
       const { uploadUrl } = await playlistApi.coverUploadUrl(playlist._id, {
         filename: file.name,
@@ -586,6 +594,13 @@ export default function PlaylistPage({
         open={shareOpen}
         onOpenChange={setShareOpen}
         onUpdated={(p) => setPlaylist(p)}
+      />
+      <ImageCropDialog
+        file={pendingCover}
+        open={pendingCover !== null}
+        onOpenChange={(o) => !o && setPendingCover(null)}
+        title="Cover zuschneiden"
+        onCropped={handleCoverCropped}
       />
       {playlist && isOwner && (
         <ConfirmDeleteDialog

@@ -192,7 +192,7 @@ export function PlaylistShareDialog({
           <DialogDescription>„{playlist.name}" teilen oder gemeinsam bearbeiten.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex max-h-[65vh] flex-col gap-5 overflow-y-auto">
+        <div className="flex max-h-[65vh] flex-col gap-5 overflow-x-hidden overflow-y-auto scrollbar-gutter-stable">
           {/* Öffentlich teilen */}
           <section className="flex flex-col gap-3">
             <label className="flex items-center gap-2 text-sm font-medium">
@@ -282,17 +282,17 @@ export function PlaylistShareDialog({
               </div>
             )}
           </section>
-
-          <p
-            className={cn(
-              'flex h-4 items-center gap-2 text-xs text-muted-foreground transition-opacity duration-200',
-              busy ? 'opacity-100' : 'opacity-0',
-            )}
-            aria-hidden={!busy}
-          >
-            <Loader2 className="size-3.5 animate-spin" /> Speichert…
-          </p>
         </div>
+
+        <p
+          className={cn(
+            'flex h-4 items-center gap-2 text-xs text-muted-foreground transition-opacity duration-200',
+            busy ? 'opacity-100' : 'opacity-0',
+          )}
+          aria-hidden={!busy}
+        >
+          {busy && <Loader2 className="size-3.5 animate-spin" />} Speichert…
+        </p>
       </DialogContent>
     </Dialog>
   )

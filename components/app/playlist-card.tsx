@@ -2,7 +2,13 @@
 
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Music, X } from 'lucide-react'
+import { Music, Pencil, Share2, X } from 'lucide-react'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import { liftHover } from '@/lib/motion'
 import type { Playlist } from '@/lib/types'
 
@@ -11,14 +17,20 @@ export function PlaylistCard({
   href,
   badge,
   onRemove,
+  onEdit,
+  onShare,
 }: {
   playlist: Pick<Playlist, '_id' | 'name' | 'coverUrl'>
   href?: string
   badge?: string
   onRemove?: () => void
+  onEdit?: () => void
+  onShare?: () => void
 }) {
-  return (
-    <motion.div {...liftHover} className="group relative">
+  const hasMenu = Boolean(onEdit || onShare)
+
+  const card = (
+    <>
       {onRemove && (
         <button
           onClick={(e) => {
@@ -55,6 +67,36 @@ export function PlaylistCard({
           <p className="text-xs text-muted-foreground">{badge ?? 'Playlist'}</p>
         </div>
       </Link>
-    </motion.div>
+    </>
+  )
+
+  if (!hasMenu) {
+    return (
+      <motion.div {...liftHover} className="group relative">
+        {card}
+      </motion.div>
+    )
+  }
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger render={<motion.div {...liftHover} className="group relative" />}>
+        {card}
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {onEdit && (
+          <ContextMenuItem onClick={onEdit}>
+            <Pencil />
+            Bearbeiten
+          </ContextMenuItem>
+        )}
+        {onShare && (
+          <ContextMenuItem onClick={onShare}>
+            <Share2 />
+            Teilen
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

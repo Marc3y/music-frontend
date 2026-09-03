@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ImageCropDialog } from '@/components/app/image-crop-dialog'
 import { playlistApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import type { Playlist } from '@/lib/types'
 
@@ -32,6 +33,7 @@ export function EditPlaylistDialog({
   const [name, setName] = useState('')
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [pendingCrop, setPendingCrop] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -50,8 +52,16 @@ export function EditPlaylistDialog({
       toast.error('Bitte eine Bilddatei auswählen')
       return
     }
-    setCoverFile(file)
-    setCoverPreview(URL.createObjectURL(file))
+    setPendingCrop(file)
+  }
+
+  function handleCropped(blob: Blob) {
+    const cropped = new File([blob], 'cover.jpg', { type: 'image/jpeg' })
+    setCoverFile(cropped)
+    setCoverPreview((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(cropped)
+    })
   }
 
   async function onSubmit(e: FormEvent) {
@@ -80,6 +90,7 @@ export function EditPlaylistDialog({
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -111,7 +122,10 @@ export function EditPlaylistDialog({
               type="file"
               accept="image/*"
               hidden
-              onChange={(e) => handleCoverSelect(e.target.files?.[0])}
+              onChange={(e) => {
+                handleCoverSelect(e.target.files?.[0])
+                e.target.value = ''
+              }}
             />
             <p className="text-xs text-muted-foreground">
               Klicke auf das Bild, um ein Cover hochzuladen (optional).
@@ -144,5 +158,14 @@ export function EditPlaylistDialog({
         </form>
       </DialogContent>
     </Dialog>
+
+    <ImageCropDialog
+      file={pendingCrop}
+      open={pendingCrop !== null}
+      onOpenChange={(o) => !o && setPendingCrop(null)}
+      title="Cover zuschneiden"
+      onCropped={handleCropped}
+    />
+    </>
   )
 }
