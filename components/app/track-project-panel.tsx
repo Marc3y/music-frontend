@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { audioApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import { formatBytes } from '@/lib/format'
 import type { AudioFile } from '@/lib/types'
 
@@ -20,6 +21,7 @@ export function TrackProjectPanel({
   track: AudioFile
   onUpdated: (track: AudioFile) => void
 }) {
+  const t = useT()
   const version = track.versions?.find((v) => v._id === track.selectedVersionId)
   const [busy, setBusy] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -28,7 +30,7 @@ export function TrackProjectPanel({
   if (!version?.projectFilename) {
     return (
       <div className="ml-7 mt-1 rounded-xl border border-border bg-card/40 px-3 py-2.5 text-xs text-muted-foreground">
-        Diese Version hat keine Projektdatei – im Versionen-Dialog hinzufügen.
+        {t('trackProject.noProjectHint')}
       </div>
     )
   }
@@ -43,7 +45,7 @@ export function TrackProjectPanel({
       const { url } = await audioApi.versionProjectDownload(track._id, version!._id)
       window.location.assign(url)
     } catch (err) {
-      toast.error(errMsg(err, 'Download fehlgeschlagen'))
+      toast.error(errMsg(err, t('trackProject.downloadFailed')))
     }
   }
 
@@ -54,7 +56,7 @@ export function TrackProjectPanel({
       onUpdated({ ...track, projectShareEnabled: true, projectShareToken: res.token })
       setShareOpen(true)
     } catch (err) {
-      toast.error(errMsg(err, 'Teilen fehlgeschlagen'))
+      toast.error(errMsg(err, t('trackProject.shareFailed')))
     } finally {
       setBusy(false)
     }
@@ -65,9 +67,9 @@ export function TrackProjectPanel({
     try {
       await audioApi.disableProjectShare(track._id)
       onUpdated({ ...track, projectShareEnabled: false })
-      toast.success('Projekt-Teilen beendet')
+      toast.success(t('toast.projectSharingStopped'))
     } catch (err) {
-      toast.error(errMsg(err, 'Deaktivieren fehlgeschlagen'))
+      toast.error(errMsg(err, t('trackProject.disableFailed')))
     } finally {
       setBusy(false)
     }
@@ -77,7 +79,7 @@ export function TrackProjectPanel({
     if (!shareUrl) return
     await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
-    toast.success('Link kopiert')
+    toast.success(t('toast.linkCopied'))
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -90,12 +92,14 @@ export function TrackProjectPanel({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{version.projectFilename}</p>
           <p className="text-xs text-muted-foreground">
-            Projektdatei · {formatBytes(version.projectSize ?? 0)}
+            {t('trackProject.projectFileMeta', {
+              size: formatBytes(version.projectSize ?? 0),
+            })}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={download}>
           <Download className="size-3.5" />
-          Download
+          {t('trackProject.download')}
         </Button>
         <Button
           variant={isShared ? 'secondary' : 'outline'}
@@ -104,14 +108,14 @@ export function TrackProjectPanel({
           disabled={busy}
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Share2 className="size-3.5" />}
-          Teilen
+          {t('trackProject.share')}
         </Button>
       </div>
 
       {isShared && shareOpen && (
         <div className="flex flex-col gap-2 border-t border-border pt-3">
           <p className="text-xs text-muted-foreground">
-            Wer diesen Link hat, kann nur die Projektdatei herunterladen:
+            {t('trackProject.shareLinkHint')}
           </p>
           <div className="flex gap-2">
             <Input readOnly value={shareUrl} className="h-8 text-xs" />
@@ -126,7 +130,7 @@ export function TrackProjectPanel({
             onClick={disableShare}
             disabled={busy}
           >
-            Teilen beenden
+            {t('trackProject.stopSharing')}
           </Button>
         </div>
       )}

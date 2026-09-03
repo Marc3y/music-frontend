@@ -9,6 +9,7 @@ import { Logo } from '@/components/logo'
 import { AuroraBackground } from '@/components/aurora-background'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { playlistApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import { usePlayer } from '@/lib/player-context'
 import { formatTime } from '@/lib/format'
 import type { PublicPlaylist, PublicPlaylistTrack } from '@/lib/types'
@@ -20,6 +21,7 @@ export default function PublicPlaylistPage({
 }) {
   const { token } = use(params)
   const player = usePlayer()
+  const tr = useT()
 
   const [data, setData] = useState<PublicPlaylist | null>(null)
   const [error, setError] = useState<{ message: string; needsLogin?: boolean } | null>(null)
@@ -35,7 +37,7 @@ export default function PublicPlaylistPage({
             needsLogin: err.status === 403 && /einloggen/i.test(err.message),
           })
         } else {
-          setError({ message: 'Playlist konnte nicht geladen werden.' })
+          setError({ message: tr('publicShare.playlistLoadFailed') })
         }
       })
   }, [token])
@@ -66,7 +68,7 @@ export default function PublicPlaylistPage({
       const res = await playlistApi.publicProject(token, track._id)
       window.location.assign(res.url)
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Download fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : tr('toast.downloadFailed'))
     }
   }
 
@@ -92,7 +94,7 @@ export default function PublicPlaylistPage({
                 href={`/login?next=${encodeURIComponent(`/playlist/${token}`)}`}
                 className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
               >
-                Einloggen
+                {tr('nav.signIn')}
               </Link>
             )}
           </div>
@@ -115,11 +117,13 @@ export default function PublicPlaylistPage({
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-                  Playlist
+                  {tr('playlistPage.playlistKicker')}
                 </p>
                 <h1 className="truncate text-xl font-semibold">{data.name}</h1>
                 <p className="text-sm text-muted-foreground">
-                  {data.trackCount} {data.trackCount === 1 ? 'Track' : 'Tracks'}
+                  {data.trackCount === 1
+                    ? tr('playlistPage.trackCountOne')
+                    : tr('playlistPage.trackCountOther', { count: data.trackCount ?? 0 })}
                 </p>
               </div>
             </div>
@@ -137,7 +141,7 @@ export default function PublicPlaylistPage({
                     ) : (
                       <button
                         onClick={() => playTrack(t)}
-                        aria-label={playing ? 'Pause' : 'Abspielen'}
+                        aria-label={playing ? tr('publicShare.pause') : tr('publicShare.play')}
                         className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-accent/15"
                       >
                         {playing ? (
@@ -151,9 +155,9 @@ export default function PublicPlaylistPage({
                       <p className="truncate text-sm font-medium">{t.title}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {isProject
-                          ? 'Projekt'
+                          ? tr('sharedItems.project')
                           : [
-                              t.artist || 'Unbekannter Interpret',
+                              t.artist || tr('publicShare.unknownArtist'),
                               t.bpm ? `${t.bpm} BPM` : null,
                               t.musicalKey || null,
                             ]
@@ -169,7 +173,7 @@ export default function PublicPlaylistPage({
                     {data.canDownload && t.hasProject && (
                       <button
                         onClick={() => downloadProject(t)}
-                        aria-label="Projekt herunterladen"
+                        aria-label={tr('trackProject.download')}
                         className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
                         <Download className="size-4" />
@@ -186,7 +190,7 @@ export default function PublicPlaylistPage({
       </motion.div>
 
       <p className="relative mt-6 text-sm text-muted-foreground">
-        Geteilt über <span className="font-medium text-foreground">music</span>
+        {tr('publicShare.sharedVia')} <span className="font-medium text-foreground">music</span>
       </p>
     </main>
   )

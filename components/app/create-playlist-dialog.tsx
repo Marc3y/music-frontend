@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { playlistApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import type { Playlist } from '@/lib/types'
 
 export function CreatePlaylistDialog({
@@ -23,6 +24,7 @@ export function CreatePlaylistDialog({
 }: {
   onCreated: (playlist: Playlist) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -35,12 +37,12 @@ export function CreatePlaylistDialog({
     setLoading(true)
     try {
       const playlist = await playlistApi.create(name.trim())
-      toast.success('Playlist erstellt')
+      toast.success(t('toast.playlistCreated'))
       onCreated(playlist)
       setOpen(false)
       setName('')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erstellen fehlgeschlagen')
+      setError(err instanceof ApiError ? err.message : t('library.createFailed'))
     } finally {
       setLoading(false)
     }
@@ -59,18 +61,16 @@ export function CreatePlaylistDialog({
     >
       <DialogTrigger render={<Button size="lg" />}>
         <Plus className="size-4" />
-        Neue Playlist
+        {t('library.newPlaylist')}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Neue Playlist</DialogTitle>
-          <DialogDescription>
-            Gib deiner Playlist einen Namen. Das Cover kannst du danach hinzufügen.
-          </DialogDescription>
+          <DialogTitle>{t('library.createTitle')}</DialogTitle>
+          <DialogDescription>{t('library.createSubtitle')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="playlist-name">Name</Label>
+            <Label htmlFor="playlist-name">{t('library.nameLabel')}</Label>
             <Input
               id="playlist-name"
               autoFocus
@@ -78,7 +78,7 @@ export function CreatePlaylistDialog({
               maxLength={100}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Mein Sommer-Mix"
+              placeholder={t('library.namePlaceholder')}
             />
           </div>
           {error && (
@@ -89,7 +89,7 @@ export function CreatePlaylistDialog({
           <DialogFooter>
             <Button type="submit" disabled={loading || !name.trim()}>
               {loading && <Loader2 className="size-4 animate-spin" />}
-              Erstellen
+              {t('library.createSubmit')}
             </Button>
           </DialogFooter>
         </form>

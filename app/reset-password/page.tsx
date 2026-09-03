@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 function ResetPasswordInner() {
   const router = useRouter()
   const params = useSearchParams()
+  const t = useT()
   const token = params.get('token') ?? ''
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -24,22 +26,20 @@ function ResetPasswordInner() {
     e.preventDefault()
     setError(null)
     if (password.length < 8) {
-      setError('Das Passwort muss mindestens 8 Zeichen lang sein.')
+      setError(t('auth.passwordMin8'))
       return
     }
     if (password !== confirm) {
-      setError('Die Passwörter stimmen nicht überein.')
+      setError(t('auth.passwordsMismatch'))
       return
     }
     setLoading(true)
     try {
       await authApi.resetPassword({ token, newPassword: password })
-      toast.success('Passwort geändert. Du kannst dich jetzt anmelden.')
+      toast.success(t('auth.resetSuccess'))
       router.push('/login')
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Zurücksetzen fehlgeschlagen.',
-      )
+      setError(err instanceof ApiError ? err.message : t('auth.resetFailed'))
       setLoading(false)
     }
   }
@@ -47,16 +47,16 @@ function ResetPasswordInner() {
   if (!token) {
     return (
       <AuthShell
-        title="Ungültiger Link"
-        subtitle="Dieser Link zum Zurücksetzen ist unvollständig oder abgelaufen."
+        title={t('auth.resetInvalidTitle')}
+        subtitle={t('auth.resetInvalidSubtitle')}
         footer={
           <Link href="/forgot-password" className="text-primary hover:underline">
-            Neuen Link anfordern
+            {t('auth.resetRequestNew')}
           </Link>
         }
       >
         <Button render={<Link href="/forgot-password" />} size="lg" className="h-10 w-full">
-          Neuen Link anfordern
+          {t('auth.resetRequestNew')}
         </Button>
       </AuthShell>
     )
@@ -64,17 +64,17 @@ function ResetPasswordInner() {
 
   return (
     <AuthShell
-      title="Neues Passwort"
-      subtitle="Wähle ein neues Passwort für dein Konto."
+      title={t('auth.resetTitle')}
+      subtitle={t('auth.resetSubtitle')}
       footer={
         <Link href="/login" className="text-primary hover:underline">
-          Zurück zur Anmeldung
+          {t('auth.backToSignIn')}
         </Link>
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Neues Passwort</Label>
+          <Label htmlFor="password">{t('auth.newPasswordLabel')}</Label>
           <Input
             id="password"
             type="password"
@@ -83,11 +83,11 @@ function ResetPasswordInner() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mindestens 8 Zeichen"
+            placeholder={t('auth.passwordMinPlaceholder')}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="confirm">Passwort bestätigen</Label>
+          <Label htmlFor="confirm">{t('auth.confirmPasswordLabel')}</Label>
           <Input
             id="confirm"
             type="password"
@@ -95,7 +95,7 @@ function ResetPasswordInner() {
             required
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="••••••••"
+            placeholder={t('auth.passwordPlaceholder')}
           />
         </div>
 
@@ -107,7 +107,7 @@ function ResetPasswordInner() {
 
         <Button type="submit" size="lg" className="mt-2 h-10" disabled={loading}>
           {loading && <Loader2 className="size-4 animate-spin" />}
-          Passwort ändern
+          {t('auth.resetSubmit')}
         </Button>
       </form>
     </AuthShell>

@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { playlistApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import type { Playlist } from '@/lib/types'
 
@@ -21,6 +22,7 @@ function errMsg(err: unknown, fallback: string) {
 }
 
 function CopyRow({ url }: { url: string }) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
   return (
     <div className="flex gap-2">
@@ -32,7 +34,7 @@ function CopyRow({ url }: { url: string }) {
         onClick={async () => {
           await navigator.clipboard.writeText(url)
           setCopied(true)
-          toast.success('Link kopiert')
+          toast.success(t('toast.linkCopied'))
           setTimeout(() => setCopied(false), 2000)
         }}
       >
@@ -53,6 +55,7 @@ function UsernameChips({
   onRemove: (username: string) => void
   placeholder: string
 }) {
+  const t = useT()
   const [value, setValue] = useState('')
   return (
     <div className="flex flex-col gap-2">
@@ -81,7 +84,7 @@ function UsernameChips({
             setValue('')
           }}
         >
-          Hinzufügen
+          {t('playlistShare.addButton')}
         </Button>
       </div>
       {items.length > 0 && (
@@ -96,13 +99,13 @@ function UsernameChips({
                   className={
                     'size-1.5 rounded-full ' + (it.joined ? 'bg-emerald-500' : 'bg-muted-foreground/40')
                   }
-                  title={it.joined ? 'Beigetreten' : 'Eingeladen'}
+                  title={it.joined ? t('playlistShare.joined') : t('playlistShare.invited')}
                 />
               )}
               {it.label}
               <button
                 onClick={() => onRemove(it.label)}
-                aria-label={`${it.label} entfernen`}
+                aria-label={t('common.remove')}
                 className="text-muted-foreground hover:text-destructive"
               >
                 <X className="size-3" />
@@ -126,6 +129,7 @@ export function PlaylistShareDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: (playlist: Playlist) => void
 }) {
+  const t = useT()
   const [busy, setBusy] = useState(false)
   const [collabInput, setCollabInput] = useState<{ username: string; joined: boolean }[]>([])
   const [collabToken, setCollabToken] = useState<string | undefined>(undefined)
@@ -155,7 +159,7 @@ export function PlaylistShareDialog({
     try {
       onUpdated(await playlistApi.updateShare(playlist!._id, body))
     } catch (err) {
-      toast.error(errMsg(err, 'Speichern fehlgeschlagen'))
+      toast.error(errMsg(err, t('playlistShare.saveFailed')))
     } finally {
       setBusy(false)
     }
@@ -176,7 +180,7 @@ export function PlaylistShareDialog({
         })),
       })
     } catch (err) {
-      toast.error(errMsg(err, 'Speichern fehlgeschlagen'))
+      toast.error(errMsg(err, t('playlistShare.saveFailed')))
     } finally {
       setBusy(false)
     }
@@ -188,8 +192,10 @@ export function PlaylistShareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Playlist teilen</DialogTitle>
-          <DialogDescription>„{playlist.name}" teilen oder gemeinsam bearbeiten.</DialogDescription>
+          <DialogTitle>{t('playlistShare.title')}</DialogTitle>
+          <DialogDescription>
+            {t('playlistShare.subtitle', { name: playlist.name })}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex max-h-[65vh] flex-col gap-5 overflow-x-hidden overflow-y-auto scrollbar-gutter-stable">
@@ -203,7 +209,7 @@ export function PlaylistShareDialog({
                 onChange={(e) => share({ shareEnabled: e.target.checked })}
                 className="size-4 accent-primary"
               />
-              Playlist teilen
+              {t('playlistShare.sharePlaylist')}
             </label>
 
             {playlist.shareEnabled && (
@@ -218,7 +224,7 @@ export function PlaylistShareDialog({
                     onChange={(e) => share({ shareAllowDownload: e.target.checked })}
                     className="size-4 accent-primary"
                   />
-                  Projekt-Downloads erlauben
+                  {t('playlistShare.allowProjectDownloads')}
                 </label>
 
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -229,13 +235,13 @@ export function PlaylistShareDialog({
                     onChange={(e) => share({ shareRestricted: e.target.checked })}
                     className="size-4 accent-primary"
                   />
-                  Nur bestimmte Nutzer
+                  {t('playlistShare.restrictUsers')}
                 </label>
 
                 {playlist.shareRestricted && (
                   <div className="pl-6">
                     <UsernameChips
-                      placeholder="Username"
+                      placeholder={t('playlistShare.username')}
                       items={allowed.map((u) => ({ label: u }))}
                       onAdd={(u) =>
                         share({ allowedUsernames: [...new Set([...allowed, u])] })
@@ -253,15 +259,14 @@ export function PlaylistShareDialog({
           {/* Mitglieder */}
           <section className="flex flex-col gap-3 border-t border-border pt-4">
             <div>
-              <p className="text-sm font-medium">Mitglieder</p>
+              <p className="text-sm font-medium">{t('playlistShare.members')}</p>
               <p className="text-xs text-muted-foreground">
-                Mitglieder dürfen Tracks, Reihenfolge, Name und Cover ändern – nur du kannst
-                die Playlist löschen und das Teilen verwalten.
+                {t('playlistShare.membersHint')}
               </p>
             </div>
 
             <UsernameChips
-              placeholder="Username eines Mitglieds"
+              placeholder={t('playlistShare.memberUsername')}
               items={collabInput.map((c) => ({ label: c.username, joined: c.joined }))}
               onAdd={(u) =>
                 saveCollaborators([
@@ -276,7 +281,7 @@ export function PlaylistShareDialog({
             {collabInput.length > 0 && collabToken && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-xs text-muted-foreground">
-                  Sende diesen Einladungslink an das jeweilige Mitglied:
+                  {t('playlistShare.inviteHint')}
                 </p>
                 <CopyRow url={`${origin}/playlist/join/${collabToken}`} />
               </div>
@@ -291,7 +296,7 @@ export function PlaylistShareDialog({
           )}
           aria-hidden={!busy}
         >
-          {busy && <Loader2 className="size-3.5 animate-spin" />} Speichert…
+          {busy && <Loader2 className="size-3.5 animate-spin" />} {t('playlistShare.saving')}
         </p>
       </DialogContent>
     </Dialog>

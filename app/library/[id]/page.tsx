@@ -24,6 +24,7 @@ import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api
 import { usePlayer } from '@/lib/player-context'
 import { useLibraryFilter } from '@/lib/use-library-filter'
 import { spring } from '@/lib/motion'
+import { useT } from '@/lib/i18n/context'
 import type { AudioFile, Playlist } from '@/lib/types'
 
 // Neue sichtbare Reihenfolge in die volle Liste zurückmergen (versteckte behalten Position)
@@ -50,6 +51,7 @@ export default function PlaylistPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+  const t = useT()
   const router = useRouter()
   const player = usePlayer()
 
@@ -92,7 +94,7 @@ export default function PlaylistPage({
       if (err instanceof ApiError && err.status === 404) {
         setNotFound(true)
       } else {
-        toast.error(err instanceof ApiError ? err.message : 'Laden fehlgeschlagen')
+        toast.error(err instanceof ApiError ? err.message : t('toast.loadFailed'))
       }
     }
   }, [id])
@@ -167,7 +169,7 @@ export default function PlaylistPage({
       const updated = await playlistApi.update(playlist._id, next)
       handlePlaylistUpdated({ ...updated, coverUrl: playlist.coverUrl })
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Umbenennen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.renameFailed'))
     } finally {
       setSavingName(false)
     }
@@ -176,7 +178,7 @@ export default function PlaylistPage({
   function handleCoverSelect(file: File | undefined) {
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      toast.error('Bitte eine Bilddatei auswählen')
+      toast.error(t('toast.pickImageFile'))
       return
     }
     setCoverEditing(false)
@@ -193,9 +195,9 @@ export default function PlaylistPage({
       })
       await uploadToPresignedUrl(uploadUrl, file, file.type)
       handlePlaylistUpdated({ ...playlist, coverUrl: URL.createObjectURL(file) })
-      toast.success('Cover aktualisiert')
+      toast.success(t('toast.coverUpdated'))
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Cover-Upload fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.coverUploadFailed'))
     }
   }
 
@@ -231,10 +233,10 @@ export default function PlaylistPage({
   async function handleDeletePlaylist() {
     try {
       await playlistApi.remove(id)
-      toast.success('Playlist gelöscht')
+      toast.success(t('toast.playlistDeleted'))
       router.push('/library')
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Löschen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.deleteFailed'))
     }
   }
 
@@ -272,8 +274,8 @@ export default function PlaylistPage({
       <RequireAuth>
         <AppNav />
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-24 text-center">
-          <p className="text-lg font-medium">Playlist nicht gefunden</p>
-          <Button render={<Link href="/library" />}>Zurück zur Mediathek</Button>
+          <p className="text-lg font-medium">{t('playlistPage.notFound')}</p>
+          <Button render={<Link href="/library" />}>{t('playlistPage.backButton')}</Button>
         </div>
       </RequireAuth>
     )
@@ -307,10 +309,8 @@ export default function PlaylistPage({
                 className="glass flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-primary/60 px-12 py-10 text-center shadow-(--elevate-3)"
               >
                 <Upload className="size-8 text-primary" />
-                <p className="font-medium">Hier ablegen</p>
-                <p className="text-sm text-muted-foreground">
-                  Audiodateien oder Projekte (.zip/.rar) werden hinzugefügt.
-                </p>
+                <p className="font-medium">{t('playlistPage.dropHere')}</p>
+                <p className="text-sm text-muted-foreground">{t('playlistPage.dropHint')}</p>
               </motion.div>
             </motion.div>
           )}
@@ -325,7 +325,7 @@ export default function PlaylistPage({
               className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="size-4" />
-              Mediathek
+              {t('playlistPage.backToLibrary')}
             </Link>
 
             {!playlist ? (
@@ -364,12 +364,12 @@ export default function PlaylistPage({
                         className="flex flex-col items-center gap-1 text-xs font-medium"
                       >
                         <ImagePlus className="size-6" />
-                        Bild wählen
+                        {t('playlistPage.chooseImage')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setCoverEditing(false)}
-                        aria-label="Abbrechen"
+                        aria-label={t('common.cancel')}
                         className="absolute top-1.5 right-1.5 rounded-md p-1 text-muted-foreground hover:text-foreground"
                       >
                         <X className="size-4" />
@@ -390,7 +390,7 @@ export default function PlaylistPage({
                 <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-                      Playlist
+                      {t('playlistPage.playlistKicker')}
                     </p>
                     {nameDraft !== null ? (
                       <input
@@ -412,24 +412,35 @@ export default function PlaylistPage({
                     ) : (
                       <h1
                         onDoubleClick={() => setNameDraft(playlist.name)}
-                        title="Doppelklick zum Umbenennen"
                         className="mt-1 text-3xl font-semibold tracking-tight text-balance"
                       >
                         {playlist.name}
                         {savingName && (
                           <span className="ml-2 text-sm font-normal text-muted-foreground">
-                            speichert…
+                            {t('playlistPage.savingName')}
                           </span>
                         )}
                       </h1>
                     )}
                     <p className="mt-1 text-sm text-muted-foreground">
                       {(() => {
-                        const t = tracks ?? []
-                        const audio = t.filter((x) => (x.kind ?? 'track') !== 'project').length
-                        const projects = t.filter(countsAsProject).length
-                        const versions = t.reduce((s, x) => s + (x.versions?.length ?? 0), 0)
-                        return `${audio} ${audio === 1 ? 'Track' : 'Tracks'} · ${versions} ${versions === 1 ? 'Version' : 'Versionen'} · ${projects} ${projects === 1 ? 'Projekt' : 'Projekte'}`
+                        const ts = tracks ?? []
+                        const audio = ts.filter((x) => (x.kind ?? 'track') !== 'project').length
+                        const projects = ts.filter(countsAsProject).length
+                        const versions = ts.reduce((s, x) => s + (x.versions?.length ?? 0), 0)
+                        const trackStr =
+                          audio === 1
+                            ? t('playlistPage.trackCountOne')
+                            : t('playlistPage.trackCountOther', { count: audio })
+                        const versionStr =
+                          versions === 1
+                            ? t('playlistPage.versionCountOne')
+                            : t('playlistPage.versionCountOther', { count: versions })
+                        const projectStr =
+                          projects === 1
+                            ? t('playlistPage.projectCountOne')
+                            : t('playlistPage.projectCountOther', { count: projects })
+                        return `${trackStr} · ${versionStr} · ${projectStr}`
                       })()}
                     </p>
                   </div>
@@ -437,12 +448,12 @@ export default function PlaylistPage({
                     {isOwner && (
                       <Button variant="outline" onClick={() => setShareOpen(true)}>
                         <Share2 className="size-4" />
-                        Teilen
+                        {t('common.share')}
                       </Button>
                     )}
                     <Button variant="outline" onClick={() => setEditPlaylistOpen(true)}>
                       <Pencil className="size-4" />
-                      Bearbeiten
+                      {t('common.edit')}
                     </Button>
                     {isOwner && (
                       <Button
@@ -484,9 +495,9 @@ export default function PlaylistPage({
                   <Music className="size-6 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium">Noch nichts hier</p>
+                  <p className="font-medium">{t('playlistPage.emptyTitle')}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Lade einen Track (Audio) oder ein Projekt (.zip/.rar) hoch.
+                    {t('playlistPage.emptyBody')}
                   </p>
                 </div>
               </div>
@@ -509,9 +520,9 @@ export default function PlaylistPage({
                         <div className="flex gap-1 rounded-xl bg-muted/60 p-1 text-xs">
                           {(
                             [
-                              ['all', 'Alle'],
-                              ['tracks', 'Tracks'],
-                              ['projects', 'Projekte'],
+                              ['all', t('playlistPage.filterAll')],
+                              ['tracks', t('playlistPage.filterTracks')],
+                              ['projects', t('playlistPage.filterProjects')],
                             ] as const
                           ).map(([value, label]) => (
                             <button
@@ -532,7 +543,7 @@ export default function PlaylistPage({
                     )}
                     {visibleTracks.length === 0 ? (
                       <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-                        Nichts in dieser Ansicht.
+                        {t('playlistPage.nothingInView')}
                       </p>
                     ) : (
                       <ReorderableTrackList
@@ -599,15 +610,14 @@ export default function PlaylistPage({
         file={pendingCover}
         open={pendingCover !== null}
         onOpenChange={(o) => !o && setPendingCover(null)}
-        title="Cover zuschneiden"
         onCropped={handleCoverCropped}
       />
       {playlist && isOwner && (
         <ConfirmDeleteDialog
           open={deletePlaylistOpen}
           onOpenChange={setDeletePlaylistOpen}
-          title="Playlist löschen?"
-          description={`"${playlist.name}" und alle enthaltenen Tracks werden unwiderruflich gelöscht.`}
+          title={t('playlistPage.deletePlaylistTitle')}
+          description={t('playlistPage.deletePlaylistBody', { name: playlist.name })}
           onConfirm={handleDeletePlaylist}
         />
       )}

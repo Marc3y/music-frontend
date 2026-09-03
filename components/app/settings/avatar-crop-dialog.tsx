@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { accountApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 const OUTPUT_SIZE = 512
 
@@ -66,6 +67,7 @@ export function AvatarCropDialog({
   onOpenChange: (open: boolean) => void
   onUploaded: () => Promise<void> | void
 }) {
+  const t = useT()
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -99,12 +101,10 @@ export function AvatarCropDialog({
       })
       await uploadToPresignedUrl(uploadUrl, blob, 'image/jpeg')
       await onUploaded()
-      toast.success('Profilbild aktualisiert')
+      toast.success(t('toast.avatarUpdated'))
       onOpenChange(false)
     } catch (err) {
-      toast.error(
-        err instanceof ApiError ? err.message : 'Profilbild konnte nicht gespeichert werden',
-      )
+      toast.error(err instanceof ApiError ? err.message : t('crop.avatarSaveFailed'))
     } finally {
       setSaving(false)
     }
@@ -114,10 +114,8 @@ export function AvatarCropDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Profilbild zuschneiden</DialogTitle>
-          <DialogDescription>
-            Verschiebe den Bildausschnitt und zoome, bis er passt.
-          </DialogDescription>
+          <DialogTitle>{t('crop.avatarTitle')}</DialogTitle>
+          <DialogDescription>{t('crop.hint')}</DialogDescription>
         </DialogHeader>
 
         <div className="relative h-64 w-full overflow-hidden rounded-xl bg-muted">
@@ -137,7 +135,7 @@ export function AvatarCropDialog({
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Zoom</span>
+          <span className="text-xs text-muted-foreground">{t('crop.zoom')}</span>
           <Slider
             value={[zoom]}
             min={1}
@@ -150,11 +148,11 @@ export function AvatarCropDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Abbrechen
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saving || !areaPixels}>
             {saving && <Loader2 className="size-4 animate-spin" />}
-            Übernehmen
+            {t('common.apply')}
           </Button>
         </DialogFooter>
       </DialogContent>

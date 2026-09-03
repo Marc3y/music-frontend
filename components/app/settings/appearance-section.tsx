@@ -4,20 +4,22 @@ import { motion } from 'motion/react'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { SettingsCard } from '@/components/app/settings/settings-card'
 import { useTheme } from '@/lib/theme-context'
+import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 
 const options = [
-  { value: 'light' as const, label: 'Hell', icon: Sun },
-  { value: 'dark' as const, label: 'Dunkel', icon: Moon },
+  { value: 'light' as const, labelKey: 'settings.themeLight', icon: Sun },
+  { value: 'dark' as const, labelKey: 'settings.themeDark', icon: Moon },
 ]
 
 export function AppearanceSection() {
   const { theme, setTheme, mounted } = useTheme()
+  const t = useT()
 
   return (
     <SettingsCard
-      title="Darstellung"
-      description="Wähle zwischen hellem und dunklem Erscheinungsbild. Die Auswahl wird auf diesem Gerät gespeichert."
+      title={t('settings.appearanceTitle')}
+      description={t('settings.appearanceDesc')}
     >
       <div className="flex gap-2">
         {options.map((opt) => {
@@ -41,14 +43,14 @@ export function AppearanceSection() {
                 />
               )}
               <opt.icon className="size-4" />
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           )
         })}
       </div>
       <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Monitor className="size-3.5" />
-        Standard ist Dunkel.
+        {t('settings.themeDefaultHint')}
       </p>
     </SettingsCard>
   )

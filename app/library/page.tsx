@@ -16,6 +16,7 @@ import { SharedItemsList } from '@/components/app/shared-items-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Reveal } from '@/components/reveal'
 import { useLibraryData } from '@/lib/use-library-data'
+import { useT } from '@/lib/i18n/context'
 import { accountApi } from '@/lib/api'
 import type { Playlist } from '@/lib/types'
 
@@ -30,6 +31,7 @@ function PlaylistGrid({ children }: { children: React.ReactNode }) {
 }
 
 export default function LibraryPage() {
+  const t = useT()
   const { playlists, saved, storage, setPlaylists, setSaved } = useLibraryData()
   const [tab, setTab] = useState<Tab>('own')
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null)
@@ -73,9 +75,13 @@ export default function LibraryPage() {
   }
 
   const tabs: [Tab, string][] = [
-    ['own', 'Meine Playlists'],
-    ...(hasShared ? ([['shared', `Von anderen (${items.length + sharedPlaylists.length})`]] as [Tab, string][]) : []),
-    ...(hasCollab ? ([['collab', `Collaboration (${collabPlaylists.length})`]] as [Tab, string][]) : []),
+    ['own', t('library.tabOwn')],
+    ...(hasShared
+      ? ([['shared', t('library.tabShared', { count: items.length + sharedPlaylists.length })]] as [Tab, string][])
+      : []),
+    ...(hasCollab
+      ? ([['collab', t('library.tabCollab', { count: collabPlaylists.length })]] as [Tab, string][])
+      : []),
   ]
 
   return (
@@ -90,11 +96,9 @@ export default function LibraryPage() {
             <div className="flex flex-wrap items-end justify-between gap-4 pb-8">
               <div>
                 <h1 className="text-3xl font-semibold tracking-tight text-balance">
-                  Deine Mediathek
+                  {t('library.title')}
                 </h1>
-                <p className="mt-1 text-muted-foreground">
-                  Alle deine Playlists an einem Ort.
-                </p>
+                <p className="mt-1 text-muted-foreground">{t('library.subtitle')}</p>
               </div>
               {tab === 'own' && <CreatePlaylistDialog onCreated={handleCreated} />}
             </div>
@@ -132,7 +136,7 @@ export default function LibraryPage() {
                     key={s._id}
                     playlist={{ _id: s.playlistId ?? s._id, name: s.title, coverUrl: s.coverUrl }}
                     href={`/library/${s.playlistId}`}
-                    badge={`Mitglied · ${s.trackCount ?? 0} Tracks`}
+                    badge={t('library.badgeMember', { count: s.trackCount ?? 0 })}
                     onRemove={() => removeSaved(s._id)}
                   />
                 ))}
@@ -146,7 +150,7 @@ export default function LibraryPage() {
                         key={s._id}
                         playlist={{ _id: s._id, name: s.title, coverUrl: s.coverUrl }}
                         href={`/playlist/${s.token}`}
-                        badge={`Geteilt · ${s.trackCount ?? 0} Tracks`}
+                        badge={t('library.badgeShared', { count: s.trackCount ?? 0 })}
                         onRemove={() => removeSaved(s._id)}
                       />
                     ))}
@@ -168,9 +172,13 @@ export default function LibraryPage() {
                   >
                     <div className="flex items-center justify-between gap-2 text-sm">
                       <span className="font-medium">
-                        Dein Speicher ist zu {Math.round((storage.used / storage.limit) * 100)} % voll
+                        {t('library.storageWarning', {
+                          percent: Math.round((storage.used / storage.limit) * 100),
+                        })}
                       </span>
-                      <span className="text-xs text-muted-foreground">Speicher verwalten →</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t('library.manageStorage')}
+                      </span>
                     </div>
                     <UsageBar used={storage.used} limit={storage.limit} />
                   </Link>
@@ -192,9 +200,9 @@ export default function LibraryPage() {
                         <Music className="size-6 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="font-medium">Noch keine Playlists</p>
+                        <p className="font-medium">{t('library.emptyTitle')}</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Erstelle deine erste Playlist, um Tracks hochzuladen.
+                          {t('library.emptyBody')}
                         </p>
                       </div>
                       <CreatePlaylistDialog onCreated={handleCreated} />

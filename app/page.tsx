@@ -19,43 +19,21 @@ import { Reveal } from '@/components/reveal'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
+import { useT } from '@/lib/i18n/context'
 import { ease, liftHover } from '@/lib/motion'
 
 const features = [
-  {
-    icon: FolderPlus,
-    title: 'Playlists als Ordner',
-    desc: 'Organisiere deine Musik in übersichtlichen Sammlungen — schnell erstellt, jederzeit umbenannt.',
-  },
-  {
-    icon: UploadCloud,
-    title: 'Direkter Upload',
-    desc: 'Lade Tracks bis 500 MB mit echtem Fortschritt hoch. MP3, WAV, FLAC, AAC und mehr.',
-  },
-  {
-    icon: Waves,
-    title: 'Streaming mit Waveform',
-    desc: 'Ein moderner Player mit Wellenform, Shuffle, Loop und großer Ansicht auf Knopfdruck.',
-  },
-  {
-    icon: AudioLines,
-    title: 'Metadaten bearbeiten',
-    desc: 'Titel, Interpret, Beschreibung und Cover — alles individuell anpassbar.',
-  },
-  {
-    icon: Share2,
-    title: 'Öffentlich teilen',
-    desc: 'Erstelle einen Link und teile einzelne Tracks ohne Login mit wem du willst.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Modern & minimal',
-    desc: 'Ein aufgeräumtes, dunkles Interface, das sich auf das Wesentliche konzentriert: deine Musik.',
-  },
-]
+  { icon: FolderPlus, key: 'playlists' },
+  { icon: UploadCloud, key: 'upload' },
+  { icon: Waves, key: 'streaming' },
+  { icon: AudioLines, key: 'metadata' },
+  { icon: Share2, key: 'sharing' },
+  { icon: Sparkles, key: 'minimal' },
+] as const
 
 export default function LandingPage() {
   const { user } = useAuth()
+  const t = useT()
   const primaryHref = user ? '/library' : '/register'
 
   return (
@@ -76,7 +54,7 @@ export default function LandingPage() {
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
             <span className="relative inline-flex size-2 rounded-full bg-primary" />
           </span>
-          Dein persönlicher Sound-Space
+          {t('landing.badge')}
         </motion.div>
 
         <motion.h1
@@ -85,7 +63,8 @@ export default function LandingPage() {
           transition={{ duration: 0.7, delay: 0.05 }}
           className="mt-6 text-5xl font-semibold tracking-tight text-balance sm:text-7xl"
         >
-          Deine Musik. <span className="text-gradient">Gestreamt.</span>
+          {t('landing.heroTitle')}{' '}
+          <span className="text-gradient">{t('landing.heroTitleAccent')}</span>
         </motion.h1>
 
         <motion.p
@@ -94,8 +73,7 @@ export default function LandingPage() {
           transition={{ duration: 0.7, delay: 0.15 }}
           className="mt-6 max-w-xl text-lg text-pretty text-muted-foreground"
         >
-          Erstelle Playlists, lade deine Tracks hoch und streame sie überall — in
-          einem Player, der so minimal ist wie er sich anfühlt.
+          {t('landing.heroSubtitle')}
         </motion.p>
 
         <motion.div
@@ -105,11 +83,11 @@ export default function LandingPage() {
           className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
         >
           <Button render={<Link href={primaryHref} />} size="lg">
-            {user ? 'Zur Mediathek' : 'Kostenlos starten'}
+            {user ? t('landing.ctaPrimaryUser') : t('landing.ctaPrimaryGuest')}
           </Button>
           {!user && (
             <Button render={<Link href="/login" />} variant="outline" size="lg">
-              Ich habe ein Konto
+              {t('landing.ctaSecondary')}
             </Button>
           )}
         </motion.div>
@@ -129,17 +107,16 @@ export default function LandingPage() {
       <section className="relative mx-auto max-w-6xl px-4 py-20">
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Alles, was du zum Streamen brauchst
+            {t('landing.featuresTitle')}
           </h2>
           <p className="mt-4 text-muted-foreground text-pretty">
-            Von der ersten Playlist bis zum geteilten Link — durchdacht und
-            unkompliziert.
+            {t('landing.featuresSubtitle')}
           </p>
         </Reveal>
 
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
-            <Reveal key={f.title} delayIndex={i % 3}>
+            <Reveal key={f.key} delayIndex={i % 3}>
               <motion.div
                 {...liftHover}
                 className="group glass h-full rounded-2xl p-6 shadow-(--elevate-1) transition-shadow duration-300 hover:shadow-(--elevate-2)"
@@ -151,9 +128,11 @@ export default function LandingPage() {
                 >
                   <f.icon className="size-5" />
                 </motion.div>
-                <h3 className="mt-5 text-lg font-medium">{f.title}</h3>
+                <h3 className="mt-5 text-lg font-medium">
+                  {t(`landing.features.${f.key}.title`)}
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {f.desc}
+                  {t(`landing.features.${f.key}.desc`)}
                 </p>
               </motion.div>
             </Reveal>
@@ -174,17 +153,17 @@ export default function LandingPage() {
             />
             <div className="relative">
               <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-                Bereit, deinen Sound zu streamen?
+                {t('landing.ctaSectionTitle')}
               </h2>
               <p className="mx-auto mt-4 max-w-md text-muted-foreground text-pretty">
-                Erstelle in Sekunden ein Konto und lade deinen ersten Track hoch.
+                {t('landing.ctaSectionSubtitle')}
               </p>
               <Button
                 render={<Link href={primaryHref} />}
                 size="lg"
                 className="mt-8"
               >
-                {user ? 'Zur Mediathek' : 'Jetzt starten'}
+                {user ? t('landing.ctaSectionButtonUser') : t('landing.ctaSectionButtonGuest')}
               </Button>
             </div>
           </div>
@@ -194,7 +173,7 @@ export default function LandingPage() {
       <footer className="relative mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-border px-4 py-10 sm:flex-row">
         <Logo />
         <p className="text-sm text-muted-foreground">
-          {new Date().getFullYear()} music — dein persönlicher Sound-Space.
+          {new Date().getFullYear()} {t('landing.footerTagline')}
         </p>
       </footer>
     </main>

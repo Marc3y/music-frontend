@@ -6,6 +6,7 @@ import { GripVertical } from 'lucide-react'
 import { toast } from 'sonner'
 import { TrackRow } from '@/components/app/track-row'
 import { audioApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
 
 const LONG_PRESS_MS = 240
@@ -42,6 +43,7 @@ export function ReorderableTrackList({
   onDeleted: (id: string) => void
   onChange: (tracks: AudioFile[]) => void
 }) {
+  const t = useT()
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const tracksRef = useRef(tracks)
@@ -64,7 +66,7 @@ export function ReorderableTrackList({
       try {
         await audioApi.reorder(playlistId, orderedIds)
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : 'Reihenfolge konnte nicht gespeichert werden')
+        toast.error(err instanceof ApiError ? err.message : t('toast.reorderFailed'))
       }
     },
     [playlistId],

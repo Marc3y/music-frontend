@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageCropDialog } from '@/components/app/image-crop-dialog'
 import { playlistApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import type { Playlist } from '@/lib/types'
 
 export function EditPlaylistDialog({
@@ -29,6 +30,7 @@ export function EditPlaylistDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: (playlist: Playlist) => void
 }) {
+  const t = useT()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState('')
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
@@ -49,7 +51,7 @@ export function EditPlaylistDialog({
   function handleCoverSelect(file: File | undefined) {
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      toast.error('Bitte eine Bilddatei auswählen')
+      toast.error(t('toast.pickImageFile'))
       return
     }
     setPendingCrop(file)
@@ -79,11 +81,11 @@ export function EditPlaylistDialog({
       }
 
       const updated = await playlistApi.update(playlist._id, name.trim())
-      toast.success('Playlist aktualisiert')
+      toast.success(t('toast.playlistUpdated'))
       onUpdated({ ...updated, coverUrl: coverFile ? coverPreview : updated.coverUrl })
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Aktualisieren fehlgeschlagen')
+      setError(err instanceof ApiError ? err.message : t('editTrack.updateFailed'))
     } finally {
       setLoading(false)
     }
@@ -94,8 +96,8 @@ export function EditPlaylistDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Playlist bearbeiten</DialogTitle>
-          <DialogDescription>Name und Cover anpassen.</DialogDescription>
+          <DialogTitle>{t('playlistPage.editPlaylistTitle')}</DialogTitle>
+          <DialogDescription>{t('playlistPage.editPlaylistDesc')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -128,12 +130,12 @@ export function EditPlaylistDialog({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Klicke auf das Bild, um ein Cover hochzuladen (optional).
+              {t('playlistPage.clickCoverOptional')}
             </p>
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-playlist-name">Name</Label>
+            <Label htmlFor="edit-playlist-name">{t('library.nameLabel')}</Label>
             <Input
               id="edit-playlist-name"
               required
@@ -152,7 +154,7 @@ export function EditPlaylistDialog({
           <DialogFooter>
             <Button type="submit" disabled={loading || !name.trim()}>
               {loading && <Loader2 className="size-4 animate-spin" />}
-              Speichern
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </form>
@@ -163,7 +165,6 @@ export function EditPlaylistDialog({
       file={pendingCrop}
       open={pendingCrop !== null}
       onOpenChange={(o) => !o && setPendingCrop(null)}
-      title="Cover zuschneiden"
       onCropped={handleCropped}
     />
     </>

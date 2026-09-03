@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 function VerifyEmailInner() {
   const router = useRouter()
   const params = useSearchParams()
+  const t = useT()
   const [email, setEmail] = useState(params.get('email') ?? '')
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -26,27 +28,25 @@ function VerifyEmailInner() {
     setLoading(true)
     try {
       await authApi.verifyEmail({ email, code })
-      toast.success('E-Mail bestätigt. Du kannst dich jetzt anmelden.')
+      toast.success(t('auth.verifySuccess'))
       router.push(`/login`)
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Bestätigung fehlgeschlagen.',
-      )
+      setError(err instanceof ApiError ? err.message : t('auth.verifyFailed'))
       setLoading(false)
     }
   }
 
   async function resend() {
     if (!email) {
-      setError('Bitte gib zuerst deine E-Mail-Adresse ein.')
+      setError(t('auth.verifyEnterEmailFirst'))
       return
     }
     setResending(true)
     try {
       await authApi.resendVerification({ email })
-      toast.success('Falls die E-Mail existiert, wurde ein neuer Code gesendet.')
+      toast.success(t('auth.verifyResendSuccess'))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Senden fehlgeschlagen.')
+      toast.error(err instanceof Error ? err.message : t('auth.verifyResendFailed'))
     } finally {
       setResending(false)
     }
@@ -54,28 +54,28 @@ function VerifyEmailInner() {
 
   return (
     <AuthShell
-      title="E-Mail bestätigen"
-      subtitle="Gib den 6-stelligen Code ein, den wir dir per E-Mail gesendet haben."
+      title={t('auth.verifyTitle')}
+      subtitle={t('auth.verifySubtitle')}
       footer={
         <Link href="/login" className="text-primary hover:underline">
-          Zurück zur Anmeldung
+          {t('auth.backToSignIn')}
         </Link>
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-Mail</Label>
+          <Label htmlFor="email">{t('auth.emailLabel')}</Label>
           <Input
             id="email"
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="du@beispiel.de"
+            placeholder={t('auth.emailPlaceholder')}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="code">Bestätigungscode</Label>
+          <Label htmlFor="code">{t('auth.verifyCodeLabel')}</Label>
           <Input
             id="code"
             inputMode="numeric"
@@ -97,7 +97,7 @@ function VerifyEmailInner() {
 
         <Button type="submit" size="lg" className="mt-2 h-10" disabled={loading}>
           {loading && <Loader2 className="size-4 animate-spin" />}
-          Bestätigen
+          {t('auth.verifySubmit')}
         </Button>
         <Button
           type="button"
@@ -107,7 +107,7 @@ function VerifyEmailInner() {
           className="h-9"
         >
           {resending && <Loader2 className="size-4 animate-spin" />}
-          Code erneut senden
+          {t('auth.verifyResend')}
         </Button>
       </form>
     </AuthShell>

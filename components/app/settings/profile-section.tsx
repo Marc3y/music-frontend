@@ -9,10 +9,12 @@ import { Label } from '@/components/ui/label'
 import { SettingsCard } from '@/components/app/settings/settings-card'
 import { AvatarCropDialog } from '@/components/app/settings/avatar-crop-dialog'
 import { useAuth } from '@/lib/auth-context'
+import { useT } from '@/lib/i18n/context'
 import { accountApi, ApiError } from '@/lib/api'
 
 export function ProfileSection() {
   const { user, setUser } = useAuth()
+  const t = useT()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [pendingFile, setPendingFile] = useState<File | null>(null)
@@ -30,7 +32,7 @@ export function ProfileSection() {
   function handleFileSelect(file: File | undefined) {
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      toast.error('Bitte eine Bilddatei auswählen')
+      toast.error(t('toast.pickImageFile'))
       return
     }
     setPendingFile(file)
@@ -42,9 +44,9 @@ export function ProfileSection() {
     try {
       await accountApi.deleteAvatar()
       await refreshUser()
-      toast.success('Profilbild entfernt')
+      toast.success(t('toast.avatarRemoved'))
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Entfernen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.removeFailed'))
     } finally {
       setRemovingAvatar(false)
     }
@@ -58,16 +60,16 @@ export function ProfileSection() {
     try {
       const fresh = await accountApi.updateUsername(trimmed)
       setUser(fresh)
-      toast.success('Username geändert')
+      toast.success(t('toast.usernameChanged'))
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Speichern fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.saveFailed'))
     } finally {
       setSavingUsername(false)
     }
   }
 
   return (
-    <SettingsCard title="Profil" description="Dein Profilbild und dein Anzeigename.">
+    <SettingsCard title={t('settings.profileTitle')} description={t('settings.profileDesc')}>
       <div className="flex items-center gap-4">
         <button
           type="button"
@@ -83,13 +85,13 @@ export function ProfileSection() {
             </span>
           )}
           <span className="absolute inset-0 flex items-center justify-center bg-background/60 text-xs opacity-0 transition-opacity group-hover:opacity-100">
-            Ändern
+            {t('settings.change')}
           </span>
         </button>
 
         <div className="flex flex-col gap-2">
           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-            Bild ändern
+            {t('settings.changePicture')}
           </Button>
           {user?.avatarUrl && (
             <Button
@@ -103,7 +105,7 @@ export function ProfileSection() {
               ) : (
                 <Trash2 className="size-4" />
               )}
-              Entfernen
+              {t('common.remove')}
             </Button>
           )}
         </div>
@@ -121,7 +123,7 @@ export function ProfileSection() {
       </div>
 
       <form onSubmit={handleUsernameSubmit} className="mt-6 flex flex-col gap-2">
-        <Label htmlFor="settings-username">Username</Label>
+        <Label htmlFor="settings-username">{t('settings.usernameLabel')}</Label>
         <div className="flex gap-2">
           <Input
             id="settings-username"
@@ -138,7 +140,7 @@ export function ProfileSection() {
             }
           >
             {savingUsername && <Loader2 className="size-4 animate-spin" />}
-            Speichern
+            {t('common.save')}
           </Button>
         </div>
       </form>

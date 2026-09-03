@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { audioApi, accountApi, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
+import { useT } from '@/lib/i18n/context'
 import { formatBytes } from '@/lib/format'
 import type { SavedShare } from '@/lib/types'
 
@@ -20,6 +21,7 @@ export function SharedItemsList({
   onRemoved: (id: string) => void
 }) {
   const player = usePlayer()
+  const t = useT()
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const audioItems = items.filter((i) => i.type === 'audio')
@@ -47,9 +49,9 @@ export function SharedItemsList({
     try {
       const res = await audioApi.publicStream(item.token)
       if (res.projectUrl) window.location.assign(res.projectUrl)
-      else toast.error('Projektdatei nicht mehr verfügbar')
+      else toast.error(t('sharedItems.projectUnavailable'))
     } catch (err) {
-      toast.error(errMsg(err, 'Download fehlgeschlagen'))
+      toast.error(errMsg(err, t('toast.downloadFailed')))
     } finally {
       setBusyId(null)
     }
@@ -61,7 +63,7 @@ export function SharedItemsList({
       const res = await audioApi.publicProjectShare(item.token)
       window.location.assign(res.url)
     } catch (err) {
-      toast.error(errMsg(err, 'Download fehlgeschlagen'))
+      toast.error(errMsg(err, t('toast.downloadFailed')))
     } finally {
       setBusyId(null)
     }
@@ -72,15 +74,14 @@ export function SharedItemsList({
       await accountApi.removeSavedShare(item._id)
       onRemoved(item._id)
     } catch (err) {
-      toast.error(errMsg(err, 'Entfernen fehlgeschlagen'))
+      toast.error(errMsg(err, t('toast.removeFailed')))
     }
   }
 
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-        Noch nichts hinzugefügt. Öffne einen geteilten Link und tippe auf „Zur Mediathek
-        hinzufügen".
+        {t('sharedItems.empty')}
       </div>
     )
   }
@@ -95,7 +96,7 @@ export function SharedItemsList({
             {isAudio ? (
               <button
                 onClick={() => playAudio(item)}
-                aria-label={playing ? 'Pause' : 'Abspielen'}
+                aria-label={playing ? t('player.pause') : t('player.play')}
                 className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-accent/15"
               >
                 {playing ? <Pause className="size-4" /> : <Play className="size-4 translate-x-px" />}
@@ -111,13 +112,13 @@ export function SharedItemsList({
               <p className="truncate text-xs text-muted-foreground">
                 {isAudio
                   ? [
-                      item.artist || 'Unbekannter Interpret',
+                      item.artist || t('sharedItems.unknownArtist'),
                       item.bpm ? `${item.bpm} BPM` : null,
                       item.musicalKey || null,
                     ]
                       .filter(Boolean)
                       .join(' · ')
-                  : `Projekt${item.projectSize ? ` · ${formatBytes(item.projectSize)}` : ''}`}
+                  : `${t('sharedItems.project')}${item.projectSize ? ` · ${formatBytes(item.projectSize)}` : ''}`}
               </p>
             </div>
 
@@ -125,7 +126,7 @@ export function SharedItemsList({
               <button
                 onClick={() => downloadAudioProject(item)}
                 disabled={busyId === item._id}
-                aria-label="Projektdatei herunterladen"
+                aria-label={t('sharedItems.downloadProjectFile')}
                 className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
               >
                 {busyId === item._id ? (
@@ -147,13 +148,13 @@ export function SharedItemsList({
                 ) : (
                   <Download className="size-3.5" />
                 )}
-                Download
+                {t('common.download')}
               </button>
             )}
 
             <button
               onClick={() => remove(item)}
-              aria-label="Aus Mediathek entfernen"
+              aria-label={t('sharedItems.removeFromLibrary')}
               className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
               <X className="size-4" />

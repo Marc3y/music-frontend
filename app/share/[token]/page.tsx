@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
+import { useT } from '@/lib/i18n/context'
 
 interface SharedTrack {
   title: string
@@ -28,6 +29,7 @@ export default function SharePage({
 }) {
   const { token } = use(params)
   const player = usePlayer()
+  const t = useT()
 
   const [track, setTrack] = useState<SharedTrack | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -49,10 +51,11 @@ export default function SharePage({
       .catch((err) =>
         setError(
           err instanceof ApiError
-            ? 'Dieser Link ist ungültig oder wurde deaktiviert.'
-            : 'Track konnte nicht geladen werden.',
+            ? t('publicShare.linkInvalid')
+            : t('publicShare.trackLoadFailed'),
         ),
       )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   const isCurrent = player.current?.id === `share-${token}`
@@ -65,7 +68,7 @@ export default function SharePage({
     player.playQueue([
       {
         id: `share-${token}`,
-        title: track?.title ?? 'Track',
+        title: track?.title ?? '',
         artist: track?.artist,
         getStreamUrl: async () => {
           const res = await audioApi.publicStream(token)
@@ -102,7 +105,7 @@ export default function SharePage({
             </div>
             <h1 className="mt-5 text-xl font-semibold text-balance">{track.title}</h1>
             <p className="mt-1 text-muted-foreground">
-              {track.artist || 'Unbekannter Interpret'}
+              {track.artist || t('publicShare.unknownArtist')}
             </p>
             {(track.bpm || track.musicalKey) && (
               <p className="mt-2 text-sm text-muted-foreground">
@@ -123,7 +126,7 @@ export default function SharePage({
               ) : (
                 <Play className="size-4" />
               )}
-              {isCurrent && player.isPlaying ? 'Pause' : 'Abspielen'}
+              {isCurrent && player.isPlaying ? t('publicShare.pause') : t('publicShare.play')}
             </Button>
 
             {track.projectUrl && (
@@ -132,7 +135,7 @@ export default function SharePage({
                 className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium transition-colors hover:bg-muted"
               >
                 <Download className="size-4" />
-                Projektdatei herunterladen
+                {t('publicShare.downloadProjectFile')}
               </a>
             )}
 
@@ -142,7 +145,7 @@ export default function SharePage({
       </motion.div>
 
       <p className="relative mt-6 text-sm text-muted-foreground">
-        Geteilt über <span className="font-medium text-foreground">music</span>
+        {t('publicShare.sharedVia')} <span className="font-medium text-foreground">music</span>
       </p>
     </main>
   )

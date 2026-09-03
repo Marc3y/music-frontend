@@ -7,11 +7,13 @@ import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
+import { useT } from '@/lib/i18n/context'
 import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function LandingNav() {
   const { user, loading } = useAuth()
+  const t = useT()
   const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
   useMotionValueEvent(scrollY, 'change', (v) => setScrolled(v > 8))
@@ -48,13 +50,13 @@ export function LandingNav() {
           {loading ? (
             <div className="h-9 w-28 animate-pulse rounded-full bg-muted" />
           ) : user ? (
-            <Button render={<Link href="/library" />}>Zur Mediathek</Button>
+            <Button render={<Link href="/library" />}>{t('nav.toLibrary')}</Button>
           ) : (
             <>
               <Button render={<Link href="/login" />} variant="ghost">
-                Anmelden
+                {t('nav.signIn')}
               </Button>
-              <Button render={<Link href="/register" />}>Registrieren</Button>
+              <Button render={<Link href="/register" />}>{t('nav.signUp')}</Button>
             </>
           )}
         </div>

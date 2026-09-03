@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
+import { useT } from '@/lib/i18n/context'
 
 /** Draws the selected crop area of `src` into a square canvas and returns a JPEG blob. */
 export async function getCroppedBlob(src: string, area: Area, size: number): Promise<Blob> {
@@ -47,8 +48,8 @@ export function ImageCropDialog({
   open,
   onOpenChange,
   onCropped,
-  title = 'Bild zuschneiden',
-  description = 'Verschiebe den Ausschnitt und zoome, bis er passt.',
+  title,
+  description,
   outputSize = 1024,
 }: {
   file: File | null
@@ -59,6 +60,7 @@ export function ImageCropDialog({
   description?: string
   outputSize?: number
 }) {
+  const t = useT()
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -89,7 +91,7 @@ export function ImageCropDialog({
       await onCropped(blob)
       onOpenChange(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Zuschneiden fehlgeschlagen')
+      toast.error(err instanceof Error ? err.message : t('toast.cropFailed'))
     } finally {
       setSaving(false)
     }
@@ -99,8 +101,8 @@ export function ImageCropDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle>{title ?? t('crop.coverTitle')}</DialogTitle>
+          <DialogDescription>{description ?? t('crop.hint')}</DialogDescription>
         </DialogHeader>
 
         <div className="relative h-64 w-full overflow-hidden rounded-xl bg-muted">
@@ -119,7 +121,7 @@ export function ImageCropDialog({
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Zoom</span>
+          <span className="text-xs text-muted-foreground">{t('crop.zoom')}</span>
           <Slider
             value={[zoom]}
             min={1}
@@ -132,11 +134,11 @@ export function ImageCropDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Abbrechen
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saving || !areaPixels}>
             {saving && <Loader2 className="size-4 animate-spin" />}
-            Übernehmen
+            {t('common.apply')}
           </Button>
         </DialogFooter>
       </DialogContent>

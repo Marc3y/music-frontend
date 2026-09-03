@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import { analyzeAudioFile } from '@/lib/audio-analysis'
 import { formatBytes } from '@/lib/format'
 import type { AudioFile, TrackVersion } from '@/lib/types'
@@ -32,6 +33,7 @@ export function VersionsDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: (track: AudioFile) => void
 }) {
+  const t = useT()
   const audioInputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<number | null>(null)
@@ -44,7 +46,7 @@ export function VersionsDialog({
     if (isProject) {
       const n = file.name.toLowerCase()
       if (!n.endsWith('.zip') && !n.endsWith('.rar')) {
-        toast.error('Nur .zip- oder .rar-Dateien')
+        toast.error(t('toast.onlyZipRar'))
         return
       }
     }
@@ -64,7 +66,7 @@ export function VersionsDialog({
         mimeType: file.type || 'application/octet-stream',
       })
       onUpdated(updated)
-      toast.success('Version hochgeladen')
+      toast.success(t('toast.versionUploaded'))
 
       if (!isProject) {
         const { bpm, musicalKey } = await analyzeAudioFile(file)
@@ -77,7 +79,7 @@ export function VersionsDialog({
         }
       }
     } catch (err) {
-      toast.error(errMsg(err, 'Upload fehlgeschlagen'))
+      toast.error(errMsg(err, t('versions.uploadFailed')))
     } finally {
       setBusy(false)
       setProgress(null)
@@ -88,9 +90,9 @@ export function VersionsDialog({
     if (!trackId) return
     try {
       onUpdated(await audioApi.selectVersion(trackId, versionId))
-      toast.success('Hauptversion geändert')
+      toast.success(t('toast.primaryVersionChanged'))
     } catch (err) {
-      toast.error(errMsg(err, 'Umschalten fehlgeschlagen'))
+      toast.error(errMsg(err, t('versions.toggleFailed')))
     }
   }
 
@@ -98,9 +100,9 @@ export function VersionsDialog({
     if (!trackId) return
     try {
       onUpdated(await audioApi.deleteVersion(trackId, versionId))
-      toast.success('Version gelöscht')
+      toast.success(t('toast.versionDeleted'))
     } catch (err) {
-      toast.error(errMsg(err, 'Löschen fehlgeschlagen'))
+      toast.error(errMsg(err, t('toast.deleteFailed')))
     }
   }
 
@@ -111,13 +113,11 @@ export function VersionsDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isProject ? 'Projekt-Versionen' : 'Versionen'}
+            {isProject ? t('versions.titleProject') : t('versions.titleTrack')}
             {track ? ` – ${track.title}` : ''}
           </DialogTitle>
           <DialogDescription>
-            {isProject
-              ? 'Lade weitere Projekt-Zips hoch und wähle, welche geteilt wird.'
-              : 'Lade weitere Versionen hoch und wähle, welche abgespielt und geteilt wird.'}
+            {isProject ? t('versions.descProject') : t('versions.descTrack')}
           </DialogDescription>
         </DialogHeader>
 
@@ -145,7 +145,7 @@ export function VersionsDialog({
             ) : (
               <Plus className="size-4" />
             )}
-            {isProject ? 'Neue Projekt-Version hochladen' : 'Neue Version hochladen'}
+            {isProject ? t('versions.uploadNewProject') : t('versions.uploadNew')}
           </Button>
           {progress !== null && (
             <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
@@ -196,6 +196,7 @@ function VersionRow({
   onDelete: () => void
   onUpdated: (track: AudioFile) => void
 }) {
+  const t = useT()
   const projectInputRef = useRef<HTMLInputElement>(null)
   const [bpm, setBpm] = useState(version.bpm != null ? String(version.bpm) : '')
   const [musicalKey, setMusicalKey] = useState(version.musicalKey ?? '')
@@ -209,14 +210,14 @@ function VersionRow({
       return
     }
     if (nextBpm != null && (!Number.isFinite(nextBpm) || nextBpm < 1 || nextBpm > 400)) {
-      toast.error('BPM muss zwischen 1 und 400 liegen')
+      toast.error(t('toast.bpmRange'))
       return
     }
     setSavingMeta(true)
     try {
       onUpdated(await audioApi.updateVersion(trackId, version._id, { bpm: nextBpm, musicalKey: nextKey }))
     } catch (err) {
-      toast.error(errMsg(err, 'Speichern fehlgeschlagen'))
+      toast.error(errMsg(err, t('versions.saveFailed')))
     } finally {
       setSavingMeta(false)
     }
@@ -226,7 +227,7 @@ function VersionRow({
     if (!file) return
     const name = file.name.toLowerCase()
     if (!name.endsWith('.zip') && !name.endsWith('.rar')) {
-      toast.error('Nur .zip- oder .rar-Dateien')
+      toast.error(t('toast.onlyZipRar'))
       return
     }
     setProjectBusy(true)
@@ -245,9 +246,9 @@ function VersionRow({
           fileSize: file.size,
         }),
       )
-      toast.success('Projektdatei hochgeladen')
+      toast.success(t('toast.projectFileUploaded'))
     } catch (err) {
-      toast.error(errMsg(err, 'Upload fehlgeschlagen'))
+      toast.error(errMsg(err, t('versions.uploadFailed')))
     } finally {
       setProjectBusy(false)
     }
@@ -258,7 +259,7 @@ function VersionRow({
       const { url } = await audioApi.versionProjectDownload(trackId, version._id)
       window.location.assign(url)
     } catch (err) {
-      toast.error(errMsg(err, 'Download fehlgeschlagen'))
+      toast.error(errMsg(err, t('toast.downloadFailed')))
     }
   }
 
@@ -266,9 +267,9 @@ function VersionRow({
     setProjectBusy(true)
     try {
       onUpdated(await audioApi.deleteVersionProject(trackId, version._id))
-      toast.success('Projektdatei entfernt')
+      toast.success(t('toast.projectFileRemoved'))
     } catch (err) {
-      toast.error(errMsg(err, 'Entfernen fehlgeschlagen'))
+      toast.error(errMsg(err, t('toast.removeFailed')))
     } finally {
       setProjectBusy(false)
     }
@@ -295,15 +296,15 @@ function VersionRow({
           <p className="truncate text-sm font-medium">{version.label}</p>
           <p className="text-xs text-muted-foreground">
             {formatBytes((isProject ? version.projectSize : version.fileSize) ?? 0)}
-            {isSelected && ' · Hauptversion'}
-            {version.status === 'processing' && ' · wird verarbeitet…'}
-            {version.status === 'failed' && ' · fehlgeschlagen'}
+            {isSelected && ` · ${t('versions.primaryVersion')}`}
+            {version.status === 'processing' && ` · ${t('versions.processingSuffix')}`}
+            {version.status === 'failed' && ` · ${t('versions.failedSuffix')}`}
           </p>
         </div>
         {isProject && (
           <button
             onClick={downloadProject}
-            aria-label="Projektdatei herunterladen"
+            aria-label={t('versions.downloadProject')}
             className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Download className="size-4" />
@@ -312,7 +313,7 @@ function VersionRow({
         <button
           onClick={onDelete}
           disabled={!canDelete}
-          aria-label="Version löschen"
+          aria-label={t('versions.deleteVersion')}
           className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
         >
           <Trash2 className="size-4" />
@@ -327,14 +328,14 @@ function VersionRow({
               onChange={(e) => setBpm(e.target.value.replace(/[^\d]/g, ''))}
               onBlur={saveMeta}
               inputMode="numeric"
-              placeholder="BPM"
+              placeholder={t('versions.bpmPlaceholder')}
               className="h-7 w-20 text-xs"
             />
             <Input
               value={musicalKey}
               onChange={(e) => setMusicalKey(e.target.value)}
               onBlur={saveMeta}
-              placeholder="Key (z. B. A moll)"
+              placeholder={t('versions.keyPlaceholder')}
               maxLength={20}
               className="h-7 flex-1 text-xs"
             />
@@ -361,7 +362,7 @@ function VersionRow({
                 </span>
                 <button
                   onClick={downloadProject}
-                  aria-label="Projektdatei herunterladen"
+                  aria-label={t('versions.downloadProject')}
                   className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground"
                 >
                   <Download className="size-3.5" />
@@ -369,7 +370,7 @@ function VersionRow({
                 <button
                   onClick={removeProject}
                   disabled={projectBusy}
-                  aria-label="Projektdatei entfernen"
+                  aria-label={t('versions.removeProject')}
                   className="shrink-0 rounded p-1 text-muted-foreground hover:text-destructive disabled:opacity-40"
                 >
                   {projectBusy ? (
@@ -391,7 +392,7 @@ function VersionRow({
                 ) : (
                   <Paperclip className="size-4" />
                 )}
-                Projektdatei hinzufügen (.zip / .rar)
+                {t('versions.attachProject')}
               </button>
             )}
           </div>

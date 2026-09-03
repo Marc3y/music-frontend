@@ -22,12 +22,14 @@ import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { ease, spring } from '@/lib/motion'
 import { useCoverGlow } from '@/lib/use-cover-glow'
+import { useT } from '@/lib/i18n/context'
 import { Slider } from '@/components/ui/slider'
 import { useWaveSurfer } from './use-wavesurfer'
 import { BarsWaveform } from './bars-waveform'
 
 export function GlobalPlayer() {
   const player = usePlayer()
+  const t = useT()
   const containerRef = useRef<HTMLDivElement>(null)
   const { currentTime, duration, peaks, seekTo } = useWaveSurfer(containerRef)
 
@@ -70,12 +72,12 @@ export function GlobalPlayer() {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => player.setExpanded(false)}
                 className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                aria-label="Player schließen"
+                aria-label={t('player.close')}
               >
                 <ChevronDown className="size-6" />
               </motion.button>
               <span className="text-[0.7rem] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-                Wiedergabe
+                {t('player.playback')}
               </span>
               <div className="size-10" />
             </div>
@@ -117,7 +119,7 @@ export function GlobalPlayer() {
                   {current.title}
                 </h2>
                 <p className="mt-1 truncate text-muted-foreground">
-                  {current.artist || 'Unbekannter Interpret'}
+                  {current.artist || t('player.unknownArtist')}
                 </p>
               </motion.div>
 
@@ -158,7 +160,7 @@ export function GlobalPlayer() {
                   <button
                     onClick={() => player.setExpanded(true)}
                     className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition-opacity hover:opacity-80"
-                    aria-label="Player vergrößern"
+                    aria-label={t('player.expand')}
                   >
                     <div className="relative size-11 shrink-0 overflow-hidden rounded-xl ring-1 ring-border/70 sm:size-12">
                       {current?.coverUrl ? (
@@ -172,10 +174,10 @@ export function GlobalPlayer() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">
-                        {current?.title || 'Kein Titel'}
+                        {current?.title || t('player.noTitle')}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {current?.artist || 'Unbekannter Interpret'}
+                        {current?.artist || t('player.unknownArtist')}
                       </p>
                     </div>
                   </button>
@@ -192,12 +194,12 @@ export function GlobalPlayer() {
                     <IconButton
                       onClick={player.toggleShuffle}
                       active={shuffle}
-                      label="Zufallswiedergabe"
+                      label={t('player.shuffle')}
                       className="hidden size-8 sm:inline-flex"
                     >
                       <Shuffle className="size-3.5" />
                     </IconButton>
-                    <IconButton onClick={player.prev} label="Vorheriger Titel" className="size-8">
+                    <IconButton onClick={player.prev} label={t('player.previous')} className="size-8">
                       <SkipBack className="size-4" />
                     </IconButton>
                     <PlayButton
@@ -208,7 +210,7 @@ export function GlobalPlayer() {
                     />
                     <IconButton
                       onClick={() => player.next()}
-                      label="Nächster Titel"
+                      label={t('player.next')}
                       className="size-8"
                     >
                       <SkipForward className="size-4" />
@@ -216,7 +218,7 @@ export function GlobalPlayer() {
                     <IconButton
                       onClick={player.cycleLoop}
                       active={loop !== 'none'}
-                      label="Wiederholen"
+                      label={t('player.repeat')}
                       className="hidden size-8 sm:inline-flex"
                     >
                       {loop === 'one' ? (
@@ -245,12 +247,13 @@ function PlayButton({
   onClick: () => void
   size: 'sm' | 'lg'
 }) {
+  const t = useT()
   return (
     <motion.button
       onClick={onClick}
       whileTap={{ scale: 0.88 }}
       transition={{ duration: 0.12, ease: ease.apple }}
-      aria-label={isPlaying ? 'Pause' : 'Abspielen'}
+      aria-label={isPlaying ? t('player.pause') : t('player.play')}
       className={cn(
         'relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-(--elevate-2)',
         size === 'lg' ? 'size-16' : 'size-9',
@@ -280,6 +283,7 @@ function PlayButton({
 
 function VolumeControl({ className }: { className?: string }) {
   const { volume, setVolume } = usePlayer()
+  const t = useT()
   const [previousVolume, setPreviousVolume] = useState(1)
 
   function toggleMute() {
@@ -298,7 +302,7 @@ function VolumeControl({ className }: { className?: string }) {
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={toggleMute}
-        aria-label={volume === 0 ? 'Stummschaltung aufheben' : 'Stummschalten'}
+        aria-label={volume === 0 ? t('player.unmute') : t('player.mute')}
         className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <VolumeIcon className="size-4" />
@@ -311,7 +315,7 @@ function VolumeControl({ className }: { className?: string }) {
           const v = Array.isArray(value) ? value[0] : value
           setVolume((v ?? 0) / 100)
         }}
-        aria-label="Lautstärke"
+        aria-label={t('player.volume')}
         className="w-full"
       />
     </div>
@@ -360,18 +364,19 @@ function Controls({
   isLoading: boolean
   large?: boolean
 }) {
+  const t = useT()
   return (
     <div className="flex items-center justify-center gap-3 sm:gap-4">
       <IconButton
         onClick={player.toggleShuffle}
         active={player.shuffle}
-        label="Zufallswiedergabe"
+        label={t('player.shuffle')}
       >
         <Shuffle className="size-5" />
       </IconButton>
 
       <div className="flex items-center gap-1 rounded-full bg-secondary/60 p-1.5">
-        <IconButton onClick={player.prev} label="Vorheriger Titel" className="size-11">
+        <IconButton onClick={player.prev} label={t('player.previous')} className="size-11">
           <SkipBack className="size-6" />
         </IconButton>
         <PlayButton
@@ -380,7 +385,7 @@ function Controls({
           onClick={player.togglePlay}
           size={large ? 'lg' : 'sm'}
         />
-        <IconButton onClick={() => player.next()} label="Nächster Titel" className="size-11">
+        <IconButton onClick={() => player.next()} label={t('player.next')} className="size-11">
           <SkipForward className="size-6" />
         </IconButton>
       </div>
@@ -388,7 +393,7 @@ function Controls({
       <IconButton
         onClick={player.cycleLoop}
         active={player.loop !== 'none'}
-        label="Wiederholen"
+        label={t('player.repeat')}
       >
         {player.loop === 'one' ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
       </IconButton>

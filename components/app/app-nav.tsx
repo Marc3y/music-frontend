@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, useMotionValueEvent, useScroll } from 'motion/react'
 import { useState } from 'react'
-import { ChevronDown, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
+import { Check, ChevronDown, Globe, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import {
@@ -14,15 +14,20 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/lib/auth-context'
+import { useI18n } from '@/lib/i18n/context'
 import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function AppNav() {
   const { user, logout } = useAuth()
   const router = useRouter()
+  const { t, locale, setLocale, locales } = useI18n()
   const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
 
@@ -90,21 +95,45 @@ export function AppNav() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push('/library')}>
                 <ListMusic className="size-4" />
-                Mediathek
+                {t('nav.library')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push('/settings')}>
                 <Settings className="size-4" />
-                Account-Einstellungen
+                {t('nav.accountSettings')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push('/usage')}>
                 <HardDrive className="size-4" />
-                Usage
+                {t('nav.usage')}
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Globe className="size-4" />
+                  {t('nav.language')}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-44">
+                  {locales.map((l) => (
+                    <DropdownMenuItem
+                      key={l.code}
+                      onClick={() => setLocale(l.code)}
+                      closeOnClick={false}
+                    >
+                      <Check
+                        className={cn(
+                          'size-4',
+                          l.code === locale ? 'opacity-100' : 'opacity-0',
+                        )}
+                      />
+                      {l.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={handleLogout}>
                 <LogOut className="size-4" />
-                Abmelden
+                {t('nav.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

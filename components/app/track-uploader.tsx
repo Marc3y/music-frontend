@@ -5,6 +5,7 @@ import { Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import { analyzeAudioFile } from '@/lib/audio-analysis'
 import { formatBytes } from '@/lib/format'
 import type { AudioFile } from '@/lib/types'
@@ -47,6 +48,7 @@ export const TrackUploader = forwardRef<
     onPatched?: (track: AudioFile) => void
   }
 >(function TrackUploader({ playlistId, onUploaded, onPatched }, ref) {
+  const t = useT()
   const inputRef = useRef<HTMLInputElement>(null)
   const [items, setItems] = useState<UploadItem[]>([])
 
@@ -60,11 +62,11 @@ export const TrackUploader = forwardRef<
       const project = isProjectFile(file)
 
       if (!project && !ALLOWED_TYPES.includes(file.type)) {
-        toast.error(`${file.name}: Dateityp nicht unterstützt`)
+        toast.error(t('uploader.unsupportedType', { name: file.name }))
         continue
       }
       if (!project && file.size > MAX_SIZE) {
-        toast.error(`${file.name}: Datei zu groß (max. 500 MB)`)
+        toast.error(t('uploader.tooLarge', { name: file.name }))
         continue
       }
 
@@ -127,11 +129,11 @@ export const TrackUploader = forwardRef<
         setItems((prev) => prev.filter((it) => it.id !== id))
       }, 1500)
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Upload fehlgeschlagen'
+      const message = err instanceof ApiError ? err.message : t('uploader.uploadFailed')
       setItems((prev) =>
         prev.map((it) => (it.id === id ? { ...it, status: 'error', error: message } : it)),
       )
-      toast.error(`${file.name}: ${message}`)
+      toast.error(t('toast.fileError', { name: file.name, message }))
     }
   }
 
@@ -167,11 +169,11 @@ export const TrackUploader = forwardRef<
         setItems((prev) => prev.filter((it) => it.id !== id))
       }, 1500)
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Upload fehlgeschlagen'
+      const message = err instanceof ApiError ? err.message : t('uploader.uploadFailed')
       setItems((prev) =>
         prev.map((it) => (it.id === id ? { ...it, status: 'error', error: message } : it)),
       )
-      toast.error(`${file.name}: ${message}`)
+      toast.error(t('toast.fileError', { name: file.name, message }))
     }
   }
 
@@ -194,7 +196,7 @@ export const TrackUploader = forwardRef<
       />
       <Button size="lg" onClick={() => inputRef.current?.click()}>
         <Upload className="size-4" />
-        Hochladen (Audio oder Projekt)
+        {t('uploader.button')}
       </Button>
 
       {items.length > 0 && (
@@ -206,11 +208,11 @@ export const TrackUploader = forwardRef<
                   <span className="truncate font-medium">{item.filename}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {item.status === 'error'
-                      ? 'Fehler'
+                      ? t('uploader.statusError')
                       : item.status === 'confirming'
-                        ? 'Wird verarbeitet…'
+                        ? t('uploader.statusProcessing')
                         : item.status === 'done'
-                          ? 'Fertig'
+                          ? t('uploader.statusDone')
                           : `${item.progress}%`}
                   </span>
                 </div>
@@ -244,7 +246,7 @@ export const TrackUploader = forwardRef<
                 <button
                   onClick={() => dismiss(item.id)}
                   className="shrink-0 text-muted-foreground hover:text-foreground"
-                  aria-label="Entfernen"
+                  aria-label={t('common.remove')}
                 >
                   <X className="size-4" />
                 </button>

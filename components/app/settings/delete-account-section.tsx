@@ -17,11 +17,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SettingsCard } from '@/components/app/settings/settings-card'
 import { useAuth } from '@/lib/auth-context'
+import { useT } from '@/lib/i18n/context'
 import { accountApi, ApiError } from '@/lib/api'
 
 export function DeleteAccountSection() {
   const router = useRouter()
   const { setUser } = useAuth()
+  const t = useT()
 
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<'confirm' | 'code'>('confirm')
@@ -44,10 +46,10 @@ export function DeleteAccountSection() {
     setLoading(true)
     try {
       await accountApi.requestDeletion(password)
-      toast.success('Bestätigungscode per E-Mail gesendet')
+      toast.success(t('toast.verificationCodeSent'))
       setStep('code')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Anfrage fehlgeschlagen')
+      setError(err instanceof ApiError ? err.message : t('settings.requestFailed'))
     } finally {
       setLoading(false)
     }
@@ -60,18 +62,18 @@ export function DeleteAccountSection() {
     try {
       await accountApi.confirmDeletion(code)
       setUser(null)
-      toast.success('Dein Account wurde gelöscht.')
+      toast.success(t('toast.accountDeleted'))
       router.replace('/')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Löschung fehlgeschlagen')
+      setError(err instanceof ApiError ? err.message : t('settings.deleteFailed'))
       setLoading(false)
     }
   }
 
   return (
     <SettingsCard
-      title="Account löschen"
-      description="Löscht deinen Account und alle deine Playlists, Tracks und Bilder unwiderruflich."
+      title={t('settings.deleteTitle')}
+      description={t('settings.deleteDesc')}
       className="border-destructive/40"
     >
       <Button
@@ -81,7 +83,7 @@ export function DeleteAccountSection() {
           setOpen(true)
         }}
       >
-        Account löschen
+        {t('settings.deleteButton')}
       </Button>
 
       <Dialog
@@ -95,16 +97,12 @@ export function DeleteAccountSection() {
           {step === 'confirm' ? (
             <form onSubmit={handleRequest} className="flex flex-col gap-4">
               <DialogHeader>
-                <DialogTitle>Account wirklich löschen?</DialogTitle>
-                <DialogDescription>
-                  Diese Aktion ist endgültig. Alle deine Playlists, hochgeladenen Tracks
-                  und Bilder werden vom Server gelöscht. Gib zur Bestätigung dein Passwort
-                  ein – wir senden dir dann einen Code per E-Mail.
-                </DialogDescription>
+                <DialogTitle>{t('settings.deleteConfirmTitle')}</DialogTitle>
+                <DialogDescription>{t('settings.deleteConfirmBody')}</DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="delete-password">Passwort</Label>
+                <Label htmlFor="delete-password">{t('auth.passwordLabel')}</Label>
                 <Input
                   id="delete-password"
                   type="password"
@@ -128,25 +126,23 @@ export function DeleteAccountSection() {
                   onClick={() => setOpen(false)}
                   disabled={loading}
                 >
-                  Abbrechen
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" variant="destructive" disabled={loading || !password}>
                   {loading && <Loader2 className="size-4 animate-spin" />}
-                  Bestätigungscode anfordern
+                  {t('settings.requestDeleteCode')}
                 </Button>
               </DialogFooter>
             </form>
           ) : (
             <form onSubmit={handleConfirm} className="flex flex-col gap-4">
               <DialogHeader>
-                <DialogTitle>Löschung bestätigen</DialogTitle>
-                <DialogDescription>
-                  Gib den Code aus der E-Mail ein, um deinen Account endgültig zu löschen.
-                </DialogDescription>
+                <DialogTitle>{t('settings.deleteCodeTitle')}</DialogTitle>
+                <DialogDescription>{t('settings.deleteCodeBody')}</DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="delete-code">Bestätigungscode</Label>
+                <Label htmlFor="delete-code">{t('settings.confirmationCode')}</Label>
                 <Input
                   id="delete-code"
                   inputMode="numeric"
@@ -177,7 +173,7 @@ export function DeleteAccountSection() {
                   }}
                   disabled={loading}
                 >
-                  Zurück
+                  {t('common.back')}
                 </Button>
                 <Button
                   type="submit"
@@ -185,7 +181,7 @@ export function DeleteAccountSection() {
                   disabled={loading || code.length !== 6}
                 >
                   {loading && <Loader2 className="size-4 animate-spin" />}
-                  Account endgültig löschen
+                  {t('settings.deletePermanently')}
                 </Button>
               </DialogFooter>
             </form>

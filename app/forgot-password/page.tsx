@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authApi } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 export default function ForgotPasswordPage() {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -29,11 +31,11 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      title="Passwort vergessen"
-      subtitle="Wir senden dir einen Link zum Zurücksetzen deines Passworts."
+      title={t('auth.forgotTitle')}
+      subtitle={t('auth.forgotSubtitle')}
       footer={
         <Link href="/login" className="text-primary hover:underline">
-          Zurück zur Anmeldung
+          {t('auth.backToSignIn')}
         </Link>
       }
     >
@@ -43,26 +45,25 @@ export default function ForgotPasswordPage() {
             <MailCheck className="size-6" />
           </div>
           <p className="text-sm text-muted-foreground text-pretty">
-            Falls ein Konto mit dieser E-Mail existiert, haben wir dir einen Link
-            zum Zurücksetzen gesendet. Prüfe dein Postfach.
+            {t('auth.forgotSent')}
           </p>
         </div>
       ) : (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">E-Mail</Label>
+            <Label htmlFor="email">{t('auth.emailLabel')}</Label>
             <Input
               id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="du@beispiel.de"
+              placeholder={t('auth.emailPlaceholder')}
             />
           </div>
           <Button type="submit" size="lg" className="mt-2 h-10" disabled={loading}>
             {loading && <Loader2 className="size-4 animate-spin" />}
-            Link senden
+            {t('auth.forgotSubmit')}
           </Button>
         </form>
       )}

@@ -10,6 +10,7 @@ import { Logo } from '@/components/logo'
 import { AuroraBackground } from '@/components/aurora-background'
 import { useAuth } from '@/lib/auth-context'
 import { playlistApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 export default function JoinPlaylistPage({
   params,
@@ -19,6 +20,7 @@ export default function JoinPlaylistPage({
   const { token } = use(params)
   const router = useRouter()
   const { user, loading } = useAuth()
+  const t = useT()
   const ran = useRef(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,14 +36,14 @@ export default function JoinPlaylistPage({
     playlistApi
       .join(token)
       .then((res) => {
-        toast.success('Playlist zu deiner Mediathek hinzugefügt')
+        toast.success(t('toast.playlistAddedToLibrary'))
         router.replace(`/library/${res.playlistId}`)
       })
       .catch((err) => {
         setError(
           err instanceof ApiError
             ? err.message
-            : 'Einladung konnte nicht angenommen werden.',
+            : t('publicShare.joinAcceptFailed'),
         )
       })
   }, [loading, user, token, router])
@@ -67,13 +69,13 @@ export default function JoinPlaylistPage({
               href="/library"
               className="mt-5 inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium hover:bg-muted"
             >
-              Zur Mediathek
+              {t('publicShare.toLibrary')}
             </Link>
           </>
         ) : (
           <div className="flex flex-col items-center gap-3 py-4">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Einladung wird angenommen…</p>
+            <p className="text-sm text-muted-foreground">{t('publicShare.joinInProgress')}</p>
           </div>
         )}
       </motion.div>

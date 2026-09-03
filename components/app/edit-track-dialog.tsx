@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ImageCropDialog } from '@/components/app/image-crop-dialog'
 import { audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
 
 export function EditTrackDialog({
@@ -30,6 +31,7 @@ export function EditTrackDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: (track: AudioFile) => void
 }) {
+  const t = useT()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
   const [artist, setArtist] = useState('')
@@ -54,7 +56,7 @@ export function EditTrackDialog({
   function handleCoverSelect(file: File | undefined) {
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      toast.error('Bitte eine Bilddatei auswählen')
+      toast.error(t('toast.pickImageFile'))
       return
     }
     setPendingCrop(file)
@@ -89,11 +91,11 @@ export function EditTrackDialog({
         description: description.trim() || undefined,
       })
 
-      toast.success('Track aktualisiert')
+      toast.success(t('toast.trackUpdated'))
       onUpdated({ ...updated, coverUrl: coverFile ? coverPreview : updated.coverUrl })
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Aktualisieren fehlgeschlagen')
+      setError(err instanceof ApiError ? err.message : t('editTrack.updateFailed'))
     } finally {
       setLoading(false)
     }
@@ -105,12 +107,10 @@ export function EditTrackDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {track?.kind === 'project' ? 'Projekt bearbeiten' : 'Track bearbeiten'}
+            {track?.kind === 'project' ? t('editTrack.titleProject') : t('editTrack.titleTrack')}
           </DialogTitle>
           <DialogDescription>
-            {track?.kind === 'project'
-              ? 'Name, Beschreibung und Cover anpassen.'
-              : 'Titel, Interpret, Beschreibung und Cover anpassen.'}
+            {track?.kind === 'project' ? t('editTrack.descProject') : t('editTrack.descTrack')}
           </DialogDescription>
         </DialogHeader>
 
@@ -144,13 +144,13 @@ export function EditTrackDialog({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Klicke auf das Bild, um ein eigenes Cover hochzuladen (optional).
+              {t('editTrack.clickCoverOptional')}
             </p>
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="track-title">
-              {track?.kind === 'project' ? 'Name' : 'Titel'}
+              {track?.kind === 'project' ? t('editTrack.nameLabel') : t('editTrack.titleLabel')}
             </Label>
             <Input
               id="track-title"
@@ -162,24 +162,24 @@ export function EditTrackDialog({
           </div>
           {track?.kind !== 'project' && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="track-artist">Interpret</Label>
+              <Label htmlFor="track-artist">{t('editTrack.artistLabel')}</Label>
               <Input
                 id="track-artist"
                 maxLength={200}
                 value={artist}
                 onChange={(e) => setArtist(e.target.value)}
-                placeholder="Optional"
+                placeholder={t('common.optional')}
               />
             </div>
           )}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="track-description">Beschreibung</Label>
+            <Label htmlFor="track-description">{t('editTrack.descriptionLabel')}</Label>
             <Textarea
               id="track-description"
               maxLength={1000}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional"
+              placeholder={t('common.optional')}
             />
           </div>
 
@@ -192,7 +192,7 @@ export function EditTrackDialog({
           <DialogFooter>
             <Button type="submit" disabled={loading || !title.trim()}>
               {loading && <Loader2 className="size-4 animate-spin" />}
-              Speichern
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </form>
@@ -203,7 +203,6 @@ export function EditTrackDialog({
       file={pendingCrop}
       open={pendingCrop !== null}
       onOpenChange={(o) => !o && setPendingCrop(null)}
-      title="Cover zuschneiden"
       onCropped={handleCropped}
     />
     </>

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { accountApi, audioApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import { formatBytes } from '@/lib/format'
 import type { UsageInfo, UsageProject, UsageTrack } from '@/lib/types'
 
@@ -32,6 +33,7 @@ type DeleteTarget =
   | { kind: 'project'; item: UsageProject }
 
 export default function UsagePage() {
+  const tr = useT()
   const [usage, setUsage] = useState<UsageInfo | null>(null)
   const [tab, setTab] = useState<Tab>('tracks')
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
@@ -44,7 +46,7 @@ export default function UsagePage() {
       .then(setUsage)
       .catch((err) => {
         toast.error(
-          err instanceof ApiError ? err.message : 'Speichernutzung konnte nicht geladen werden',
+          err instanceof ApiError ? err.message : tr('usagePage.loadFailed'),
         )
         setUsage({ used: 0, limit: 0, tracks: [], projects: [] })
       })
@@ -72,9 +74,9 @@ export default function UsagePage() {
             }
           : prev,
       )
-      toast.success(`"${track.title}" gelöscht`)
+      toast.success(tr('toast.itemDeleted', { title: track.title }))
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Löschen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : tr('usagePage.deleteFailed'))
     } finally {
       setDeletingId(null)
     }
@@ -98,9 +100,9 @@ export default function UsagePage() {
             }
           : prev,
       )
-      toast.success('Projektdatei gelöscht')
+      toast.success(tr('toast.projectFileDeleted'))
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Löschen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : tr('usagePage.deleteFailed'))
     } finally {
       setDeletingId(null)
     }
@@ -147,11 +149,9 @@ export default function UsagePage() {
           <main className="mx-auto max-w-3xl px-4 pt-4 sm:px-6">
             <div className="pb-8">
               <h1 className="text-3xl font-semibold tracking-tight text-balance">
-                Speichernutzung
+                {tr('usagePage.title')}
               </h1>
-              <p className="mt-1 text-muted-foreground">
-                Dein belegter Speicher – Tracks (alle Versionen) und Projektdateien.
-              </p>
+              <p className="mt-1 text-muted-foreground">{tr('usagePage.subtitle')}</p>
             </div>
 
             <div className="glass rounded-2xl p-5 shadow-(--elevate-1)">
@@ -165,12 +165,17 @@ export default function UsagePage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">
-                        {formatBytes(usage.used)} von {formatBytes(usage.limit)} belegt
+                        {tr('usagePage.usedOf', {
+                          used: formatBytes(usage.used),
+                          limit: formatBytes(usage.limit),
+                        })}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {overLimit
-                          ? 'Limit erreicht – lösche etwas, um wieder hochladen zu können.'
-                          : `${formatBytes(Math.max(0, usage.limit - usage.used))} frei`}
+                          ? tr('usagePage.limitReached')
+                          : tr('usagePage.free', {
+                              amount: formatBytes(Math.max(0, usage.limit - usage.used)),
+                            })}
                       </p>
                     </div>
                   </div>
@@ -199,8 +204,12 @@ export default function UsagePage() {
                     />
                   )}
                   {t === 'tracks'
-                    ? `Tracks${usage ? ` (${usage.tracks.length})` : ''}`
-                    : `Projekte${usage ? ` (${usage.projects.length})` : ''}`}
+                    ? usage
+                      ? tr('usagePage.tabTracksCount', { count: usage.tracks.length })
+                      : tr('usagePage.tabTracks')
+                    : usage
+                      ? tr('usagePage.tabProjectsCount', { count: usage.projects.length })
+                      : tr('usagePage.tabProjects')}
                 </button>
               ))}
             </div>
@@ -219,17 +228,19 @@ export default function UsagePage() {
               </div>
             ) : tab === 'tracks' ? (
               usage.tracks.length === 0 ? (
-                <EmptyState text="Noch keine Tracks hochgeladen." />
+                <EmptyState text={tr('usagePage.emptyTracks')} />
               ) : (
                 <List>
                   {usage.tracks.map((track) => (
                     <Row
                       key={track._id}
                       title={track.title}
-                      badge={track.kind === 'project' ? 'Projekt' : undefined}
+                      badge={track.kind === 'project' ? tr('usagePage.project') : undefined}
                       subtitle={
-                        (track.playlistName ?? 'Ohne Playlist') +
-                        (track.versionCount > 1 ? ` · ${track.versionCount} Versionen` : '')
+                        (track.playlistName ?? tr('usagePage.noPlaylist')) +
+                        (track.versionCount > 1
+                          ? ` · ${tr('usagePage.versionsCount', { count: track.versionCount })}`
+                          : '')
                       }
                       size={track.size}
                       deleting={deletingId === track._id}
@@ -239,7 +250,7 @@ export default function UsagePage() {
                 </List>
               )
             ) : usage.projects.length === 0 ? (
-              <EmptyState text="Keine Projektdateien hochgeladen." />
+              <EmptyState text={tr('usagePage.emptyProjects')} />
             ) : (
               <List>
                 {usage.projects.map((project) => (
@@ -265,13 +276,18 @@ export default function UsagePage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {deleteTarget?.kind === 'project' ? 'Projektdatei löschen?' : 'Track löschen?'}
+              {deleteTarget?.kind === 'project'
+                ? tr('usagePage.deleteProjectTitle')
+                : tr('usagePage.deleteTrackTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.kind === 'track'
-                ? `"${deleteTarget.item.title}" wird mit allen Versionen und Projektdateien unwiderruflich gelöscht.`
+                ? tr('usagePage.deleteTrackBody', { title: deleteTarget.item.title })
                 : deleteTarget?.kind === 'project'
-                  ? `"${deleteTarget.item.filename}" (${formatBytes(deleteTarget.item.size)}) wird unwiderruflich gelöscht.`
+                  ? tr('usagePage.deleteProjectBody', {
+                      name: deleteTarget.item.filename,
+                      size: formatBytes(deleteTarget.item.size),
+                    })
                   : ''}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -283,11 +299,11 @@ export default function UsagePage() {
               onChange={(e) => setDontAskAgain(e.target.checked)}
               className="size-4 accent-primary"
             />
-            Nicht mehr anzeigen (nur auf dieser Seite)
+            {tr('usagePage.dontAskAgain')}
           </label>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{tr('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive/10 text-destructive hover:bg-destructive/20"
               onClick={(e) => {
@@ -295,7 +311,7 @@ export default function UsagePage() {
                 confirmDelete()
               }}
             >
-              Löschen
+              {tr('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -352,7 +368,7 @@ function Row({
       <button
         onClick={onDelete}
         disabled={deleting}
-        aria-label={`"${title}" löschen`}
+        aria-label={title}
         className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
       >
         {deleting ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}

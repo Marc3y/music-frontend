@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Check, Loader2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
+import { useT } from '@/lib/i18n/context'
 import { accountApi, ApiError } from '@/lib/api'
 
 export function AddToLibraryButton({
@@ -14,6 +15,7 @@ export function AddToLibraryButton({
   type: 'audio' | 'project' | 'playlist'
 }) {
   const { user, loading } = useAuth()
+  const t = useT()
   const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle')
 
   if (loading || !user) return null
@@ -23,10 +25,10 @@ export function AddToLibraryButton({
     try {
       await accountApi.addSavedShare({ token, type })
       setState('done')
-      toast.success('Zu deiner Mediathek hinzugefügt')
+      toast.success(t('toast.addedToLibrary'))
     } catch (err) {
       setState('idle')
-      toast.error(err instanceof ApiError ? err.message : 'Hinzufügen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.addFailed'))
     }
   }
 
@@ -43,7 +45,7 @@ export function AddToLibraryButton({
       ) : (
         <Plus className="size-4" />
       )}
-      {state === 'done' ? 'In deiner Mediathek' : 'Zur Mediathek hinzufügen'}
+      {state === 'done' ? t('addToLibrary.inLibrary') : t('addToLibrary.add')}
     </button>
   )
 }

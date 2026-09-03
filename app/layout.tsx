@@ -1,9 +1,12 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
+import { cookies } from 'next/headers'
 import { AuthProvider } from '@/lib/auth-context'
 import { PlayerProvider } from '@/lib/player-context'
 import { ThemeProvider } from '@/lib/theme-context'
+import { I18nProvider } from '@/lib/i18n/context'
+import { DEFAULT_LOCALE, isKnownLocale } from '@/lib/i18n/messages'
 import { GlobalPlayer } from '@/components/player/global-player'
 import { AppToaster } from '@/components/app-toaster'
 import './globals.css'
@@ -36,14 +39,17 @@ export const viewport: Viewport = {
 
 const themeScript = `(function(){try{var t=localStorage.getItem('music.theme');var d=t?t==='dark':true;var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){document.documentElement.classList.add('dark')}})();`
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieLocale = (await cookies()).get('music.lang')?.value
+  const locale = isKnownLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`dark ${inter.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
@@ -52,13 +58,15 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider>
-          <AuthProvider>
-            <PlayerProvider>
-              {children}
-              <GlobalPlayer />
-            </PlayerProvider>
-          </AuthProvider>
-          <AppToaster />
+          <I18nProvider initialLocale={locale}>
+            <AuthProvider>
+              <PlayerProvider>
+                {children}
+                <GlobalPlayer />
+              </PlayerProvider>
+            </AuthProvider>
+            <AppToaster />
+          </I18nProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-context'
+import { useT } from '@/lib/i18n/context'
 import { ApiError } from '@/lib/api'
 
 function LoginInner() {
   const router = useRouter()
   const params = useSearchParams()
+  const t = useT()
   const next = params.get('next')
   const dest = next && next.startsWith('/') ? next : '/library'
   const { login } = useAuth()
@@ -34,27 +36,27 @@ function LoginInner() {
         router.push(`/verify-email?email=${encodeURIComponent(email)}`)
         return
       }
-      setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen')
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'))
       setLoading(false)
     }
   }
 
   return (
     <AuthShell
-      title="Willkommen zurück"
-      subtitle="Melde dich an, um auf deine Mediathek zuzugreifen."
+      title={t('auth.loginTitle')}
+      subtitle={t('auth.loginSubtitle')}
       footer={
         <>
-          Noch kein Konto?{' '}
+          {t('auth.loginNoAccount')}{' '}
           <Link href="/register" className="text-primary hover:underline">
-            Registrieren
+            {t('nav.signUp')}
           </Link>
         </>
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-Mail</Label>
+          <Label htmlFor="email">{t('auth.emailLabel')}</Label>
           <Input
             id="email"
             type="email"
@@ -62,17 +64,17 @@ function LoginInner() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="du@beispiel.de"
+            placeholder={t('auth.emailPlaceholder')}
           />
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Passwort</Label>
+            <Label htmlFor="password">{t('auth.passwordLabel')}</Label>
             <Link
               href="/forgot-password"
               className="text-xs text-muted-foreground hover:text-foreground"
             >
-              Vergessen?
+              {t('auth.forgotPassword')}
             </Link>
           </div>
           <Input
@@ -82,7 +84,7 @@ function LoginInner() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder={t('auth.passwordPlaceholder')}
           />
         </div>
 
@@ -94,7 +96,7 @@ function LoginInner() {
 
         <Button type="submit" size="lg" className="mt-2 h-10" disabled={loading}>
           {loading && <Loader2 className="size-4 animate-spin" />}
-          Anmelden
+          {t('auth.loginSubmit')}
         </Button>
       </form>
     </AuthShell>

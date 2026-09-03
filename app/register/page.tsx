@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const t = useT()
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -23,44 +25,40 @@ export default function RegisterPage() {
     e.preventDefault()
     setError(null)
     if (password.length < 8) {
-      setError('Das Passwort muss mindestens 8 Zeichen lang sein.')
+      setError(t('auth.passwordMin8'))
       return
     }
     if (username.length < 3 || username.length > 30) {
-      setError('Der Benutzername muss zwischen 3 und 30 Zeichen lang sein.')
+      setError(t('auth.usernameLength'))
       return
     }
     setLoading(true)
     try {
       await authApi.register({ email, username, password })
-      toast.success('Registrierung erfolgreich. Bitte bestätige deine E-Mail.')
+      toast.success(t('auth.registerSuccess'))
       router.push(`/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Registrierung fehlgeschlagen. Bitte erneut versuchen.',
-      )
+      setError(err instanceof ApiError ? err.message : t('auth.registerFailed'))
       setLoading(false)
     }
   }
 
   return (
     <AuthShell
-      title="Konto erstellen"
-      subtitle="Erstelle dein music-Konto und lade deinen ersten Track hoch."
+      title={t('auth.registerTitle')}
+      subtitle={t('auth.registerSubtitle')}
       footer={
         <>
-          Schon registriert?{' '}
+          {t('auth.registerHaveAccount')}{' '}
           <Link href="/login" className="text-primary hover:underline">
-            Anmelden
+            {t('nav.signIn')}
           </Link>
         </>
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-Mail</Label>
+          <Label htmlFor="email">{t('auth.emailLabel')}</Label>
           <Input
             id="email"
             type="email"
@@ -68,11 +66,11 @@ export default function RegisterPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="du@beispiel.de"
+            placeholder={t('auth.emailPlaceholder')}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="username">Benutzername</Label>
+          <Label htmlFor="username">{t('auth.usernameLabel')}</Label>
           <Input
             id="username"
             autoComplete="username"
@@ -81,11 +79,11 @@ export default function RegisterPage() {
             maxLength={30}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="dein_name"
+            placeholder={t('auth.usernamePlaceholder')}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Passwort</Label>
+          <Label htmlFor="password">{t('auth.passwordLabel')}</Label>
           <Input
             id="password"
             type="password"
@@ -94,7 +92,7 @@ export default function RegisterPage() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mindestens 8 Zeichen"
+            placeholder={t('auth.passwordMinPlaceholder')}
           />
         </div>
 
@@ -106,7 +104,7 @@ export default function RegisterPage() {
 
         <Button type="submit" size="lg" className="mt-2 h-10" disabled={loading}>
           {loading && <Loader2 className="size-4 animate-spin" />}
-          Registrieren
+          {t('auth.registerSubmit')}
         </Button>
       </form>
     </AuthShell>

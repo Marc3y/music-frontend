@@ -8,6 +8,7 @@ import { Logo } from '@/components/logo'
 import { AuroraBackground } from '@/components/aurora-background'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 
 export default function ShareProjectPage({
   params,
@@ -15,6 +16,7 @@ export default function ShareProjectPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = use(params)
+  const t = useT()
   const [data, setData] = useState<{ url: string; filename: string; trackTitle: string } | null>(
     null,
   )
@@ -27,8 +29,8 @@ export default function ShareProjectPage({
       .catch((err) =>
         setError(
           err instanceof ApiError
-            ? 'Dieser Link ist ungültig oder wurde deaktiviert.'
-            : 'Projektdatei konnte nicht geladen werden.',
+            ? t('publicShare.linkInvalid')
+            : t('publicShare.projectLoadFailed'),
         ),
       )
   }, [token])
@@ -66,7 +68,7 @@ export default function ShareProjectPage({
               className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               <Download className="size-4" />
-              Projekt herunterladen
+              {t('publicShare.downloadProject')}
             </a>
 
             <AddToLibraryButton token={token} type="project" />
@@ -75,7 +77,7 @@ export default function ShareProjectPage({
       </motion.div>
 
       <p className="relative mt-6 text-sm text-muted-foreground">
-        Geteilt über <span className="font-medium text-foreground">music</span>
+        {t('publicShare.sharedVia')} <span className="font-medium text-foreground">music</span>
       </p>
     </main>
   )

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useT } from '@/lib/i18n/context'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +25,7 @@ export function ConfirmDeleteDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = 'Löschen',
+  confirmLabel,
   onConfirm,
 }: {
   open: boolean
@@ -34,6 +35,7 @@ export function ConfirmDeleteDialog({
   confirmLabel?: string
   onConfirm: () => Promise<void>
 }) {
+  const t = useT()
   const [loading, setLoading] = useState(false)
 
   async function handleConfirm() {
@@ -54,7 +56,7 @@ export function ConfirmDeleteDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
             disabled={loading}
@@ -64,7 +66,7 @@ export function ConfirmDeleteDialog({
             }}
           >
             {loading && <Loader2 className="size-4 animate-spin" />}
-            {confirmLabel}
+            {confirmLabel ?? t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

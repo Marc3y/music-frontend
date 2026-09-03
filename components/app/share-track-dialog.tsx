@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { audioApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
 
 function errMsg(err: unknown, fallback: string) {
@@ -32,6 +33,7 @@ export function ShareTrackDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: (track: AudioFile) => void
 }) {
+  const t = useT()
   const isProject = track?.kind === 'project' || !!forceProject
   const [loading, setLoading] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -75,9 +77,9 @@ export function ShareTrackDialog({
           shareProject: res.shareProject,
         })
       }
-      toast.success('Teilen aktiviert')
+      toast.success(t('toast.sharingEnabled'))
     } catch (err) {
-      toast.error(errMsg(err, 'Aktivieren fehlgeschlagen'))
+      toast.error(errMsg(err, t('shareTrack.enableFailed')))
     } finally {
       setLoading(false)
     }
@@ -95,9 +97,9 @@ export function ShareTrackDialog({
         onUpdated({ ...track, shareEnabled: false })
       }
       setShareUrl(null)
-      toast.success('Teilen deaktiviert')
+      toast.success(t('toast.sharingDisabled'))
     } catch (err) {
-      toast.error(errMsg(err, 'Deaktivieren fehlgeschlagen'))
+      toast.error(errMsg(err, t('shareTrack.disableFailed')))
     } finally {
       setLoading(false)
     }
@@ -111,7 +113,7 @@ export function ShareTrackDialog({
       onUpdated({ ...track, shareProject: res.shareProject })
     } catch (err) {
       setShareProject(!next)
-      toast.error(errMsg(err, 'Änderung fehlgeschlagen'))
+      toast.error(errMsg(err, t('shareTrack.changeFailed')))
     }
   }
 
@@ -119,7 +121,7 @@ export function ShareTrackDialog({
     if (!shareUrl) return
     await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
-    toast.success('Link kopiert')
+    toast.success(t('toast.linkCopied'))
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -127,11 +129,13 @@ export function ShareTrackDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{isProject ? 'Projekt teilen' : 'Track teilen'}</DialogTitle>
+          <DialogTitle>
+            {isProject ? t('shareTrack.titleProject') : t('shareTrack.titleTrack')}
+          </DialogTitle>
           <DialogDescription>
             {isProject
-              ? `Wer den Link hat, kann die Projektdatei von "${track?.title}" (Hauptversion) herunterladen.`
-              : `Wer den Link hat, kann "${track?.title}" (Hauptversion) ohne Login anhören.`}
+              ? t('shareTrack.descProject', { title: track?.title ?? '' })
+              : t('shareTrack.descTrack', { title: track?.title ?? '' })}
           </DialogDescription>
         </DialogHeader>
 
@@ -150,8 +154,8 @@ export function ShareTrackDialog({
               className="mt-0.5 size-4 accent-primary"
             />
             <span>
-              Projektdatei der Hauptversion mitteilen
-              {!hasProject && ' (Hauptversion hat keine Projektdatei)'}
+              {t('shareTrack.includeProject')}
+              {!hasProject && t('shareTrack.noProjectHint')}
             </span>
           </label>
         )}
@@ -166,7 +170,7 @@ export function ShareTrackDialog({
             </div>
             <Button type="button" variant="outline" disabled={loading} onClick={disableShare}>
               {loading && <Loader2 className="size-4 animate-spin" />}
-              Teilen deaktivieren
+              {t('shareTrack.disable')}
             </Button>
           </div>
         ) : (
@@ -176,7 +180,7 @@ export function ShareTrackDialog({
             ) : (
               <Share2 className="size-4" />
             )}
-            Teilen aktivieren
+            {t('shareTrack.enable')}
           </Button>
         )}
       </DialogContent>

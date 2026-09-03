@@ -14,6 +14,7 @@ import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { TrackProjectPanel } from '@/components/app/track-project-panel'
 import { formatBytes, formatDate, formatTime } from '@/lib/format'
 import { audioApi, ApiError } from '@/lib/api'
+import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
 
 export function TrackRow({
@@ -43,6 +44,7 @@ export function TrackRow({
   onUpdated: (track: AudioFile) => void
   onDeleted: (id: string) => void
 }) {
+  const t = useT()
   const isProject = track.kind === 'project'
   const isReady = track.status === 'ready'
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -57,10 +59,10 @@ export function TrackRow({
   async function handleDelete() {
     try {
       await audioApi.remove(track._id)
-      toast.success(isProject ? 'Projekt gelöscht' : 'Track gelöscht')
+      toast.success(isProject ? t('toast.projectDeleted') : t('toast.trackDeleted'))
       onDeleted(track._id)
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Löschen fehlgeschlagen')
+      toast.error(err instanceof ApiError ? err.message : t('toast.deleteFailed'))
     }
   }
 
@@ -85,7 +87,7 @@ export function TrackRow({
         <button
           onClick={onPlay}
           disabled={!isReady}
-          aria-label={isPlaying && isCurrent ? 'Pause' : 'Abspielen'}
+          aria-label={isPlaying && isCurrent ? t('trackRow.pause') : t('trackRow.play')}
           className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {displayCover ? (
@@ -112,8 +114,8 @@ export function TrackRow({
         <p className="truncate text-sm font-medium">{track.title}</p>
         <p className="truncate text-xs text-muted-foreground">
           {showAsProject
-            ? selVersion?.projectFilename || 'Projekt'
-            : track.artist || 'Unbekannter Interpret'}
+            ? selVersion?.projectFilename || t('trackRow.project')
+            : track.artist || t('trackRow.unknownArtist')}
         </p>
       </div>
 
@@ -130,14 +132,14 @@ export function TrackRow({
 
       <div className="hidden shrink-0 text-xs text-muted-foreground sm:block">
         {showAsProject ? (
-          selVersion?.projectSize ? formatBytes(selVersion.projectSize) : 'Projekt'
+          selVersion?.projectSize ? formatBytes(selVersion.projectSize) : t('trackRow.project')
         ) : track.status === 'processing' ? (
           <span className="flex items-center gap-1.5">
             <Loader2 className="size-3 animate-spin" />
-            Wird verarbeitet
+            {t('trackRow.processing')}
           </span>
         ) : track.status === 'failed' ? (
-          <span className="text-destructive">Fehlgeschlagen</span>
+          <span className="text-destructive">{t('trackRow.failed')}</span>
         ) : (
           formatTime(track.duration)
         )}
@@ -145,14 +147,14 @@ export function TrackRow({
 
       {shared && (
         <span className="hidden shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary sm:inline-block">
-          Geteilt
+          {t('trackRow.shared')}
         </span>
       )}
 
       <button
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
-        aria-label={expanded ? 'Track einklappen' : 'Track aufklappen'}
+        aria-label={expanded ? t('trackRow.collapse') : t('trackRow.expand')}
         className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <ChevronDown
@@ -170,19 +172,19 @@ export function TrackRow({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={onEdit}>
             <Pencil className="size-4" />
-            Bearbeiten
+            {t('common.edit')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onShare}>
             <Share2 className="size-4" />
-            Teilen
+            {t('common.share')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onVersions}>
             <Layers className="size-4" />
-            Versionen
+            {t('versions.titleTrack')}
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="size-4" />
-            Löschen
+            {t('common.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -190,8 +192,8 @@ export function TrackRow({
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title={isProject ? 'Projekt löschen?' : 'Track löschen?'}
-        description={`"${track.title}" wird mit allen Versionen unwiderruflich gelöscht.`}
+        title={isProject ? t('trackRow.deleteProjectTitle') : t('trackRow.deleteTrackTitle')}
+        description={t('trackRow.deleteTrackBody', { title: track.title })}
         onConfirm={handleDelete}
       />
     </div>
