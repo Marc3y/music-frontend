@@ -31,57 +31,58 @@ function CallbackInner() {
   const [username, setUsername] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [usernameError, setUsernameError] = useState<string | null>(null)
-  const done = useRef(false)
+  const started = useRef(false)
 
   useEffect(() => {
+    if (started.current) return
+    started.current = true
+
     const supabase = getSupabase()
+    const url = new URL(window.location.href)
+    const code = url.searchParams.get('code')
+    const oauthError =
+      url.searchParams.get('error_description') || url.searchParams.get('error')
 
-    async function handleToken(accessToken: string) {
-      if (done.current) return
-      done.current = true
-      // We only needed Supabase to broker Google — drop its session now.
-      void supabase.auth.signOut()
-      try {
-        const res = await authApi.google({ accessToken })
-        if ('user' in res) {
-          setUser(res.user)
-          router.replace(dest)
-        } else {
-          setPhase({ kind: 'username', accessToken })
-        }
-      } catch (err) {
-        setPhase({
-          kind: 'error',
-          message: err instanceof ApiError ? err.message : t('auth.googleFailed'),
-        })
-      }
+    function fail(message?: string) {
+      setPhase({ kind: 'error', message: message || t('auth.googleFailed') })
     }
 
-    function fail() {
-      if (done.current) return
-      done.current = true
-      setPhase({ kind: 'error', message: t('auth.googleFailed') })
+    if (oauthError) {
+      fail(oauthError)
+      return
     }
-
-    if (params.get('error') || params.get('error_description')) {
+    if (!code) {
       fail()
       return
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.access_token) void handleToken(data.session.access_token)
-    })
+    ;(async () => {
+      let accessToken: string
+      try {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error || !data.session?.access_token) {
+          throw error ?? new Error('no session')
+        }
+        accessToken = data.session.access_token
+      } catch {
+        fail()
+        return
+      }
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.access_token) void handleToken(session.access_token)
-    })
-
-    const timer = setTimeout(fail, 10000)
-
-    return () => {
-      sub.subscription.unsubscribe()
-      clearTimeout(timer)
-    }
+      try {
+        const res = await authApi.google({ accessToken })
+        if ('user' in res) {
+          void supabase.auth.signOut({ scope: 'local' })
+          setUser(res.user)
+          router.replace(dest)
+        } else {
+          // Keep the Supabase session alive — googleComplete needs the token too.
+          setPhase({ kind: 'username', accessToken })
+        }
+      } catch (err) {
+        fail(err instanceof ApiError ? err.message : undefined)
+      }
+    })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -95,6 +96,7 @@ function CallbackInner() {
         accessToken: phase.accessToken,
         username: username.trim(),
       })
+      void getSupabase().auth.signOut({ scope: 'local' })
       setUser(res.user)
       router.replace(dest)
     } catch (err) {
