@@ -191,7 +191,7 @@ export default function PlaylistPage({
     coverClickTimer.current = setTimeout(() => {
       coverClickTimer.current = null
       setCoverZoom((z) => !z)
-    }, 220)
+    }, 300)
   }
 
   function handleCoverDoubleClick() {
@@ -199,6 +199,9 @@ export default function PlaylistPage({
       clearTimeout(coverClickTimer.current)
       coverClickTimer.current = null
     }
+    // A double click is always recognized after the single-click timer may
+    // already have fired and opened the zoom — force it back closed.
+    setCoverZoom(false)
     if (!isOwner) return
     coverInputRef.current?.click()
   }

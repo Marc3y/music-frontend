@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react'
 import {
   ChevronDown,
   Loader2,
@@ -56,6 +56,13 @@ export function GlobalPlayer() {
   const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
   const [loadingShare, setLoadingShare] = useState(false)
   const canShare = Boolean(current && OBJECT_ID.test(current.id))
+  const dragControls = useDragControls()
+
+  function handleDismissDragEnd(_e: unknown, info: PanInfo) {
+    if (info.offset.y > 120 || info.velocity.y > 600) {
+      player.setExpanded(false)
+    }
+  }
 
   async function openShare() {
     if (!current || loadingShare) return
@@ -79,8 +86,21 @@ export function GlobalPlayer() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ duration: 0.46, ease: [0.32, 0.72, 0, 1] }}
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 1 }}
+            dragTransition={{ bounceStiffness: 500, bounceDamping: 40 }}
+            onDragEnd={handleDismissDragEnd}
             className="fixed inset-0 z-[70] flex flex-col bg-background"
           >
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              className="relative z-10 flex shrink-0 cursor-grab touch-none justify-center pt-2.5 pb-1 active:cursor-grabbing"
+            >
+              <span className="h-1.5 w-10 rounded-full bg-muted-foreground/25" />
+            </div>
             <div
               className="pointer-events-none absolute inset-0 transition-[background] duration-700 ease-out"
               style={{
@@ -130,7 +150,7 @@ export function GlobalPlayer() {
               </div>
             </div>
 
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-10">
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-6 overflow-y-auto px-6 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:gap-9 sm:pb-10">
               <motion.div
                 initial={{ scale: 0.86, opacity: 0, y: 24 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -202,7 +222,7 @@ export function GlobalPlayer() {
           !hasTrack && 'pointer-events-none',
         )}
       >
-        <div className="mx-auto max-w-xl px-3 pb-3 sm:px-4 sm:pb-4">
+        <div className="mx-auto max-w-xl px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="glass relative overflow-hidden rounded-2xl shadow-(--elevate-3)">
                 <div className="flex items-center gap-3 p-2.5 sm:gap-4 sm:p-3">
                   <button

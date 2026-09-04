@@ -33,8 +33,18 @@ interface WaveSurferState {
 export function useWaveSurfer(
   containerRef: RefObject<HTMLDivElement | null>,
 ): WaveSurferState {
-  const { streamUrl, playToken, isPlaying, loop, volume, speed, pitch, setIsPlaying, next } =
-    usePlayer()
+  const {
+    streamUrl,
+    playToken,
+    isPlaying,
+    loop,
+    volume,
+    speed,
+    pitch,
+    setIsPlaying,
+    setIsLoading,
+    next,
+  } = usePlayer()
   const { theme } = useTheme()
 
   const wsRef = useRef<WaveSurfer | null>(null)
@@ -124,6 +134,7 @@ export function useWaveSurfer(
         setPeaks([])
       }
       setReady(true)
+      setIsLoading(false)
       if (shouldPlayRef.current) {
         void ws.play()
       }
@@ -138,6 +149,7 @@ export function useWaveSurfer(
       }
     })
     ws.on('pause', () => setIsPlaying(false))
+    ws.on('error', () => setIsLoading(false))
     ws.on('finish', () => {
       if (loopRef.current === 'one') {
         ws.setTime(0)
@@ -160,6 +172,7 @@ export function useWaveSurfer(
     if (!ws || !streamUrl) return
     shouldPlayRef.current = true
     setReady(false)
+    setIsLoading(true)
     setCurrentTime(0)
     setPeaks([])
     ws.load(streamUrl).catch(() => {

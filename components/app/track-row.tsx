@@ -160,10 +160,10 @@ export function TrackRow({
             </p>
           </div>
 
-          <div className="hidden w-16 shrink-0 text-right text-xs text-muted-foreground lg:block">
+          <div className="hidden w-14 shrink-0 text-center text-xs text-muted-foreground lg:block">
             {showAsProject ? '' : track.bpm ? `${track.bpm} BPM` : '—'}
           </div>
-          <div className="hidden w-14 shrink-0 text-right text-xs text-muted-foreground lg:block">
+          <div className="hidden w-12 shrink-0 text-center text-xs text-muted-foreground lg:block">
             {showAsProject ? '' : formatMusicalKey(track.musicalKey) || '—'}
           </div>
 

@@ -18,11 +18,11 @@ function ContextMenuContent({
 }: ContextMenuPrimitive.Popup.Props) {
   return (
     <ContextMenuPrimitive.Portal>
-      <ContextMenuPrimitive.Positioner className="isolate z-50 outline-none">
+      <ContextMenuPrimitive.Positioner className="isolate z-80 outline-none">
         <ContextMenuPrimitive.Popup
           data-slot="context-menu-content"
           className={cn(
-            "z-50 min-w-44 origin-(--transform-origin) overflow-hidden rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground shadow-(--elevate-3) duration-150 ease-apple outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.97] data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.97]",
+            "z-80 min-w-44 origin-(--transform-origin) overflow-hidden rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground shadow-(--elevate-3) duration-150 ease-apple outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.97] data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.97]",
             className,
           )}
           {...props}

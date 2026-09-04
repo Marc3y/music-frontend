@@ -43,6 +43,8 @@ interface PlayerContextValue {
   playQueue: (tracks: PlayerTrack[], startIndex?: number) => void
   togglePlay: () => void
   setIsPlaying: (playing: boolean) => void
+  /** Owned by the wavesurfer instance once a stream URL resolves — stays true until it reports 'ready'. */
+  setIsLoading: (loading: boolean) => void
   next: (auto?: boolean) => void
   prev: () => void
   toggleShuffle: () => void
@@ -112,12 +114,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setStreamUrl(url)
       setPlayToken((t) => t + 1)
       setIsPlaying(true)
+      // isLoading stays true — the wavesurfer instance clears it once the
+      // audio has actually finished downloading/decoding and is ready to play.
     } catch (err) {
       if (reqId !== requestIdRef.current) return
       toast.error(err instanceof Error ? err.message : 'Wiedergabe fehlgeschlagen')
       setIsPlaying(false)
-    } finally {
-      if (reqId === requestIdRef.current) setIsLoading(false)
+      setIsLoading(false)
     }
   }, [])
 
@@ -139,6 +142,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     (auto = false) => {
       const tracks = queueRef.current
       if (tracks.length === 0) return
+      // A single-track queue has nowhere to advance to — restart it instead of
+      // doing nothing (only auto-stop at the end when not repeating).
+      if (tracks.length === 1) {
+        if (auto && loop !== 'all') {
+          setIsPlaying(false)
+          return
+        }
+        void loadIndex(tracks, 0)
+        return
+      }
       let nextIndex: number
       if (shuffle && tracks.length > 1) {
         do {
@@ -218,6 +231,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playQueue,
       togglePlay,
       setIsPlaying,
+      setIsLoading,
       next,
       prev,
       toggleShuffle,

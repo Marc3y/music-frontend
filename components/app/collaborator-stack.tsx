@@ -5,6 +5,7 @@ import { User } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -80,16 +81,18 @@ export function CollaboratorStack({
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-52">
-            <DropdownMenuLabel>{t('playlistPage.members')}</DropdownMenuLabel>
-            {collaborators.map((u) => (
-              <div
-                key={u.username}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm"
-              >
-                <Circle user={u} className="ring-0" />
-                <span className="truncate">@{u.username}</span>
-              </div>
-            ))}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t('playlistPage.members')}</DropdownMenuLabel>
+              {collaborators.map((u) => (
+                <div
+                  key={u.username}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm"
+                >
+                  <Circle user={u} className="ring-0" />
+                  <span className="truncate">@{u.username}</span>
+                </div>
+              ))}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
