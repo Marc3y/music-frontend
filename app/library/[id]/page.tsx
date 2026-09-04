@@ -161,6 +161,26 @@ export default function PlaylistPage({
     }
   }
 
+  async function handleRemoveCollaborator(username: string) {
+    if (!playlist) return
+    const remaining = (playlist.collaborators ?? [])
+      .map((c) => c.username)
+      .filter((u) => u !== username)
+    const res = await playlistApi.setCollaborators(playlist._id, remaining)
+    handlePlaylistUpdated({
+      ...playlist,
+      collabToken: res.collabToken ?? undefined,
+      collaborators: res.collaborators.map((c) => ({
+        username: c.username,
+        userId: c.joined ? 'joined' : undefined,
+      })),
+      activeCollaborators: (playlist.activeCollaborators ?? []).filter(
+        (u) => u.username !== username,
+      ),
+    })
+    toast.success(t('toast.memberRemoved', { username }))
+  }
+
   async function commitName() {
     if (nameDraft === null || !playlist) return
     const next = nameDraft.trim()
@@ -348,8 +368,10 @@ export default function PlaylistPage({
               className="fixed inset-0 z-[70] flex items-center justify-center bg-background/70 p-8"
             >
               <motion.div
-                layoutId="playlist-cover"
-                transition={{ duration: 0.42, ease: ease.apple }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ duration: 0.32, ease: ease.apple }}
                 className="aspect-square w-[min(80vw,32rem)] overflow-hidden rounded-3xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-3) ring-1 ring-border/60"
               >
                 {playlist.coverUrl ? (
@@ -388,13 +410,11 @@ export default function PlaylistPage({
             ) : (
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
                 <motion.div
-                  layoutId="playlist-cover"
-                  whileHover={coverZoom ? undefined : { y: -3 }}
+                  whileHover={{ y: -3 }}
                   transition={spring.soft}
                   onClick={handleCoverClick}
                   onDoubleClick={handleCoverDoubleClick}
-                  style={{ visibility: coverZoom ? 'hidden' : 'visible' }}
-                  className="group/cover relative size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40"
+                  className="group/cover relative aspect-square size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40"
                 >
                   {playlist.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -482,6 +502,8 @@ export default function PlaylistPage({
                           owner={playlist.ownerUser}
                           collaborators={playlist.activeCollaborators ?? []}
                           showOwner={playlist.role === 'collaborator'}
+                          canRemove={isOwner}
+                          onRemove={handleRemoveCollaborator}
                         />
                       </div>
                     )}

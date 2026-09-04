@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react'
+import { AnimatePresence, motion, type PanInfo } from 'motion/react'
 import {
   ChevronDown,
   Loader2,
@@ -56,7 +56,6 @@ export function GlobalPlayer() {
   const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
   const [loadingShare, setLoadingShare] = useState(false)
   const canShare = Boolean(current && OBJECT_ID.test(current.id))
-  const dragControls = useDragControls()
 
   function handleDismissDragEnd(_e: unknown, info: PanInfo) {
     if (info.offset.y > 120 || info.velocity.y > 600) {
@@ -87,18 +86,13 @@ export function GlobalPlayer() {
             exit={{ y: '100%' }}
             transition={{ duration: 0.46, ease: [0.32, 0.72, 0, 1] }}
             drag="y"
-            dragControls={dragControls}
-            dragListener={false}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 1 }}
             dragTransition={{ bounceStiffness: 500, bounceDamping: 40 }}
             onDragEnd={handleDismissDragEnd}
             className="fixed inset-0 z-[70] flex flex-col bg-background"
           >
-            <div
-              onPointerDown={(e) => dragControls.start(e)}
-              className="relative z-10 flex shrink-0 cursor-grab touch-none justify-center pt-2.5 pb-1 active:cursor-grabbing"
-            >
+            <div className="relative z-10 flex shrink-0 touch-none justify-center pt-2.5 pb-1">
               <span className="h-1.5 w-10 rounded-full bg-muted-foreground/25" />
             </div>
             <div
@@ -206,7 +200,10 @@ export function GlobalPlayer() {
 
               <Controls player={player} isPlaying={isPlaying} isLoading={isLoading} large />
 
-              <VolumeControl className="w-full max-w-[220px]" />
+              <VolumeControl
+                onPointerDownCapture={(e) => e.stopPropagation()}
+                className="hidden w-full max-w-[220px] sm:flex"
+              />
             </div>
           </motion.div>
         )}
@@ -421,7 +418,10 @@ function PlayButton({
   )
 }
 
-function VolumeControl({ className }: { className?: string }) {
+function VolumeControl({
+  className,
+  ...divProps
+}: React.ComponentProps<'div'>) {
   const { volume, setVolume } = usePlayer()
   const t = useT()
   const [previousVolume, setPreviousVolume] = useState(1)
@@ -438,7 +438,7 @@ function VolumeControl({ className }: { className?: string }) {
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex items-center gap-2', className)} {...divProps}>
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={toggleMute}

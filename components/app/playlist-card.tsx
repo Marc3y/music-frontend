@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Music, Pencil, Share2, X } from 'lucide-react'
+import { Music, Pencil, Share2, Users, X } from 'lucide-react'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -17,6 +17,7 @@ export function PlaylistCard({
   playlist,
   href,
   badge,
+  collaboratorCount,
   onRemove,
   onEdit,
   onShare,
@@ -24,6 +25,7 @@ export function PlaylistCard({
   playlist: Pick<Playlist, '_id' | 'name' | 'coverUrl'>
   href?: string
   badge?: string
+  collaboratorCount?: number
   onRemove?: () => void
   onEdit?: () => void
   onShare?: () => void
@@ -66,7 +68,17 @@ export function PlaylistCard({
         </div>
         <div className="min-w-0 px-1">
           <p className="truncate text-sm font-medium">{playlist.name}</p>
-          <p className="text-xs text-muted-foreground">{badge ?? 'Playlist'}</p>
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            {!!collaboratorCount && (
+              <span
+                title={t('library.hasCollaborators', { count: collaboratorCount })}
+                className="inline-flex shrink-0"
+              >
+                <Users className="size-3" aria-hidden />
+              </span>
+            )}
+            <span className="truncate">{badge ?? 'Playlist'}</span>
+          </p>
         </div>
       </Link>
     </>

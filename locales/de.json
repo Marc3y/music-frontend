@@ -154,6 +154,7 @@
     "tabCollab": "Collaboration ({count})",
     "badgeMember": "Mitglied · {count} Tracks",
     "badgeShared": "Geteilt · {count} Tracks",
+    "hasCollaborators": "{count} Mitglied(er)",
     "storageWarning": "Dein Speicher ist zu {percent}% voll",
     "manageStorage": "Speicher verwalten →",
     "emptyTitle": "Noch keine Playlists",
@@ -182,6 +183,7 @@
     "trackDeleted": "Track gelöscht",
     "projectDeleted": "Projekt gelöscht",
     "itemDeleted": "„{title}\" gelöscht",
+    "memberRemoved": "{username} aus der Playlist entfernt",
     "primaryVersionChanged": "Hauptversion geändert",
     "versionUploaded": "Version hochgeladen",
     "versionDeleted": "Version gelöscht",
@@ -300,7 +302,11 @@
     "clickCoverOptional": "Klicke auf das Bild, um ein Cover hochzuladen (optional).",
     "members": "Mitglieder",
     "owner": "Besitzer",
-    "plusMore": "+{count}"
+    "plusMore": "+{count}",
+    "removeMember": "{username} entfernen",
+    "removeMemberTitle": "Mitglied entfernen?",
+    "removeMemberBody": "„{username}\" verliert den Zugriff auf diese Playlist.",
+    "dontAskAgain": "Nicht mehr anzeigen"
   },
 
   "editTrack": {

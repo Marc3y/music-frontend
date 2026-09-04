@@ -154,6 +154,7 @@
     "tabCollab": "Collaboration ({count})",
     "badgeMember": "Member · {count} tracks",
     "badgeShared": "Shared · {count} tracks",
+    "hasCollaborators": "Has {count} member(s)",
     "storageWarning": "Your storage is {percent}% full",
     "manageStorage": "Manage storage →",
     "emptyTitle": "No playlists yet",
@@ -182,6 +183,7 @@
     "trackDeleted": "Track deleted",
     "projectDeleted": "Project deleted",
     "itemDeleted": "\"{title}\" deleted",
+    "memberRemoved": "{username} removed from the playlist",
     "primaryVersionChanged": "Primary version changed",
     "versionUploaded": "Version uploaded",
     "versionDeleted": "Version deleted",
@@ -300,7 +302,11 @@
     "clickCoverOptional": "Click the image to upload a cover (optional).",
     "members": "Members",
     "owner": "Owner",
-    "plusMore": "+{count}"
+    "plusMore": "+{count}",
+    "removeMember": "Remove {username}",
+    "removeMemberTitle": "Remove member?",
+    "removeMemberBody": "\"{username}\" will lose access to this playlist.",
+    "dontAskAgain": "Don't show this again"
   },
 
   "editTrack": {

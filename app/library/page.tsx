@@ -214,6 +214,7 @@ export default function LibraryPage() {
                       <Reveal key={playlist._id} delayIndex={i % 10}>
                         <PlaylistCard
                           playlist={playlist}
+                          collaboratorCount={playlist.collaborators?.length ?? 0}
                           onEdit={() => setEditingPlaylist(playlist)}
                           onShare={() => setSharingPlaylist(playlist)}
                         />
