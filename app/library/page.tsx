@@ -7,17 +7,19 @@ import { Music } from 'lucide-react'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
+import { toast } from 'sonner'
 import { PlaylistCard } from '@/components/app/playlist-card'
 import { CreatePlaylistDialog } from '@/components/app/create-playlist-dialog'
 import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
+import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { UsageBar } from '@/components/app/usage-bar'
 import { SharedItemsList } from '@/components/app/shared-items-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Reveal } from '@/components/reveal'
 import { useLibraryData } from '@/lib/use-library-data'
 import { useT } from '@/lib/i18n/context'
-import { accountApi } from '@/lib/api'
+import { accountApi, playlistApi, ApiError } from '@/lib/api'
 import type { Playlist } from '@/lib/types'
 
 type Tab = 'own' | 'shared' | 'collab'
@@ -36,6 +38,7 @@ export default function LibraryPage() {
   const [tab, setTab] = useState<Tab>('own')
   const [editingPlaylist, setEditingPlaylist] = useState<Playlist | null>(null)
   const [sharingPlaylist, setSharingPlaylist] = useState<Playlist | null>(null)
+  const [deletingPlaylist, setDeletingPlaylist] = useState<Playlist | null>(null)
 
   const items = useMemo(
     () => saved.filter((s) => s.type === 'audio' || s.type === 'project'),
@@ -67,6 +70,17 @@ export default function LibraryPage() {
           : p,
       ),
     )
+  }
+
+  async function handleDeletePlaylist() {
+    if (!deletingPlaylist) return
+    try {
+      await playlistApi.remove(deletingPlaylist._id)
+      setPlaylists((prev) => prev.filter((p) => p._id !== deletingPlaylist._id))
+      toast.success(t('toast.playlistDeleted'))
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : t('toast.deleteFailed'))
+    }
   }
 
   function removeSaved(id: string) {
@@ -217,6 +231,7 @@ export default function LibraryPage() {
                           collaboratorCount={playlist.collaborators?.length ?? 0}
                           onEdit={() => setEditingPlaylist(playlist)}
                           onShare={() => setSharingPlaylist(playlist)}
+                          onDelete={() => setDeletingPlaylist(playlist)}
                         />
                       </Reveal>
                     ))}
@@ -245,6 +260,17 @@ export default function LibraryPage() {
           handlePlaylistUpdated(p)
           setSharingPlaylist((prev) => (prev && prev._id === p._id ? p : prev))
         }}
+      />
+      <ConfirmDeleteDialog
+        open={deletingPlaylist !== null}
+        onOpenChange={(o) => !o && setDeletingPlaylist(null)}
+        title={t('playlistPage.deletePlaylistTitle')}
+        description={
+          deletingPlaylist
+            ? t('playlistPage.deletePlaylistBody', { name: deletingPlaylist.name })
+            : ''
+        }
+        onConfirm={handleDeletePlaylist}
       />
     </RequireAuth>
   )

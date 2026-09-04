@@ -1,9 +1,11 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Check, Monitor, Moon, Sun } from 'lucide-react'
 import { SettingsCard } from '@/components/app/settings/settings-card'
 import { useTheme } from '@/lib/theme-context'
+import { useAccent } from '@/lib/accent-context'
+import { ACCENT_PRESETS } from '@/lib/accent-presets'
 import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +16,7 @@ const options = [
 
 export function AppearanceSection() {
   const { theme, setTheme, mounted } = useTheme()
+  const { accent, setAccent } = useAccent()
   const t = useT()
 
   return (
@@ -52,6 +55,39 @@ export function AppearanceSection() {
         <Monitor className="size-3.5" />
         {t('settings.themeDefaultHint')}
       </p>
+
+      <div className="mt-5 border-t border-border pt-5">
+        <p className="text-sm font-medium">{t('settings.accentTitle')}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.accentDesc')}</p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {ACCENT_PRESETS.map((preset) => {
+            const active = accent === preset.id
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => setAccent(preset.id)}
+                aria-label={t(preset.labelKey)}
+                aria-pressed={active}
+                title={t(preset.labelKey)}
+                className="group flex flex-col items-center gap-1.5"
+              >
+                <span
+                  style={{ backgroundColor: preset.swatch }}
+                  className={cn(
+                    'flex size-8 items-center justify-center rounded-full ring-2 ring-offset-2 ring-offset-card transition-all ease-apple',
+                    active
+                      ? 'ring-foreground/70'
+                      : 'ring-transparent group-hover:ring-foreground/25',
+                  )}
+                >
+                  {active && <Check className="size-4 text-white drop-shadow" />}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </SettingsCard>
   )
 }

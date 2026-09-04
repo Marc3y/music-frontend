@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Music, Pencil, Share2, Users, X } from 'lucide-react'
+import { Music, Pencil, Share2, Trash2, Users, X } from 'lucide-react'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -21,6 +21,7 @@ export function PlaylistCard({
   onRemove,
   onEdit,
   onShare,
+  onDelete,
 }: {
   playlist: Pick<Playlist, '_id' | 'name' | 'coverUrl'>
   href?: string
@@ -29,9 +30,10 @@ export function PlaylistCard({
   onRemove?: () => void
   onEdit?: () => void
   onShare?: () => void
+  onDelete?: () => void
 }) {
   const t = useT()
-  const hasMenu = Boolean(onEdit || onShare)
+  const hasMenu = Boolean(onEdit || onShare || onDelete)
 
   const card = (
     <>
@@ -108,6 +110,12 @@ export function PlaylistCard({
           <ContextMenuItem onClick={onShare}>
             <Share2 />
             {t('common.share')}
+          </ContextMenuItem>
+        )}
+        {onDelete && (
+          <ContextMenuItem variant="destructive" onClick={onDelete}>
+            <Trash2 />
+            {t('common.delete')}
           </ContextMenuItem>
         )}
       </ContextMenuContent>

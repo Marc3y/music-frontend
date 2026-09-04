@@ -196,7 +196,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setSpeed = useCallback((v: number) => {
-    setSpeedState(Math.min(2, Math.max(0.5, Math.round(v * 100) / 100)))
+    setSpeedState(Math.min(3, Math.max(0.5, Math.round(v * 100) / 100)))
   }, [])
   const setPitch = useCallback((v: number) => {
     setPitchState(Math.min(12, Math.max(-12, Math.round(v))))

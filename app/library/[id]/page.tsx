@@ -4,7 +4,7 @@ import { use, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, Music, Pencil, Share2, Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, ImagePlus, Music, Pencil, Share2, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
@@ -19,6 +19,12 @@ import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { ImageCropDialog } from '@/components/app/image-crop-dialog'
 import { CollaboratorStack } from '@/components/app/collaborator-stack'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
@@ -72,7 +78,6 @@ export default function PlaylistPage({
   const [coverZoom, setCoverZoom] = useState(false)
   const [pendingCover, setPendingCover] = useState<File | null>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
-  const coverClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [filter, setFilter] = useLibraryFilter()
 
@@ -207,23 +212,7 @@ export default function PlaylistPage({
   }
 
   function handleCoverClick() {
-    if (coverClickTimer.current) return
-    coverClickTimer.current = setTimeout(() => {
-      coverClickTimer.current = null
-      setCoverZoom((z) => !z)
-    }, 300)
-  }
-
-  function handleCoverDoubleClick() {
-    if (coverClickTimer.current) {
-      clearTimeout(coverClickTimer.current)
-      coverClickTimer.current = null
-    }
-    // A double click is always recognized after the single-click timer may
-    // already have fired and opened the zoom — force it back closed.
-    setCoverZoom(false)
-    if (!isOwner) return
-    coverInputRef.current?.click()
+    setCoverZoom((z) => !z)
   }
 
   async function handleCoverCropped(blob: Blob) {
@@ -409,36 +398,72 @@ export default function PlaylistPage({
               </div>
             ) : (
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  transition={spring.soft}
-                  onClick={handleCoverClick}
-                  onDoubleClick={handleCoverDoubleClick}
-                  className="group/cover relative aspect-square size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40"
-                >
-                  {playlist.coverUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={playlist.coverUrl}
-                      alt=""
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center">
-                      <Music className="size-10 text-foreground/40" />
-                    </div>
-                  )}
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={(e) => {
-                      handleCoverSelect(e.target.files?.[0])
-                      e.target.value = ''
-                    }}
-                  />
-                </motion.div>
+                {(() => {
+                  const coverInner = (
+                    <>
+                      {playlist.coverUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={playlist.coverUrl}
+                          alt=""
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center">
+                          <Music className="size-10 text-foreground/40" />
+                        </div>
+                      )}
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={(e) => {
+                          handleCoverSelect(e.target.files?.[0])
+                          e.target.value = ''
+                        }}
+                      />
+                    </>
+                  )
+                  const coverClassName =
+                    'group/cover relative aspect-square size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40'
+
+                  if (!isOwner) {
+                    return (
+                      <motion.div
+                        whileHover={{ y: -3 }}
+                        transition={spring.soft}
+                        onClick={handleCoverClick}
+                        className={coverClassName}
+                      >
+                        {coverInner}
+                      </motion.div>
+                    )
+                  }
+
+                  return (
+                    <ContextMenu>
+                      <ContextMenuTrigger
+                        render={
+                          <motion.div
+                            whileHover={{ y: -3 }}
+                            transition={spring.soft}
+                            onClick={handleCoverClick}
+                            className={coverClassName}
+                          />
+                        }
+                      >
+                        {coverInner}
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        <ContextMenuItem onClick={() => coverInputRef.current?.click()}>
+                          <ImagePlus className="size-4" />
+                          {t('playlistPage.changeCover')}
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
+                  )
+                })()}
                 <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">

@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { AuthProvider } from '@/lib/auth-context'
 import { PlayerProvider } from '@/lib/player-context'
 import { ThemeProvider } from '@/lib/theme-context'
+import { AccentProvider } from '@/lib/accent-context'
 import { I18nProvider } from '@/lib/i18n/context'
 import { DEFAULT_LOCALE, isKnownLocale } from '@/lib/i18n/messages'
 import { GlobalPlayer } from '@/components/player/global-player'
@@ -33,12 +34,12 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f2f3f7' },
+    { media: '(prefers-color-scheme: light)', color: '#edeff3' },
     { media: '(prefers-color-scheme: dark)', color: '#0c0d14' },
   ],
 }
 
-const themeScript = `(function(){try{var t=localStorage.getItem('music.theme');var d=t?t==='dark':true;var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){document.documentElement.classList.add('dark')}})();`
+const themeScript = `(function(){try{var t=localStorage.getItem('music.theme');var d=t?t==='dark':true;var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){document.documentElement.classList.add('dark')}try{var a=localStorage.getItem('music.accent');if(a&&a!=='indigo')document.documentElement.setAttribute('data-accent',a);}catch(e){}})();`
 
 export default async function RootLayout({
   children,
@@ -59,15 +60,17 @@ export default async function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider>
-          <I18nProvider initialLocale={locale}>
-            <AuthProvider>
-              <PlayerProvider>
-                {children}
-                <GlobalPlayer />
-              </PlayerProvider>
-            </AuthProvider>
-            <AppToaster />
-          </I18nProvider>
+          <AccentProvider>
+            <I18nProvider initialLocale={locale}>
+              <AuthProvider>
+                <PlayerProvider>
+                  {children}
+                  <GlobalPlayer />
+                </PlayerProvider>
+              </AuthProvider>
+              <AppToaster />
+            </I18nProvider>
+          </AccentProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

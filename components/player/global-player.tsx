@@ -157,7 +157,7 @@ export function GlobalPlayer() {
                     : undefined
                 }
                 className={cn(
-                  'relative aspect-square w-full max-w-[19rem] overflow-hidden rounded-[2rem] transition-shadow duration-700 ease-out',
+                  'relative aspect-square w-full max-w-64 shrink-0 overflow-hidden rounded-[2rem] transition-shadow duration-700 ease-out sm:max-w-[19rem]',
                   !coverGlow && 'glow-primary',
                 )}
               >
@@ -201,7 +201,7 @@ export function GlobalPlayer() {
               <Controls player={player} isPlaying={isPlaying} isLoading={isLoading} large />
 
               <VolumeControl
-                onPointerDownCapture={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="hidden w-full max-w-[220px] sm:flex"
               />
             </div>
@@ -336,7 +336,7 @@ function PlaybackFxMenu() {
             <Slider
               value={[speed]}
               min={0.5}
-              max={1.5}
+              max={3}
               step={0.05}
               onValueChange={(v) => setSpeed((Array.isArray(v) ? v[0] : v) ?? 1)}
               aria-label={t('player.speed')}
@@ -351,8 +351,8 @@ function PlaybackFxMenu() {
             </div>
             <Slider
               value={[pitch]}
-              min={-7}
-              max={7}
+              min={-12}
+              max={12}
               step={1}
               onValueChange={(v) => setPitch((Array.isArray(v) ? v[0] : v) ?? 0)}
               aria-label={t('player.pitch')}

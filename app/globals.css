@@ -54,22 +54,22 @@
   color-scheme: light;
   --radius: 0.9rem;
 
-  --background: oklch(0.966 0.006 262);
+  --background: oklch(0.95 0.007 262);
   --foreground: oklch(0.22 0.03 266);
 
-  --card: oklch(0.995 0.003 262);
+  --card: oklch(0.975 0.005 262);
   --card-foreground: oklch(0.22 0.03 266);
 
-  --popover: oklch(0.995 0.003 262);
+  --popover: oklch(0.975 0.005 262);
   --popover-foreground: oklch(0.22 0.03 266);
 
   --primary: oklch(0.52 0.2 264);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.94 0.008 262);
+  --secondary: oklch(0.915 0.009 262);
   --secondary-foreground: oklch(0.24 0.03 266);
 
-  --muted: oklch(0.94 0.008 262);
+  --muted: oklch(0.915 0.009 262);
   --muted-foreground: oklch(0.47 0.03 264);
 
   --accent: oklch(0.66 0.16 52);
@@ -82,7 +82,7 @@
   --input: oklch(0.22 0.03 266 / 13%);
   --ring: oklch(0.52 0.2 264);
 
-  --surface-glass: oklch(1 0 0 / 0.72);
+  --surface-glass: oklch(0.98 0.006 262 / 0.68);
   --grid-line: oklch(0.22 0.03 266 / 4%);
   --glow-cool: oklch(0.62 0.19 264 / 0.16);
   --glow-warm: oklch(0.72 0.15 52 / 0.12);
@@ -91,11 +91,11 @@
   --elevate-2: 0 4px 16px -4px oklch(0.22 0.03 266 / 0.1), 0 2px 6px -2px oklch(0.22 0.03 266 / 0.06);
   --elevate-3: 0 24px 60px -18px oklch(0.22 0.03 266 / 0.22), 0 8px 24px -10px oklch(0.22 0.03 266 / 0.12);
 
-  --sidebar: oklch(0.985 0.004 262);
+  --sidebar: oklch(0.965 0.006 262);
   --sidebar-foreground: oklch(0.22 0.03 266);
   --sidebar-primary: oklch(0.52 0.2 264);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.008 262);
+  --sidebar-accent: oklch(0.915 0.009 262);
   --sidebar-accent-foreground: oklch(0.24 0.03 266);
   --sidebar-border: oklch(0.22 0.03 266 / 9%);
   --sidebar-ring: oklch(0.52 0.2 264);
@@ -150,6 +150,128 @@
   --sidebar-accent-foreground: oklch(0.97 0.008 266);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.6 0.19 264);
+}
+
+/* ---------- Accent presets ----------
+   Override just the "primary action" tokens (buttons, focus ring, sidebar
+   highlight). `indigo` is the default and needs no override block. */
+:root[data-accent='blue'] {
+  --primary: oklch(0.5 0.18 246);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.5 0.18 246);
+  --sidebar-primary: oklch(0.5 0.18 246);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.5 0.18 246);
+}
+.dark[data-accent='blue'] {
+  --primary: oklch(0.62 0.17 246);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.62 0.17 246);
+  --sidebar-primary: oklch(0.62 0.17 246);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.62 0.17 246);
+}
+
+:root[data-accent='teal'] {
+  --primary: oklch(0.52 0.13 195);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.52 0.13 195);
+  --sidebar-primary: oklch(0.52 0.13 195);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.52 0.13 195);
+}
+.dark[data-accent='teal'] {
+  --primary: oklch(0.62 0.13 195);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.62 0.13 195);
+  --sidebar-primary: oklch(0.62 0.13 195);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.62 0.13 195);
+}
+
+:root[data-accent='green'] {
+  --primary: oklch(0.54 0.15 148);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.54 0.15 148);
+  --sidebar-primary: oklch(0.54 0.15 148);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.54 0.15 148);
+}
+.dark[data-accent='green'] {
+  --primary: oklch(0.64 0.16 148);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.64 0.16 148);
+  --sidebar-primary: oklch(0.64 0.16 148);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.64 0.16 148);
+}
+
+:root[data-accent='gold'] {
+  --primary: oklch(0.68 0.15 82);
+  --primary-foreground: oklch(0.2 0.04 82);
+  --ring: oklch(0.68 0.15 82);
+  --sidebar-primary: oklch(0.68 0.15 82);
+  --sidebar-primary-foreground: oklch(0.2 0.04 82);
+  --sidebar-ring: oklch(0.68 0.15 82);
+}
+.dark[data-accent='gold'] {
+  --primary: oklch(0.74 0.15 82);
+  --primary-foreground: oklch(0.2 0.04 82);
+  --ring: oklch(0.74 0.15 82);
+  --sidebar-primary: oklch(0.74 0.15 82);
+  --sidebar-primary-foreground: oklch(0.2 0.04 82);
+  --sidebar-ring: oklch(0.74 0.15 82);
+}
+
+:root[data-accent='rose'] {
+  --primary: oklch(0.55 0.21 350);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.55 0.21 350);
+  --sidebar-primary: oklch(0.55 0.21 350);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.55 0.21 350);
+}
+.dark[data-accent='rose'] {
+  --primary: oklch(0.64 0.19 350);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.64 0.19 350);
+  --sidebar-primary: oklch(0.64 0.19 350);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.64 0.19 350);
+}
+
+:root[data-accent='violet'] {
+  --primary: oklch(0.52 0.22 300);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.52 0.22 300);
+  --sidebar-primary: oklch(0.52 0.22 300);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.52 0.22 300);
+}
+.dark[data-accent='violet'] {
+  --primary: oklch(0.62 0.2 300);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.62 0.2 300);
+  --sidebar-primary: oklch(0.62 0.2 300);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.62 0.2 300);
+}
+
+:root[data-accent='slate'] {
+  --primary: oklch(0.42 0.02 260);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.42 0.02 260);
+  --sidebar-primary: oklch(0.42 0.02 260);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.42 0.02 260);
+}
+.dark[data-accent='slate'] {
+  --primary: oklch(0.62 0.02 260);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.62 0.02 260);
+  --sidebar-primary: oklch(0.62 0.02 260);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-ring: oklch(0.62 0.02 260);
 }
 
 @layer base {
