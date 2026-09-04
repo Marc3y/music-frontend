@@ -11,7 +11,7 @@ import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { playlistApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import { usePlayer } from '@/lib/player-context'
-import { formatTime } from '@/lib/format'
+import { formatMusicalKey, formatTime } from '@/lib/format'
 import type { PublicPlaylist, PublicPlaylistTrack } from '@/lib/types'
 
 export default function PublicPlaylistPage({
@@ -159,7 +159,7 @@ export default function PublicPlaylistPage({
                           : [
                               t.artist || tr('publicShare.unknownArtist'),
                               t.bpm ? `${t.bpm} BPM` : null,
-                              t.musicalKey || null,
+                              formatMusicalKey(t.musicalKey) || null,
                             ]
                               .filter(Boolean)
                               .join(' · ')}

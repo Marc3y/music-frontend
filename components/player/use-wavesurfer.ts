@@ -33,7 +33,8 @@ interface WaveSurferState {
 export function useWaveSurfer(
   containerRef: RefObject<HTMLDivElement | null>,
 ): WaveSurferState {
-  const { streamUrl, playToken, isPlaying, loop, volume, setIsPlaying, next } = usePlayer()
+  const { streamUrl, playToken, isPlaying, loop, volume, speed, pitch, setIsPlaying, next } =
+    usePlayer()
   const { theme } = useTheme()
 
   const wsRef = useRef<WaveSurfer | null>(null)
@@ -41,14 +42,51 @@ export function useWaveSurfer(
   const loopRef = useRef(loop)
   const nextRef = useRef(next)
   const volumeRef = useRef(volume)
+  const speedRef = useRef(speed)
   loopRef.current = loop
   nextRef.current = next
   volumeRef.current = volume
+  speedRef.current = speed
+
+  // Web Audio graph for independent pitch shifting (lazily built on first play).
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const pitchNodeRef = useRef<AudioWorkletNode | null>(null)
+  const graphStateRef = useRef<'idle' | 'pending' | 'ready' | 'failed'>('idle')
 
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [peaks, setPeaks] = useState<number[]>([])
   const [ready, setReady] = useState(false)
+
+  const setupAudioGraph = async () => {
+    if (graphStateRef.current !== 'idle') return
+    const ws = wsRef.current
+    const media = ws?.getMediaElement()
+    if (!ws || !media || typeof window === 'undefined' || !window.AudioContext) return
+    graphStateRef.current = 'pending'
+    try {
+      const ctx = new AudioContext()
+      await ctx.audioWorklet.addModule('/pitch-shift-worklet.js')
+      const source = ctx.createMediaElementSource(media)
+      const pitchNode = new AudioWorkletNode(ctx, 'phase-vocoder-processor')
+      source.connect(pitchNode)
+      pitchNode.connect(ctx.destination)
+      audioCtxRef.current = ctx
+      pitchNodeRef.current = pitchNode
+      graphStateRef.current = 'ready'
+      applyPitch(pitchRef.current)
+    } catch {
+      graphStateRef.current = 'failed'
+    }
+  }
+
+  const applyPitch = (semitones: number) => {
+    const param = pitchNodeRef.current?.parameters.get('pitchFactor')
+    if (param) param.value = 2 ** (semitones / 12)
+  }
+
+  const pitchRef = useRef(pitch)
+  pitchRef.current = pitch
 
   // Create the instance once the container exists.
   useEffect(() => {
@@ -68,9 +106,17 @@ export function useWaveSurfer(
     })
     wsRef.current = ws
 
+    const media = ws.getMediaElement()
+    if (media) media.crossOrigin = 'anonymous'
+
     ws.on('ready', () => {
       setDuration(ws.getDuration())
       ws.setVolume(volumeRef.current)
+      try {
+        ws.setPlaybackRate(speedRef.current, true)
+      } catch {
+        /* ignore */
+      }
       try {
         const exported = ws.exportPeaks({ maxLength: 200 })
         setPeaks(exported?.[0] ? Array.from(exported[0]) : [])
@@ -83,7 +129,14 @@ export function useWaveSurfer(
       }
     })
     ws.on('timeupdate', (t: number) => setCurrentTime(t))
-    ws.on('play', () => setIsPlaying(true))
+    ws.on('play', () => {
+      setIsPlaying(true)
+      if (pitchRef.current !== 0 && graphStateRef.current === 'idle') {
+        void setupAudioGraph()
+      } else if (audioCtxRef.current?.state === 'suspended') {
+        void audioCtxRef.current.resume()
+      }
+    })
     ws.on('pause', () => setIsPlaying(false))
     ws.on('finish', () => {
       if (loopRef.current === 'one') {
@@ -131,6 +184,33 @@ export function useWaveSurfer(
   useEffect(() => {
     wsRef.current?.setVolume(volume)
   }, [volume])
+
+  // Tempo — independent of pitch (browser time-stretch keeps pitch constant).
+  useEffect(() => {
+    try {
+      wsRef.current?.setPlaybackRate(speed, true)
+    } catch {
+      /* ignore */
+    }
+  }, [speed])
+
+  // Pitch — needs the Web Audio graph; build it on first non-zero value.
+  useEffect(() => {
+    if (graphStateRef.current === 'ready') {
+      applyPitch(pitch)
+      if (audioCtxRef.current?.state === 'suspended') void audioCtxRef.current.resume()
+    } else if (pitch !== 0 && graphStateRef.current === 'idle') {
+      void setupAudioGraph()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pitch])
+
+  // Tear down the audio context on unmount.
+  useEffect(() => {
+    return () => {
+      void audioCtxRef.current?.close()
+    }
+  }, [])
 
   // Re-tint the waveform when the theme changes (no reload).
   useEffect(() => {

@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { audioApi, accountApi, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
 import { useT } from '@/lib/i18n/context'
-import { formatBytes } from '@/lib/format'
+import { formatBytes, formatMusicalKey } from '@/lib/format'
 import type { SavedShare } from '@/lib/types'
 
 function errMsg(err: unknown, fallback: string) {
@@ -114,7 +114,7 @@ export function SharedItemsList({
                   ? [
                       item.artist || t('sharedItems.unknownArtist'),
                       item.bpm ? `${item.bpm} BPM` : null,
-                      item.musicalKey || null,
+                      formatMusicalKey(item.musicalKey) || null,
                     ]
                       .filter(Boolean)
                       .join(' · ')

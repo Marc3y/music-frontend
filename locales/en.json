@@ -297,7 +297,10 @@
     "deletePlaylistBody": "\"{name}\" and all its tracks will be permanently deleted.",
     "editPlaylistTitle": "Edit playlist",
     "editPlaylistDesc": "Adjust name and cover.",
-    "clickCoverOptional": "Click the image to upload a cover (optional)."
+    "clickCoverOptional": "Click the image to upload a cover (optional).",
+    "members": "Members",
+    "owner": "Owner",
+    "plusMore": "+{count}"
   },
 
   "editTrack": {
@@ -360,7 +363,7 @@
     "primaryVersion": "primary version",
     "processingSuffix": "processing…",
     "failedSuffix": "failed",
-    "keyPlaceholder": "Key (e.g. A minor)",
+    "keyPlaceholder": "Key (e.g. Am)",
     "makePrimary": "Make primary",
     "toggleFailed": "Toggling failed",
     "uploadFailed": "Upload failed",
@@ -458,7 +461,12 @@
     "mute": "Mute",
     "unmute": "Unmute",
     "volume": "Volume",
-    "position": "Playback position"
+    "position": "Playback position",
+    "playbackFx": "Speed & pitch",
+    "speed": "Speed",
+    "pitch": "Pitch",
+    "resetFx": "Reset",
+    "share": "Share track"
   },
 
   "publicShare": {

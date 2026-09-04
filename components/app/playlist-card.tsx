@@ -10,6 +10,7 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
 import { liftHover } from '@/lib/motion'
+import { useT } from '@/lib/i18n/context'
 import type { Playlist } from '@/lib/types'
 
 export function PlaylistCard({
@@ -27,6 +28,7 @@ export function PlaylistCard({
   onEdit?: () => void
   onShare?: () => void
 }) {
+  const t = useT()
   const hasMenu = Boolean(onEdit || onShare)
 
   const card = (
@@ -38,7 +40,7 @@ export function PlaylistCard({
             e.stopPropagation()
             onRemove()
           }}
-          aria-label="Entfernen"
+          aria-label={t('common.remove')}
           className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-destructive group-hover:opacity-100"
         >
           <X className="size-4" />
@@ -87,13 +89,13 @@ export function PlaylistCard({
         {onEdit && (
           <ContextMenuItem onClick={onEdit}>
             <Pencil />
-            Bearbeiten
+            {t('common.edit')}
           </ContextMenuItem>
         )}
         {onShare && (
           <ContextMenuItem onClick={onShare}>
             <Share2 />
-            Teilen
+            {t('common.share')}
           </ContextMenuItem>
         )}
       </ContextMenuContent>

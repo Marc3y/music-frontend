@@ -297,7 +297,10 @@
     "deletePlaylistBody": "„{name}\" und alle enthaltenen Tracks werden unwiderruflich gelöscht.",
     "editPlaylistTitle": "Playlist bearbeiten",
     "editPlaylistDesc": "Name und Cover anpassen.",
-    "clickCoverOptional": "Klicke auf das Bild, um ein Cover hochzuladen (optional)."
+    "clickCoverOptional": "Klicke auf das Bild, um ein Cover hochzuladen (optional).",
+    "members": "Mitglieder",
+    "owner": "Besitzer",
+    "plusMore": "+{count}"
   },
 
   "editTrack": {
@@ -360,7 +363,7 @@
     "primaryVersion": "Hauptversion",
     "processingSuffix": "wird verarbeitet…",
     "failedSuffix": "fehlgeschlagen",
-    "keyPlaceholder": "Key (z. B. A moll)",
+    "keyPlaceholder": "Key (z. B. Am)",
     "makePrimary": "Zur Hauptversion",
     "toggleFailed": "Umschalten fehlgeschlagen",
     "uploadFailed": "Upload fehlgeschlagen",
@@ -458,7 +461,12 @@
     "mute": "Stummschalten",
     "unmute": "Stummschaltung aufheben",
     "volume": "Lautstärke",
-    "position": "Wiedergabeposition"
+    "position": "Wiedergabeposition",
+    "playbackFx": "Tempo & Tonhöhe",
+    "speed": "Tempo",
+    "pitch": "Tonhöhe",
+    "resetFx": "Zurücksetzen",
+    "share": "Track teilen"
   },
 
   "publicShare": {

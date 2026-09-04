@@ -4,7 +4,7 @@ import { use, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, ImagePlus, Music, Pencil, Share2, Trash2, Upload, X } from 'lucide-react'
+import { ArrowLeft, Music, Pencil, Share2, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
@@ -18,12 +18,13 @@ import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { ImageCropDialog } from '@/components/app/image-crop-dialog'
+import { CollaboratorStack } from '@/components/app/collaborator-stack'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { playlistApi, audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
 import { useLibraryFilter } from '@/lib/use-library-filter'
-import { spring } from '@/lib/motion'
+import { ease, spring } from '@/lib/motion'
 import { useT } from '@/lib/i18n/context'
 import type { AudioFile, Playlist } from '@/lib/types'
 
@@ -68,9 +69,10 @@ export default function PlaylistPage({
 
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [savingName, setSavingName] = useState(false)
-  const [coverEditing, setCoverEditing] = useState(false)
+  const [coverZoom, setCoverZoom] = useState(false)
   const [pendingCover, setPendingCover] = useState<File | null>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  const coverClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [filter, setFilter] = useLibraryFilter()
 
@@ -181,8 +183,24 @@ export default function PlaylistPage({
       toast.error(t('toast.pickImageFile'))
       return
     }
-    setCoverEditing(false)
     setPendingCover(file)
+  }
+
+  function handleCoverClick() {
+    if (coverClickTimer.current) return
+    coverClickTimer.current = setTimeout(() => {
+      coverClickTimer.current = null
+      setCoverZoom((z) => !z)
+    }, 220)
+  }
+
+  function handleCoverDoubleClick() {
+    if (coverClickTimer.current) {
+      clearTimeout(coverClickTimer.current)
+      coverClickTimer.current = null
+    }
+    if (!isOwner) return
+    coverInputRef.current?.click()
   }
 
   async function handleCoverCropped(blob: Blob) {
@@ -316,6 +334,34 @@ export default function PlaylistPage({
           )}
         </AnimatePresence>
 
+        <AnimatePresence>
+          {coverZoom && playlist && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: ease.apple }}
+              onClick={() => setCoverZoom(false)}
+              className="fixed inset-0 z-[70] flex items-center justify-center bg-background/70 p-8"
+            >
+              <motion.div
+                layoutId="playlist-cover"
+                transition={{ duration: 0.42, ease: ease.apple }}
+                className="aspect-square w-[min(80vw,32rem)] overflow-hidden rounded-3xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-3) ring-1 ring-border/60"
+              >
+                {playlist.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={playlist.coverUrl} alt="" className="size-full object-cover" />
+                ) : (
+                  <div className="flex size-full items-center justify-center">
+                    <Music className="size-16 text-foreground/40" />
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="relative">
           <AppNav />
 
@@ -339,10 +385,13 @@ export default function PlaylistPage({
             ) : (
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
                 <motion.div
-                  whileHover={{ y: -3 }}
+                  layoutId="playlist-cover"
+                  whileHover={coverZoom ? undefined : { y: -3 }}
                   transition={spring.soft}
-                  onDoubleClick={() => setCoverEditing(true)}
-                  className="group/cover relative size-32 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40"
+                  onClick={handleCoverClick}
+                  onDoubleClick={handleCoverDoubleClick}
+                  style={{ visibility: coverZoom ? 'hidden' : 'visible' }}
+                  className="group/cover relative size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40"
                 >
                   {playlist.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -354,26 +403,6 @@ export default function PlaylistPage({
                   ) : (
                     <div className="flex size-full items-center justify-center">
                       <Music className="size-10 text-foreground/40" />
-                    </div>
-                  )}
-                  {coverEditing && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/75 backdrop-blur-sm">
-                      <button
-                        type="button"
-                        onClick={() => coverInputRef.current?.click()}
-                        className="flex flex-col items-center gap-1 text-xs font-medium"
-                      >
-                        <ImagePlus className="size-6" />
-                        {t('playlistPage.chooseImage')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCoverEditing(false)}
-                        aria-label={t('common.cancel')}
-                        className="absolute top-1.5 right-1.5 rounded-md p-1 text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="size-4" />
-                      </button>
                     </div>
                   )}
                   <input
@@ -407,7 +436,7 @@ export default function PlaylistPage({
                             setNameDraft(null)
                           }
                         }}
-                        className="mt-1 w-full max-w-md rounded-lg border border-input bg-background px-2 py-1 text-3xl font-semibold tracking-tight outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                        className="mt-1 w-full max-w-md bg-transparent p-0 text-3xl font-semibold tracking-tight outline-none focus:outline-none focus-visible:ring-0"
                       />
                     ) : (
                       <h1
@@ -443,6 +472,16 @@ export default function PlaylistPage({
                         return `${trackStr} · ${versionStr} · ${projectStr}`
                       })()}
                     </p>
+                    {(playlist.activeCollaborators?.length ||
+                      playlist.role === 'collaborator') && (
+                      <div className="mt-3">
+                        <CollaboratorStack
+                          owner={playlist.ownerUser}
+                          collaborators={playlist.activeCollaborators ?? []}
+                          showOwner={playlist.role === 'collaborator'}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {isOwner && (

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { playlistApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,49 @@ import type { Playlist } from '@/lib/types'
 
 function errMsg(err: unknown, fallback: string) {
   return err instanceof ApiError ? err.message : fallback
+}
+
+/** Switch that flips its visual state immediately and reverts if the request fails. */
+function ToggleRow({
+  label,
+  checked,
+  onToggle,
+  muted,
+}: {
+  label: string
+  checked: boolean
+  onToggle: (value: boolean) => Promise<unknown>
+  muted?: boolean
+}) {
+  const [local, setLocal] = useState(checked)
+  const [pending, setPending] = useState(false)
+  useEffect(() => setLocal(checked), [checked])
+
+  return (
+    <label
+      className={cn(
+        'flex cursor-pointer items-center justify-between gap-3 text-sm',
+        muted ? 'text-muted-foreground' : 'font-medium',
+      )}
+    >
+      <span>{label}</span>
+      <Switch
+        checked={local}
+        disabled={pending}
+        onCheckedChange={async (value) => {
+          setLocal(value)
+          setPending(true)
+          try {
+            await onToggle(value)
+          } catch {
+            setLocal(!value)
+          } finally {
+            setPending(false)
+          }
+        }}
+      />
+    </label>
+  )
 }
 
 function CopyRow({ url }: { url: string }) {
@@ -160,6 +204,7 @@ export function PlaylistShareDialog({
       onUpdated(await playlistApi.updateShare(playlist!._id, body))
     } catch (err) {
       toast.error(errMsg(err, t('playlistShare.saveFailed')))
+      throw err
     } finally {
       setBusy(false)
     }
@@ -201,42 +246,29 @@ export function PlaylistShareDialog({
         <div className="flex max-h-[65vh] flex-col gap-5 overflow-x-hidden overflow-y-auto scrollbar-gutter-stable">
           {/* Öffentlich teilen */}
           <section className="flex flex-col gap-3">
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={!!playlist.shareEnabled}
-                disabled={busy}
-                onChange={(e) => share({ shareEnabled: e.target.checked })}
-                className="size-4 accent-primary"
-              />
-              {t('playlistShare.sharePlaylist')}
-            </label>
+            <ToggleRow
+              label={t('playlistShare.sharePlaylist')}
+              checked={!!playlist.shareEnabled}
+              onToggle={(v) => share({ shareEnabled: v })}
+            />
 
             {playlist.shareEnabled && (
-              <div className="flex flex-col gap-3 pl-6">
+              <div className="flex flex-col gap-3 pl-1">
                 <CopyRow url={`${origin}/playlist/${playlist.shareToken}`} />
 
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={!!playlist.shareAllowDownload}
-                    disabled={busy}
-                    onChange={(e) => share({ shareAllowDownload: e.target.checked })}
-                    className="size-4 accent-primary"
-                  />
-                  {t('playlistShare.allowProjectDownloads')}
-                </label>
+                <ToggleRow
+                  muted
+                  label={t('playlistShare.allowProjectDownloads')}
+                  checked={!!playlist.shareAllowDownload}
+                  onToggle={(v) => share({ shareAllowDownload: v })}
+                />
 
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={!!playlist.shareRestricted}
-                    disabled={busy}
-                    onChange={(e) => share({ shareRestricted: e.target.checked })}
-                    className="size-4 accent-primary"
-                  />
-                  {t('playlistShare.restrictUsers')}
-                </label>
+                <ToggleRow
+                  muted
+                  label={t('playlistShare.restrictUsers')}
+                  checked={!!playlist.shareRestricted}
+                  onToggle={(v) => share({ shareRestricted: v })}
+                />
 
                 {playlist.shareRestricted && (
                   <div className="pl-6">

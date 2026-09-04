@@ -34,6 +34,10 @@ interface PlayerContextValue {
   loop: LoopMode
   expanded: boolean
   volume: number
+  /** Playback tempo, 1 = normal. Session-only, resets on full reload. */
+  speed: number
+  /** Pitch shift in semitones, 0 = unchanged. Session-only. */
+  pitch: number
   /** Bumped whenever the current track should (re)start from the beginning. */
   playToken: number
   playQueue: (tracks: PlayerTrack[], startIndex?: number) => void
@@ -45,6 +49,9 @@ interface PlayerContextValue {
   cycleLoop: () => void
   setExpanded: (open: boolean) => void
   setVolume: (volume: number) => void
+  setSpeed: (speed: number) => void
+  setPitch: (semitones: number) => void
+  resetPlaybackFx: () => void
   /**
    * Patches display metadata (title/artist/coverUrl) of a track that is
    * currently in the queue, without touching playback state. Used so that
@@ -76,6 +83,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [expanded, setExpanded] = useState(false)
   const [playToken, setPlayToken] = useState(0)
   const [volume, setVolumeState] = useState(1)
+  const [speed, setSpeedState] = useState(1)
+  const [pitch, setPitchState] = useState(0)
 
   const queueRef = useRef<PlayerTrack[]>([])
   const requestIdRef = useRef(0)
@@ -173,6 +182,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const setSpeed = useCallback((v: number) => {
+    setSpeedState(Math.min(2, Math.max(0.5, Math.round(v * 100) / 100)))
+  }, [])
+  const setPitch = useCallback((v: number) => {
+    setPitchState(Math.min(12, Math.max(-12, Math.round(v))))
+  }, [])
+  const resetPlaybackFx = useCallback(() => {
+    setSpeedState(1)
+    setPitchState(0)
+  }, [])
+
   const patchTrack = useCallback(
     (id: string, patch: Partial<Omit<PlayerTrack, 'id' | 'getStreamUrl'>>) => {
       setQueue((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)))
@@ -192,6 +212,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       loop,
       expanded,
       volume,
+      speed,
+      pitch,
       playToken,
       playQueue,
       togglePlay,
@@ -202,6 +224,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       cycleLoop,
       setExpanded,
       setVolume,
+      setSpeed,
+      setPitch,
+      resetPlaybackFx,
       patchTrack,
     }),
     [
@@ -215,6 +240,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       loop,
       expanded,
       volume,
+      speed,
+      pitch,
       playToken,
       playQueue,
       togglePlay,
@@ -223,6 +250,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       toggleShuffle,
       cycleLoop,
       setVolume,
+      setSpeed,
+      setPitch,
+      resetPlaybackFx,
       patchTrack,
     ],
   )

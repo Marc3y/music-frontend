@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { audioApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
@@ -142,21 +143,20 @@ export function ShareTrackDialog({
         {!isProject && (
           <label
             className={
-              'flex items-start gap-2 text-sm ' +
+              'flex items-start justify-between gap-3 text-sm ' +
               (hasProject ? 'text-foreground' : 'text-muted-foreground')
             }
           >
-            <input
-              type="checkbox"
-              checked={hasProject && shareProject}
-              disabled={!hasProject}
-              onChange={(e) => toggleShareProject(e.target.checked)}
-              className="mt-0.5 size-4 accent-primary"
-            />
             <span>
               {t('shareTrack.includeProject')}
               {!hasProject && t('shareTrack.noProjectHint')}
             </span>
+            <Switch
+              className="mt-0.5"
+              checked={hasProject && shareProject}
+              disabled={!hasProject}
+              onCheckedChange={(v) => toggleShareProject(v)}
+            />
           </label>
         )}
 

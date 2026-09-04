@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
+import { formatMusicalKey } from '@/lib/format'
 import { useT } from '@/lib/i18n/context'
 
 interface SharedTrack {
@@ -109,7 +110,7 @@ export default function SharePage({
             </p>
             {(track.bpm || track.musicalKey) && (
               <p className="mt-2 text-sm text-muted-foreground">
-                {[track.bpm ? `${track.bpm} BPM` : null, track.musicalKey || null]
+                {[track.bpm ? `${track.bpm} BPM` : null, formatMusicalKey(track.musicalKey) || null]
                   .filter(Boolean)
                   .join(' · ')}
               </p>

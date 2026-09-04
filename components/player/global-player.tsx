@@ -10,22 +10,37 @@ import {
   Play,
   Repeat,
   Repeat1,
+  RotateCcw,
+  Share2,
   Shuffle,
   SkipBack,
   SkipForward,
+  SlidersHorizontal,
   Volume1,
   Volume2,
   VolumeX,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { usePlayer } from '@/lib/player-context'
+import { audioApi, ApiError } from '@/lib/api'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { ease, spring } from '@/lib/motion'
 import { useCoverGlow } from '@/lib/use-cover-glow'
 import { useT } from '@/lib/i18n/context'
 import { Slider } from '@/components/ui/slider'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ShareTrackDialog } from '@/components/app/share-track-dialog'
+import type { AudioFile } from '@/lib/types'
 import { useWaveSurfer } from './use-wavesurfer'
 import { BarsWaveform } from './bars-waveform'
+
+const OBJECT_ID = /^[a-f\d]{24}$/i
 
 export function GlobalPlayer() {
   const player = usePlayer()
@@ -37,6 +52,22 @@ export function GlobalPlayer() {
   const progress = duration > 0 ? currentTime / duration : 0
   const hasTrack = Boolean(current)
   const coverGlow = useCoverGlow(current?.coverUrl)
+
+  const [sharingTrack, setSharingTrack] = useState<AudioFile | null>(null)
+  const [loadingShare, setLoadingShare] = useState(false)
+  const canShare = Boolean(current && OBJECT_ID.test(current.id))
+
+  async function openShare() {
+    if (!current || loadingShare) return
+    setLoadingShare(true)
+    try {
+      setSharingTrack(await audioApi.get(current.id))
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : t('shareTrack.enableFailed'))
+    } finally {
+      setLoadingShare(false)
+    }
+  }
 
   return (
     <>
@@ -79,7 +110,24 @@ export function GlobalPlayer() {
               <span className="text-[0.7rem] font-medium tracking-[0.2em] text-muted-foreground uppercase">
                 {t('player.playback')}
               </span>
-              <div className="size-10" />
+              <div className="flex items-center gap-1">
+                {canShare && (
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={openShare}
+                    disabled={loadingShare}
+                    aria-label={t('player.share')}
+                    className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                  >
+                    {loadingShare ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Share2 className="size-4" />
+                    )}
+                  </motion.button>
+                )}
+                <PlaybackFxMenu />
+              </div>
             </div>
 
             <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-10">
@@ -232,7 +280,79 @@ export function GlobalPlayer() {
               </div>
             </div>
       </motion.div>
+
+      <ShareTrackDialog
+        track={sharingTrack}
+        open={sharingTrack !== null}
+        onOpenChange={(open) => !open && setSharingTrack(null)}
+        onUpdated={(updated) => setSharingTrack(updated)}
+      />
     </>
+  )
+}
+
+function PlaybackFxMenu() {
+  const { speed, pitch, setSpeed, setPitch, resetPlaybackFx } = usePlayer()
+  const t = useT()
+  const active = speed !== 1 || pitch !== 0
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={t('player.playbackFx')}
+        className={cn(
+          'inline-flex size-9 items-center justify-center rounded-full outline-none transition-colors hover:bg-muted',
+          active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        <SlidersHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64 p-3">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-medium">
+              <span>{t('player.speed')}</span>
+              <span className="font-mono text-muted-foreground tabular-nums">
+                {speed.toFixed(2)}×
+              </span>
+            </div>
+            <Slider
+              value={[speed]}
+              min={0.5}
+              max={1.5}
+              step={0.05}
+              onValueChange={(v) => setSpeed((Array.isArray(v) ? v[0] : v) ?? 1)}
+              aria-label={t('player.speed')}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-medium">
+              <span>{t('player.pitch')}</span>
+              <span className="font-mono text-muted-foreground tabular-nums">
+                {pitch > 0 ? `+${pitch}` : pitch} st
+              </span>
+            </div>
+            <Slider
+              value={[pitch]}
+              min={-7}
+              max={7}
+              step={1}
+              onValueChange={(v) => setPitch((Array.isArray(v) ? v[0] : v) ?? 0)}
+              aria-label={t('player.pitch')}
+            />
+          </div>
+          <DropdownMenuItem
+            closeOnClick={false}
+            disabled={!active}
+            onClick={resetPlaybackFx}
+            className="justify-center"
+          >
+            <RotateCcw className="size-3.5" />
+            {t('player.resetFx')}
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

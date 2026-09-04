@@ -114,7 +114,7 @@ function detectKey(buffer: AudioBuffer): string | null {
     if (maj > best.score) best = { score: maj, tonic, mode: 'dur' }
     if (min > best.score) best = { score: min, tonic, mode: 'moll' }
   }
-  return `${NOTES[best.tonic]} ${best.mode}`
+  return `${NOTES[best.tonic]}${best.mode === 'moll' ? 'm' : ' maj'}`
 }
 
 // Pearson-Korrelation von chroma mit dem um `tonic` rotierten Profil

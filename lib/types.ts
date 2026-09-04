@@ -22,6 +22,14 @@ export interface Playlist {
   allowedUsernames?: string[]
   collabToken?: string
   collaborators?: { username: string; userId?: string }[]
+  /** Only on the single-playlist endpoint (getPlaylistById). */
+  ownerUser?: UserBrief | null
+  activeCollaborators?: UserBrief[]
+}
+
+export interface UserBrief {
+  username: string
+  avatarUrl?: string | null
 }
 
 export interface PublicPlaylistTrack {

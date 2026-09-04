@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
+import { Reveal } from '@/components/reveal'
 import { UsageBar } from '@/components/app/usage-bar'
 import {
   AlertDialog,
@@ -147,14 +148,14 @@ export default function UsagePage() {
           <AppNav />
 
           <main className="mx-auto max-w-3xl px-4 pt-4 sm:px-6">
-            <div className="pb-8">
+            <Reveal className="pb-8">
               <h1 className="text-3xl font-semibold tracking-tight text-balance">
                 {tr('usagePage.title')}
               </h1>
               <p className="mt-1 text-muted-foreground">{tr('usagePage.subtitle')}</p>
-            </div>
+            </Reveal>
 
-            <div className="glass rounded-2xl p-5 shadow-(--elevate-1)">
+            <Reveal delayIndex={1} className="glass block rounded-2xl p-5 shadow-(--elevate-1)">
               {usage === null ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -182,9 +183,9 @@ export default function UsagePage() {
                   <UsageBar used={usage.used} limit={usage.limit} className="mt-4" />
                 </>
               )}
-            </div>
+            </Reveal>
 
-            <div className="mt-8 mb-3 flex gap-1 rounded-xl bg-muted/60 p-1 text-sm">
+            <Reveal delayIndex={2} className="mt-8 mb-3 flex gap-1 rounded-xl bg-muted/60 p-1 text-sm">
               {(['tracks', 'projects'] as Tab[]).map((t) => (
                 <button
                   key={t}
@@ -212,8 +213,9 @@ export default function UsagePage() {
                       : tr('usagePage.tabProjects')}
                 </button>
               ))}
-            </div>
+            </Reveal>
 
+            <Reveal delayIndex={3}>
             {usage === null ? (
               <div className="flex flex-col gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -265,6 +267,7 @@ export default function UsagePage() {
                 ))}
               </List>
             )}
+            </Reveal>
           </main>
         </div>
       </div>
