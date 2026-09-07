@@ -116,6 +116,8 @@ export default function PublicPlaylistPage({
         duration: t.duration ?? undefined,
         getStreamUrl: async () =>
           (await playlistApi.publicStream(token, t._id, unlockKey)).streamUrl,
+        onListened: () =>
+          playlistApi.logPublicListen(token, t._id, unlockKey).catch(() => {}),
       })),
       Math.max(0, startIndex),
     )

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, useMotionValueEvent, useScroll } from 'motion/react'
 import { useState } from 'react'
-import { Check, ChevronDown, CreditCard, Globe, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
+import { BarChart3, Check, ChevronDown, CreditCard, Globe, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { NotificationBell } from '@/components/app/notification-bell'
@@ -117,6 +117,10 @@ export function AppNav() {
                       : t('subscription.planPlus')}
                   </span>
                 )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/stats')}>
+                <BarChart3 className="size-4" />
+                {t('nav.stats')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push('/usage')}>
                 <HardDrive className="size-4" />

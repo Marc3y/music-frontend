@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, FileArchive, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
+import { ChevronDown, FileArchive, Info, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
+import { TrackInfoDialog } from '@/components/app/track-info-dialog'
 import { TrackProjectPanel } from '@/components/app/track-project-panel'
 import { formatBytes, formatDate, formatMusicalKey, formatTime } from '@/lib/format'
 import { audioApi, ApiError } from '@/lib/api'
@@ -54,6 +55,7 @@ export function TrackRow({
   const isProject = track.kind === 'project'
   const isReady = track.status === 'ready'
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const displayCover = track.coverUrl || fallbackCoverUrl
 
@@ -106,6 +108,10 @@ export function TrackRow({
       <ContextMenuItem onClick={onVersions}>
         <Layers className="size-4" />
         {t('versions.titleTrack')}
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => setInfoOpen(true)}>
+        <Info className="size-4" />
+        {t('trackInfo.menu')}
       </ContextMenuItem>
       <ContextMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
         <Trash2 className="size-4" />
@@ -241,6 +247,10 @@ export function TrackRow({
                 <Layers className="size-4" />
                 {t('versions.titleTrack')}
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setInfoOpen(true)}>
+                <Info className="size-4" />
+                {t('trackInfo.menu')}
+              </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
                 <Trash2 className="size-4" />
                 {t('common.delete')}
@@ -251,6 +261,12 @@ export function TrackRow({
 
         <ContextMenuContent>{menuItems}</ContextMenuContent>
       </ContextMenu>
+
+      <TrackInfoDialog
+        trackId={track._id}
+        open={infoOpen}
+        onOpenChange={setInfoOpen}
+      />
 
       <ConfirmDeleteDialog
         open={deleteOpen}

@@ -14,6 +14,7 @@ import { formatMusicalKey } from '@/lib/format'
 import { useT } from '@/lib/i18n/context'
 
 interface SharedTrack {
+  _id?: string
   title: string
   artist?: string
   description?: string
@@ -40,6 +41,7 @@ export default function SharePage({
       .publicStream(token)
       .then((res) =>
         setTrack({
+          _id: res._id,
           title: res.title,
           artist: res.artist,
           description: res.description,
@@ -75,6 +77,9 @@ export default function SharePage({
           const res = await audioApi.publicStream(token)
           return res.streamUrl
         },
+        onListened: track?._id
+          ? () => audioApi.logListen(track._id!).catch(() => {})
+          : undefined,
       },
     ])
   }

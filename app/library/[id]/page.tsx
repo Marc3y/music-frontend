@@ -256,6 +256,7 @@ export default function PlaylistPage({
           const res = await audioApi.stream(t._id)
           return res.streamUrl
         },
+        onListened: () => audioApi.logListen(t._id).catch(() => {}),
       })),
       startIndex,
     )

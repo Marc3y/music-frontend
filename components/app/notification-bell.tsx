@@ -18,7 +18,12 @@ const MESSAGE_KEY: Record<AppNotification['type'], string> = {
   collab_cover: 'notifications.cover',
   collab_track_added: 'notifications.trackAdded',
   collab_track_removed: 'notifications.trackRemoved',
+  collab_track_edited: 'notifications.trackEdited',
+  collab_track_cover: 'notifications.trackCover',
   collab_version_added: 'notifications.versionAdded',
+  collab_version_removed: 'notifications.versionRemoved',
+  collab_version_selected: 'notifications.versionSelected',
+  collab_reordered: 'notifications.reordered',
   collab_joined: 'notifications.joined',
 }
 

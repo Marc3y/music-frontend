@@ -6,6 +6,8 @@ import { SettingsCard } from '@/components/app/settings/settings-card'
 import { useTheme } from '@/lib/theme-context'
 import { useAccent } from '@/lib/accent-context'
 import { ACCENT_PRESETS } from '@/lib/accent-presets'
+import { useBackground } from '@/lib/background-context'
+import { BACKGROUND_PRESETS } from '@/lib/background-presets'
 import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +19,7 @@ const options = [
 export function AppearanceSection() {
   const { theme, setTheme, mounted } = useTheme()
   const { accent, setAccent } = useAccent()
+  const { background, setBackground } = useBackground()
   const t = useT()
 
   return (
@@ -83,6 +86,42 @@ export function AppearanceSection() {
                 >
                   {active && <Check className="size-4 text-white drop-shadow" />}
                 </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-border pt-5">
+        <p className="text-sm font-medium">{t('settings.bgTitle')}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.bgDesc')}</p>
+        <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          {BACKGROUND_PRESETS.map((preset) => {
+            const active = background === preset.id
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => setBackground(preset.id)}
+                aria-pressed={active}
+                className={cn(
+                  'relative flex h-16 items-end overflow-hidden rounded-xl border bg-card p-2 text-left transition-colors ease-apple',
+                  active
+                    ? 'border-primary/50 ring-1 ring-primary/40'
+                    : 'border-border hover:border-foreground/25',
+                )}
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{ backgroundImage: preset.swatch, backgroundSize: '14px 14px, cover' }}
+                />
+                <span className="relative z-10 text-xs font-medium">
+                  {t(preset.labelKey)}
+                </span>
+                {active && (
+                  <Check className="absolute top-1.5 right-1.5 z-10 size-3.5 text-primary" />
+                )}
               </button>
             )
           })}

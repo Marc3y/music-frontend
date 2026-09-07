@@ -21,7 +21,12 @@ export type NotificationType =
   | 'collab_cover'
   | 'collab_track_added'
   | 'collab_track_removed'
+  | 'collab_track_edited'
+  | 'collab_track_cover'
   | 'collab_version_added'
+  | 'collab_version_removed'
+  | 'collab_version_selected'
+  | 'collab_reordered'
   | 'collab_joined'
 
 export interface AppNotification {
@@ -40,6 +45,56 @@ export interface NotificationPage {
   notifications: AppNotification[]
   unreadCount: number
   nextCursor: string | null
+}
+
+export interface TrackInfo {
+  _id: string
+  title: string
+  artist?: string | null
+  description?: string | null
+  kind: 'track' | 'project'
+  playlistName?: string | null
+  createdAt: string
+  updatedAt: string
+  coverUrl?: string | null
+  versionCount: number
+  selectedVersion?: {
+    label: string
+    originalFilename?: string | null
+    fileSize?: number | null
+    mimeType?: string | null
+    duration?: number | null
+    bpm?: number | null
+    musicalKey?: string | null
+    projectFilename?: string | null
+    projectSize?: number | null
+    createdAt: string
+  } | null
+  shareEnabled: boolean
+  projectShareEnabled: boolean
+  stats: { listens: number; listeners: number; downloads: number }
+}
+
+export interface StatTrack {
+  trackId: string
+  title: string
+  artist?: string | null
+  coverUrl?: string | null
+  listens: number
+  downloads: number
+}
+
+export interface AccountStats {
+  totals: {
+    listens: number
+    downloads: number
+    uniqueListeners: number
+    trackCount: number
+  }
+  topTracks: StatTrack[]
+  topDownloaded: StatTrack[]
+  topListeners: { username: string; avatarUrl?: string | null; listens: number }[]
+  perDay: { _id: string; listens: number }[]
 }
 
 export interface Playlist {

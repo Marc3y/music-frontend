@@ -51,6 +51,9 @@ export function useWaveSurfer(
 
   const trackIdRef = useRef<string | null>(null)
   trackIdRef.current = current?.id ?? null
+  const currentRef = useRef(current)
+  currentRef.current = current
+  const listenLoggedForToken = useRef<number>(-1)
 
   const wsRef = useRef<WaveSurfer | null>(null)
   const shouldPlayRef = useRef(false)
@@ -218,6 +221,22 @@ export function useWaveSurfer(
       ws.pause()
     }
   }, [isPlaying, ready])
+
+  // A listen counts once the track has played for 15 seconds (once per play).
+  useEffect(() => {
+    if (
+      currentTime >= 15 &&
+      listenLoggedForToken.current !== playToken &&
+      currentRef.current?.onListened
+    ) {
+      listenLoggedForToken.current = playToken
+      try {
+        currentRef.current.onListened()
+      } catch {
+        /* best-effort */
+      }
+    }
+  }, [currentTime, playToken])
 
   // Reflect volume changes immediately, even mid-playback.
   useEffect(() => {

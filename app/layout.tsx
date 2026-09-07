@@ -6,6 +6,7 @@ import { NotificationsProvider } from '@/lib/notifications-context'
 import { PlayerProvider } from '@/lib/player-context'
 import { ThemeProvider } from '@/lib/theme-context'
 import { AccentProvider } from '@/lib/accent-context'
+import { BackgroundProvider } from '@/lib/background-context'
 import { I18nProvider } from '@/lib/i18n/context'
 import { DEFAULT_LOCALE, isKnownLocale } from '@/lib/i18n/messages'
 import { GlobalPlayer } from '@/components/player/global-player'
@@ -39,7 +40,7 @@ export const viewport: Viewport = {
   ],
 }
 
-const themeScript = `(function(){try{var t=localStorage.getItem('music.theme');var d=t?t==='dark':true;var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){document.documentElement.classList.add('dark')}try{var a=localStorage.getItem('music.accent');if(a&&a!=='indigo')document.documentElement.setAttribute('data-accent',a);}catch(e){}})();`
+const themeScript = `(function(){try{var t=localStorage.getItem('music.theme');var d=t?t==='dark':true;var r=document.documentElement;r.classList.toggle('dark',d);r.style.colorScheme=d?'dark':'light';}catch(e){document.documentElement.classList.add('dark')}try{var a=localStorage.getItem('music.accent');if(a&&a!=='indigo')document.documentElement.setAttribute('data-accent',a);}catch(e){}try{var g=localStorage.getItem('music.bg');if(g&&g!=='aurora')document.documentElement.setAttribute('data-bg',g);}catch(e){}})();`
 
 export default async function RootLayout({
   children,
@@ -59,6 +60,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <ThemeProvider>
           <AccentProvider>
+            <BackgroundProvider>
             <I18nProvider initialLocale={locale}>
               <AuthProvider>
                 <NotificationsProvider>
@@ -70,6 +72,7 @@ export default async function RootLayout({
               </AuthProvider>
               <AppToaster />
             </I18nProvider>
+            </BackgroundProvider>
           </AccentProvider>
         </ThemeProvider>
       </body>

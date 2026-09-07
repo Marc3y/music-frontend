@@ -1,4 +1,5 @@
 import type {
+  AccountStats,
   AudioFile,
   NotificationPage,
   Playlist,
@@ -6,6 +7,7 @@ import type {
   SavedShare,
   StorageSummary,
   Subscription,
+  TrackInfo,
   UsageInfo,
   User,
 } from './types'
@@ -158,6 +160,8 @@ export const accountApi = {
 
   subscription: () => apiClient<Subscription>('/account/subscription'),
 
+  stats: () => apiClient<AccountStats>('/account/stats'),
+
   usage: () => apiClient<UsageInfo>('/account/usage'),
 
   savedShares: () => apiClient<SavedShare[]>('/account/saved-shares'),
@@ -257,6 +261,13 @@ export const playlistApi = {
       }`,
       { skipRefresh: true },
     ),
+  logPublicListen: (token: string, trackId: string, unlockKey?: string | null) =>
+    apiClient<{ ok: true }>(
+      `/playlists/public/${token}/tracks/${trackId}/listened${
+        unlockKey ? `?k=${encodeURIComponent(unlockKey)}` : ''
+      }`,
+      { method: 'POST', skipRefresh: true },
+    ),
   publicProject: (token: string, trackId: string, unlockKey?: string | null) =>
     apiClient<{ url: string; filename: string }>(
       `/playlists/public/${token}/tracks/${trackId}/project${
@@ -333,6 +344,12 @@ export const audioApi = {
     }),
   stream: (id: string) =>
     apiClient<{ streamUrl: string }>(`/audio-files/${id}/stream`),
+  logListen: (id: string) =>
+    apiClient<{ ok: true; counted: boolean }>(`/audio-files/${id}/listened`, {
+      method: 'POST',
+      skipRefresh: true,
+    }),
+  info: (id: string) => apiClient<TrackInfo>(`/audio-files/${id}/info`),
   share: (id: string, shareProject?: boolean) =>
     apiClient<{ shareToken: string; shareUrl: string; shareProject: boolean }>(
       `/audio-files/${id}/share`,
@@ -356,6 +373,7 @@ export const audioApi = {
     ),
   publicStream: (shareToken: string) =>
     apiClient<{
+      _id: string
       streamUrl: string
       title: string
       artist?: string

@@ -22,6 +22,8 @@ export interface PlayerTrack {
   duration?: number
   /** Resolves a fresh (short-lived) stream URL every time playback (re)starts. */
   getStreamUrl: () => Promise<string>
+  /** Fired once per play, after the 15s listen threshold. Best-effort. */
+  onListened?: () => void
 }
 
 interface PlayerContextValue {

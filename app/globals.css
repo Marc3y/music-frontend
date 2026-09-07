@@ -274,6 +274,81 @@
   --sidebar-ring: oklch(0.62 0.02 260);
 }
 
+/* ---------- Background presets ----------
+   Each preset is a complete look (glow hues + optional pattern). `aurora` is
+   the default and needs no block. Consumed by <AuroraBackground/>. */
+:root {
+  --aurora-pattern: none;
+  --aurora-pattern-size: 32px 32px;
+  --aurora-pattern-opacity: 0;
+}
+
+:root[data-bg='grid'] {
+  --grid-line: oklch(0.22 0.03 266 / 7%);
+  --glow-cool: oklch(0.62 0.19 264 / 0.1);
+  --glow-warm: oklch(0.72 0.15 52 / 0.08);
+}
+:root:not([data-theme='light'])[data-bg='grid'],
+.dark[data-bg='grid'] {
+  --grid-line: oklch(1 0 0 / 6%);
+  --glow-cool: oklch(0.62 0.2 264 / 0.28);
+  --glow-warm: oklch(0.72 0.15 52 / 0.16);
+}
+
+:root[data-bg='dots'] {
+  --aurora-pattern: radial-gradient(
+    currentColor 1px,
+    transparent 1.4px
+  );
+  --aurora-pattern-size: 22px 22px;
+  --aurora-pattern-opacity: 0.05;
+}
+.dark[data-bg='dots'] {
+  --aurora-pattern-opacity: 0.06;
+}
+
+:root[data-bg='mesh'] {
+  --glow-cool: oklch(0.6 0.2 285 / 0.22);
+  --glow-warm: oklch(0.62 0.16 205 / 0.18);
+}
+.dark[data-bg='mesh'] {
+  --glow-cool: oklch(0.6 0.22 285 / 0.5);
+  --glow-warm: oklch(0.6 0.18 205 / 0.34);
+}
+
+:root[data-bg='minimal'] {
+  --grid-line: transparent;
+  --glow-cool: oklch(0.62 0.15 264 / 0.08);
+  --glow-warm: oklch(0.72 0.12 52 / 0.05);
+}
+.dark[data-bg='minimal'] {
+  --glow-cool: oklch(0.6 0.16 264 / 0.2);
+  --glow-warm: oklch(0.72 0.12 52 / 0.1);
+}
+
+:root[data-bg='warm'] {
+  --glow-cool: oklch(0.72 0.16 45 / 0.16);
+  --glow-warm: oklch(0.74 0.15 70 / 0.14);
+}
+.dark[data-bg='warm'] {
+  --glow-cool: oklch(0.7 0.17 40 / 0.42);
+  --glow-warm: oklch(0.74 0.16 70 / 0.3);
+}
+
+:root[data-bg='mono'] {
+  --glow-cool: oklch(0.55 0.01 260 / 0.14);
+  --glow-warm: oklch(0.5 0.01 260 / 0.1);
+}
+.dark[data-bg='mono'] {
+  --glow-cool: oklch(0.6 0.01 260 / 0.32);
+  --glow-warm: oklch(0.5 0.01 260 / 0.22);
+}
+
+@keyframes aurora-pattern-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: var(--aurora-pattern-size); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
