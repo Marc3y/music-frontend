@@ -42,3 +42,39 @@ export function formatDate(iso: string): string {
     return ''
   }
 }
+
+/** Compact relative time. `now`, `5m`, `3h`, `2d`, then a short date. */
+export function timeAgo(iso: string, locale = 'en'): string {
+  const then = new Date(iso).getTime()
+  if (!isFinite(then)) return ''
+  const diff = Date.now() - then
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return locale.startsWith('de') ? 'gerade eben' : 'just now'
+  if (min < 60) return `${min}m`
+  const hrs = Math.floor(min / 60)
+  if (hrs < 24) return `${hrs}h`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d`
+  try {
+    return new Date(iso).toLocaleDateString(locale.startsWith('de') ? 'de-DE' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+    })
+  } catch {
+    return ''
+  }
+}
+
+/** Human date + time for notification tooltips. */
+export function formatDateTime(iso: string, locale = 'en'): string {
+  try {
+    return new Date(iso).toLocaleString(locale.startsWith('de') ? 'de-DE' : 'en-US', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return ''
+  }
+}

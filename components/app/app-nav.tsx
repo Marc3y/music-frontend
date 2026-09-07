@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, useMotionValueEvent, useScroll } from 'motion/react'
 import { useState } from 'react'
-import { Check, ChevronDown, Globe, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
+import { Check, ChevronDown, CreditCard, Globe, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { NotificationBell } from '@/components/app/notification-bell'
+import { TierBadge } from '@/components/app/tier-badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,8 +71,10 @@ export function AppNav() {
         >
           <ThemeToggle />
 
+          <NotificationBell />
+
           <DropdownMenu>
-            <DropdownMenuTrigger className="group/trig flex cursor-pointer items-center gap-2 rounded-full py-1.5 pr-2.5 pl-1.5 outline-none transition-colors hover:bg-muted/60">
+            <DropdownMenuTrigger className="group/trig flex cursor-pointer items-center gap-1.5 rounded-full py-1.5 pr-2.5 pl-1.5 outline-none transition-colors hover:bg-muted/60">
               {user?.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -83,10 +87,11 @@ export function AppNav() {
                   <User className="size-3.5 text-primary-foreground" />
                 </span>
               )}
-              <span className="max-w-[9rem] truncate text-sm font-medium">
+              <span className="max-w-[5rem] truncate text-sm font-medium sm:max-w-[9rem]">
                 {user?.username}
               </span>
-              <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-200 ease-apple group-data-[popup-open]/trig:rotate-180" />
+              <TierBadge tier={user?.tier} asLink={false} className="ml-0.5" />
+              <ChevronDown className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ease-apple group-data-[popup-open]/trig:rotate-180" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={10} className="w-56">
               <DropdownMenuGroup>
@@ -101,6 +106,17 @@ export function AppNav() {
               <DropdownMenuItem onClick={() => router.push('/settings')}>
                 <Settings className="size-4" />
                 {t('nav.accountSettings')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/subscription')}>
+                <CreditCard className="size-4" />
+                {t('nav.subscription')}
+                {user?.tier && user.tier !== 'free' && (
+                  <span className="ml-auto text-xs font-medium text-primary">
+                    {user.tier === 'unlimited'
+                      ? t('subscription.planUnlimited')
+                      : t('subscription.planPlus')}
+                  </span>
+                )}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push('/usage')}>
                 <HardDrive className="size-4" />

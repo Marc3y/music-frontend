@@ -181,6 +181,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const prev = useCallback(() => {
     const tracks = queueRef.current
     if (tracks.length === 0) return
+    // Nothing before the first track (or a single-track queue) → restart it.
     const prevIndex = index - 1 < 0 ? 0 : index - 1
     void loadIndex(tracks, prevIndex)
   }, [index, loadIndex])

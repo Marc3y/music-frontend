@@ -1,9 +1,45 @@
+export type Tier = 'free' | 'plus' | 'unlimited'
+
 export interface User {
   id: string
   email: string
   username: string
   avatarUrl?: string | null
   hasPassword?: boolean
+  tier?: Tier
+}
+
+export interface Subscription {
+  tier: Tier
+  storageLimit: number
+  unlimited: boolean
+}
+
+export type NotificationType =
+  | 'listen'
+  | 'collab_renamed'
+  | 'collab_cover'
+  | 'collab_track_added'
+  | 'collab_track_removed'
+  | 'collab_version_added'
+  | 'collab_joined'
+
+export interface AppNotification {
+  id: string
+  type: NotificationType
+  actor: { username: string; avatarUrl?: string | null }
+  playlistId?: string | null
+  playlistName?: string | null
+  trackId?: string | null
+  trackTitle?: string | null
+  createdAt: string
+  read: boolean
+}
+
+export interface NotificationPage {
+  notifications: AppNotification[]
+  unreadCount: number
+  nextCursor: string | null
 }
 
 export interface Playlist {
@@ -25,6 +61,8 @@ export interface Playlist {
   /** Only on the single-playlist endpoint (getPlaylistById). */
   ownerUser?: UserBrief | null
   activeCollaborators?: UserBrief[]
+  sharePasswordSet?: boolean
+  ownerTier?: Tier
 }
 
 export interface UserBrief {
@@ -46,6 +84,7 @@ export interface PublicPlaylistTrack {
 export interface PublicPlaylist {
   accessible: boolean
   needsLogin?: boolean
+  needsPassword?: boolean
   name: string
   coverUrl?: string | null
   trackCount?: number
@@ -56,6 +95,8 @@ export interface PublicPlaylist {
 export interface StorageSummary {
   used: number
   limit: number
+  unlimited?: boolean
+  tier?: Tier
 }
 
 export interface UsageTrack {

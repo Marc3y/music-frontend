@@ -1,13 +1,15 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Download, FileArchive, Loader2, Music, Pause, Play } from 'lucide-react'
+import { Download, FileArchive, Loader2, Lock, Music, Pause, Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { Logo } from '@/components/logo'
 import { AuroraBackground } from '@/components/aurora-background'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { playlistApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import { usePlayer } from '@/lib/player-context'
@@ -25,22 +27,77 @@ export default function PublicPlaylistPage({
 
   const [data, setData] = useState<PublicPlaylist | null>(null)
   const [error, setError] = useState<{ message: string; needsLogin?: boolean } | null>(null)
+  const [needsPassword, setNeedsPassword] = useState(false)
+  const [unlockKey, setUnlockKey] = useState<string | null>(null)
+  const [pw, setPw] = useState('')
+  const [unlocking, setUnlocking] = useState(false)
+
+  const storageKey = `music.unlock.${token}`
+
+  const load = useCallback(
+    (key: string | null) => {
+      playlistApi
+        .publicGet(token, key)
+        .then((d) => {
+          setData(d)
+          setNeedsPassword(false)
+          setError(null)
+        })
+        .catch((err) => {
+          if (err instanceof ApiError && err.status === 401) {
+            setNeedsPassword(true)
+            try {
+              sessionStorage.removeItem(storageKey)
+            } catch {
+              /* ignore */
+            }
+            return
+          }
+          if (err instanceof ApiError) {
+            setError({
+              message: err.message,
+              needsLogin: err.status === 403 && /einloggen|sign in|log in/i.test(err.message),
+            })
+          } else {
+            setError({ message: tr('publicShare.playlistLoadFailed') })
+          }
+        })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [token],
+  )
 
   useEffect(() => {
-    playlistApi
-      .publicGet(token)
-      .then(setData)
-      .catch((err) => {
-        if (err instanceof ApiError) {
-          setError({
-            message: err.message,
-            needsLogin: err.status === 403 && /einloggen/i.test(err.message),
-          })
-        } else {
-          setError({ message: tr('publicShare.playlistLoadFailed') })
-        }
-      })
+    let stored: string | null = null
+    try {
+      stored = sessionStorage.getItem(storageKey)
+    } catch {
+      /* ignore */
+    }
+    setUnlockKey(stored)
+    load(stored)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
+
+  async function submitPassword() {
+    if (!pw.trim()) return
+    setUnlocking(true)
+    try {
+      const res = await playlistApi.unlockPublic(token, pw)
+      try {
+        sessionStorage.setItem(storageKey, res.unlockKey)
+      } catch {
+        /* ignore */
+      }
+      setUnlockKey(res.unlockKey)
+      setPw('')
+      load(res.unlockKey)
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : tr('publicShare.wrongPassword'))
+    } finally {
+      setUnlocking(false)
+    }
+  }
 
   const audioTracks = (data?.tracks ?? []).filter((t) => t.kind === 'track')
 
@@ -57,7 +114,8 @@ export default function PublicPlaylistPage({
         title: t.title,
         artist: t.artist,
         duration: t.duration ?? undefined,
-        getStreamUrl: async () => (await playlistApi.publicStream(token, t._id)).streamUrl,
+        getStreamUrl: async () =>
+          (await playlistApi.publicStream(token, t._id, unlockKey)).streamUrl,
       })),
       Math.max(0, startIndex),
     )
@@ -65,7 +123,7 @@ export default function PublicPlaylistPage({
 
   async function downloadProject(track: PublicPlaylistTrack) {
     try {
-      const res = await playlistApi.publicProject(token, track._id)
+      const res = await playlistApi.publicProject(token, track._id, unlockKey)
       window.location.assign(res.url)
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : tr('toast.downloadFailed'))
@@ -97,6 +155,40 @@ export default function PublicPlaylistPage({
                 {tr('nav.signIn')}
               </Link>
             )}
+          </div>
+        ) : needsPassword ? (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+              <Lock className="size-5" />
+            </span>
+            <div>
+              <p className="font-medium">{tr('publicShare.passwordTitle')}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {tr('publicShare.passwordBody')}
+              </p>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                void submitPassword()
+              }}
+              className="flex w-full max-w-xs gap-2"
+            >
+              <Input
+                type="password"
+                autoFocus
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                placeholder={tr('publicShare.passwordPlaceholder')}
+              />
+              <Button type="submit" disabled={unlocking || !pw.trim()}>
+                {unlocking ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  tr('publicShare.unlock')
+                )}
+              </Button>
+            </form>
           </div>
         ) : !data ? (
           <div className="flex justify-center py-10">

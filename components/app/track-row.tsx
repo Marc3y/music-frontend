@@ -80,6 +80,19 @@ export function TrackRow({
     onPlay()
   }
 
+  function handleRowClick(e: React.MouseEvent) {
+    // Touch devices: a single tap on the row plays. Pointer devices keep
+    // double-click so a single click stays free for selection / the menus.
+    if (
+      typeof window === 'undefined' ||
+      !window.matchMedia('(pointer: coarse)').matches
+    )
+      return
+    if (!canPlay) return
+    if ((e.target as HTMLElement).closest('button,a,input')) return
+    onPlay()
+  }
+
   const menuItems = (
     <>
       <ContextMenuItem onClick={onEdit}>
@@ -107,6 +120,7 @@ export function TrackRow({
         <ContextMenuTrigger
           render={
             <div
+              onClick={handleRowClick}
               onDoubleClick={handleRowDoubleClick}
               className={
                 'group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-card/60 sm:gap-4 sm:px-3' +

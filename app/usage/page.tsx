@@ -137,7 +137,9 @@ export default function UsagePage() {
     runDelete(target)
   }
 
-  const overLimit = usage && usage.limit > 0 && usage.used >= usage.limit
+  const unlimited = !!usage?.unlimited
+  const overLimit =
+    usage && !unlimited && usage.limit > 0 && usage.used >= usage.limit
 
   return (
     <RequireAuth>
@@ -166,21 +168,30 @@ export default function UsagePage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">
-                        {tr('usagePage.usedOf', {
-                          used: formatBytes(usage.used),
-                          limit: formatBytes(usage.limit),
-                        })}
+                        {unlimited
+                          ? tr('usagePage.usedUnlimited', { used: formatBytes(usage.used) })
+                          : tr('usagePage.usedOf', {
+                              used: formatBytes(usage.used),
+                              limit: formatBytes(usage.limit),
+                            })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {overLimit
-                          ? tr('usagePage.limitReached')
-                          : tr('usagePage.free', {
-                              amount: formatBytes(Math.max(0, usage.limit - usage.used)),
-                            })}
+                        {unlimited
+                          ? tr('usagePage.unlimitedHint')
+                          : overLimit
+                            ? tr('usagePage.limitReached')
+                            : tr('usagePage.free', {
+                                amount: formatBytes(Math.max(0, usage.limit - usage.used)),
+                              })}
                       </p>
                     </div>
                   </div>
-                  <UsageBar used={usage.used} limit={usage.limit} className="mt-4" />
+                  <UsageBar
+                    used={usage.used}
+                    limit={usage.limit}
+                    unlimited={unlimited}
+                    className="mt-4"
+                  />
                 </>
               )}
             </Reveal>

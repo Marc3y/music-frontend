@@ -1,14 +1,16 @@
 import type {
   AudioFile,
+  NotificationPage,
   Playlist,
   PublicPlaylist,
   SavedShare,
   StorageSummary,
+  Subscription,
   UsageInfo,
   User,
 } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.marcey.xyz'
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.marcey.xyz'
 
 export class ApiError extends Error {
   status: number
@@ -154,6 +156,8 @@ export const accountApi = {
 
   storage: () => apiClient<StorageSummary>('/account/storage'),
 
+  subscription: () => apiClient<Subscription>('/account/subscription'),
+
   usage: () => apiClient<UsageInfo>('/account/usage'),
 
   savedShares: () => apiClient<SavedShare[]>('/account/saved-shares'),
@@ -220,6 +224,7 @@ export const playlistApi = {
       shareRestricted?: boolean
       shareAllowDownload?: boolean
       allowedUsernames?: string[]
+      sharePassword?: string | null
     },
   ) => apiClient<Playlist>(`/playlists/${id}/share`, { method: 'PATCH', body }),
 
@@ -234,18 +239,45 @@ export const playlistApi = {
       method: 'POST',
     }),
 
-  publicGet: (token: string) =>
-    apiClient<PublicPlaylist>(`/playlists/public/${token}`, { skipRefresh: true }),
-  publicStream: (token: string, trackId: string) =>
+  unlockPublic: (token: string, password: string) =>
+    apiClient<{ unlockKey: string }>(`/playlists/public/${token}/unlock`, {
+      method: 'POST',
+      body: { password },
+      skipRefresh: true,
+    }),
+  publicGet: (token: string, unlockKey?: string | null) =>
+    apiClient<PublicPlaylist>(
+      `/playlists/public/${token}${unlockKey ? `?k=${encodeURIComponent(unlockKey)}` : ''}`,
+      { skipRefresh: true },
+    ),
+  publicStream: (token: string, trackId: string, unlockKey?: string | null) =>
     apiClient<{ streamUrl: string }>(
-      `/playlists/public/${token}/tracks/${trackId}/stream`,
+      `/playlists/public/${token}/tracks/${trackId}/stream${
+        unlockKey ? `?k=${encodeURIComponent(unlockKey)}` : ''
+      }`,
       { skipRefresh: true },
     ),
-  publicProject: (token: string, trackId: string) =>
+  publicProject: (token: string, trackId: string, unlockKey?: string | null) =>
     apiClient<{ url: string; filename: string }>(
-      `/playlists/public/${token}/tracks/${trackId}/project`,
+      `/playlists/public/${token}/tracks/${trackId}/project${
+        unlockKey ? `?k=${encodeURIComponent(unlockKey)}` : ''
+      }`,
       { skipRefresh: true },
     ),
+}
+
+/* ------------------------ Notifications ------------------------ */
+
+export const notificationsApi = {
+  list: (before?: string | null) =>
+    apiClient<NotificationPage>(
+      `/notifications${before ? `?before=${encodeURIComponent(before)}` : ''}`,
+    ),
+  markRead: (ids?: string[]) =>
+    apiClient<{ ok: true }>('/notifications/read', {
+      method: 'POST',
+      body: ids ? { ids } : {},
+    }),
 }
 
 /* -------------------------- Audio files -------------------------- */

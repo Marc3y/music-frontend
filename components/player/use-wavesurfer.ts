@@ -143,7 +143,13 @@ export function useWaveSurfer(
       setReady(true)
       setIsLoading(false)
       if (shouldPlayRef.current) {
-        void ws.play()
+        ws.play().catch(() => {
+          // Autoplay blocked — resume the context and try once more.
+          void audioCtxRef.current?.resume()
+          setTimeout(() => {
+            if (shouldPlayRef.current) ws.play().catch(() => {})
+          }, 60)
+        })
       }
     })
     ws.on('timeupdate', (t: number) => setCurrentTime(t))
@@ -242,6 +248,36 @@ export function useWaveSurfer(
   useEffect(() => {
     return () => {
       void audioCtxRef.current?.close()
+    }
+  }, [])
+
+  // Mobile browsers block programmatic playback that isn't inside a user
+  // gesture. Our play flow always crosses an async gap (URL resolve → load →
+  // 'ready' → play), so the first tap anywhere primes the media element +
+  // AudioContext once, and every play after that just works.
+  useEffect(() => {
+    let armed = true
+    const unlock = () => {
+      if (!armed) return
+      armed = false
+      // Blessing the media element inside a real gesture lets later
+      // programmatic ws.play() calls run even though they cross an async gap.
+      const el = wsRef.current?.getMediaElement()
+      if (el) {
+        const wasPlaying = !el.paused
+        el.play()
+          .then(() => {
+            if (!wasPlaying) el.pause()
+          })
+          .catch(() => {})
+      }
+      void audioCtxRef.current?.resume().catch(() => {})
+    }
+    document.addEventListener('pointerdown', unlock, { once: true, capture: true })
+    document.addEventListener('touchend', unlock, { once: true, capture: true })
+    return () => {
+      document.removeEventListener('pointerdown', unlock, { capture: true })
+      document.removeEventListener('touchend', unlock, { capture: true })
     }
   }, [])
 

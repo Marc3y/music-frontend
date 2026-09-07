@@ -96,11 +96,11 @@ export function GlobalPlayer() {
               <span className="h-1.5 w-10 rounded-full bg-muted-foreground/25" />
             </div>
             <div
-              className="pointer-events-none absolute inset-0 transition-[background] duration-700 ease-out"
+              className="pointer-events-none absolute inset-x-0 -top-24 bottom-0 transition-[background] duration-700 ease-out"
               style={{
                 background: coverGlow
-                  ? `radial-gradient(120% 62% at 50% -8%, rgb(${coverGlow} / 0.5), transparent 60%)`
-                  : 'radial-gradient(110% 60% at 50% -5%, var(--glow-cool), transparent 62%)',
+                  ? `radial-gradient(130% 62% at 50% 4%, rgb(${coverGlow} / 0.5), transparent 62%)`
+                  : 'radial-gradient(120% 60% at 50% 4%, var(--glow-cool), transparent 64%)',
               }}
             />
             <div
@@ -145,7 +145,7 @@ export function GlobalPlayer() {
             </div>
 
             <div className="relative z-10 flex flex-1 flex-col overflow-y-auto">
-              <div className="flex min-h-full flex-col items-center justify-center gap-6 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:gap-9 sm:py-8">
+              <div className="flex min-h-full flex-col items-center justify-center gap-6 px-6 pt-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:gap-9 sm:pt-12 sm:pb-10">
               <motion.div
                 initial={{ scale: 0.86, opacity: 0, y: 24 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}

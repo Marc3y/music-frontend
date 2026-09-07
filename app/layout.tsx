@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import { cookies } from 'next/headers'
 import { AuthProvider } from '@/lib/auth-context'
+import { NotificationsProvider } from '@/lib/notifications-context'
 import { PlayerProvider } from '@/lib/player-context'
 import { ThemeProvider } from '@/lib/theme-context'
 import { AccentProvider } from '@/lib/accent-context'
@@ -60,10 +61,12 @@ export default async function RootLayout({
           <AccentProvider>
             <I18nProvider initialLocale={locale}>
               <AuthProvider>
-                <PlayerProvider>
-                  {children}
-                  <GlobalPlayer />
-                </PlayerProvider>
+                <NotificationsProvider>
+                  <PlayerProvider>
+                    {children}
+                    <GlobalPlayer />
+                  </PlayerProvider>
+                </NotificationsProvider>
               </AuthProvider>
               <AppToaster />
             </I18nProvider>

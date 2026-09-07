@@ -13,7 +13,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { UpgradeHint } from '@/components/app/upgrade-hint'
 import { playlistApi, ApiError } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { hasPlus } from '@/lib/subscription'
 import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import type { Playlist } from '@/lib/types'
@@ -174,9 +177,12 @@ export function PlaylistShareDialog({
   onUpdated: (playlist: Playlist) => void
 }) {
   const t = useT()
+  const { user } = useAuth()
+  const canPlus = hasPlus(user?.tier)
   const [busy, setBusy] = useState(false)
   const [collabInput, setCollabInput] = useState<{ username: string; joined: boolean }[]>([])
   const [collabToken, setCollabToken] = useState<string | undefined>(undefined)
+  const [pwDraft, setPwDraft] = useState('')
 
   useEffect(() => {
     setCollabInput(
@@ -225,7 +231,11 @@ export function PlaylistShareDialog({
         })),
       })
     } catch (err) {
-      toast.error(errMsg(err, t('playlistShare.saveFailed')))
+      if (err instanceof ApiError && err.status === 403) {
+        toast.error(t('subscription.needsPlusCollab'))
+      } else {
+        toast.error(errMsg(err, t('playlistShare.saveFailed')))
+      }
     } finally {
       setBusy(false)
     }
@@ -284,6 +294,65 @@ export function PlaylistShareDialog({
                     />
                   </div>
                 )}
+
+                {/* Passwortschutz (music+) */}
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-2">
+                      {t('playlistShare.passwordProtect')}
+                      {!canPlus && <UpgradeHint />}
+                    </span>
+                    <Switch
+                      checked={!!playlist.sharePasswordSet}
+                      disabled={!canPlus || busy}
+                      onCheckedChange={async (v) => {
+                        if (v) {
+                          setPwDraft('')
+                          return
+                        }
+                        try {
+                          await share({ sharePassword: null })
+                        } catch {
+                          /* handled */
+                        }
+                      }}
+                    />
+                  </label>
+
+                  {canPlus && !playlist.sharePasswordSet && (
+                    <div className="flex gap-2 pl-1">
+                      <Input
+                        type="password"
+                        value={pwDraft}
+                        placeholder={t('playlistShare.passwordPlaceholder')}
+                        className="h-8 text-xs"
+                        onChange={(e) => setPwDraft(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={pwDraft.length < 1 || busy}
+                        onClick={async () => {
+                          try {
+                            await share({ sharePassword: pwDraft })
+                            setPwDraft('')
+                            toast.success(t('playlistShare.passwordSet'))
+                          } catch {
+                            /* handled */
+                          }
+                        }}
+                      >
+                        {t('common.save')}
+                      </Button>
+                    </div>
+                  )}
+                  {playlist.sharePasswordSet && (
+                    <p className="pl-1 text-xs text-emerald-600 dark:text-emerald-400">
+                      {t('playlistShare.passwordActive')}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </section>
@@ -297,18 +366,25 @@ export function PlaylistShareDialog({
               </p>
             </div>
 
-            <UsernameChips
-              placeholder={t('playlistShare.memberUsername')}
-              items={collabInput.map((c) => ({ label: c.username, joined: c.joined }))}
-              onAdd={(u) =>
-                saveCollaborators([
-                  ...new Set([...collabInput.map((c) => c.username), u]),
-                ])
-              }
-              onRemove={(u) =>
-                saveCollaborators(collabInput.map((c) => c.username).filter((x) => x !== u))
-              }
-            />
+            {!canPlus && collabInput.length === 0 ? (
+              <UpgradeHint variant="banner" labelKey="subscription.needsPlusCollab" />
+            ) : (
+              <UsernameChips
+                placeholder={t('playlistShare.memberUsername')}
+                items={collabInput.map((c) => ({ label: c.username, joined: c.joined }))}
+                onAdd={(u) =>
+                  saveCollaborators([
+                    ...new Set([...collabInput.map((c) => c.username), u]),
+                  ])
+                }
+                onRemove={(u) =>
+                  saveCollaborators(collabInput.map((c) => c.username).filter((x) => x !== u))
+                }
+              />
+            )}
+            {!canPlus && collabInput.length > 0 && (
+              <UpgradeHint variant="banner" labelKey="subscription.needsPlusCollab" />
+            )}
 
             {collabInput.length > 0 && collabToken && (
               <div className="flex flex-col gap-1.5">
