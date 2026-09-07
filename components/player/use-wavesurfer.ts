@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import { usePlayer } from '@/lib/player-context'
 import { useTheme } from '@/lib/theme-context'
+import { getCachedPeaks, storePeaks } from '@/lib/audio-cache'
 
 function waveColors() {
   if (typeof window === 'undefined') {
@@ -34,6 +35,7 @@ export function useWaveSurfer(
   containerRef: RefObject<HTMLDivElement | null>,
 ): WaveSurferState {
   const {
+    current,
     streamUrl,
     playToken,
     isPlaying,
@@ -46,6 +48,9 @@ export function useWaveSurfer(
     next,
   } = usePlayer()
   const { theme } = useTheme()
+
+  const trackIdRef = useRef<string | null>(null)
+  trackIdRef.current = current?.id ?? null
 
   const wsRef = useRef<WaveSurfer | null>(null)
   const shouldPlayRef = useRef(false)
@@ -120,7 +125,8 @@ export function useWaveSurfer(
     if (media) media.crossOrigin = 'anonymous'
 
     ws.on('ready', () => {
-      setDuration(ws.getDuration())
+      const dur = ws.getDuration()
+      setDuration(dur)
       ws.setVolume(volumeRef.current)
       try {
         ws.setPlaybackRate(speedRef.current, true)
@@ -130,6 +136,7 @@ export function useWaveSurfer(
       try {
         const exported = ws.exportPeaks({ maxLength: 200 })
         setPeaks(exported?.[0] ? Array.from(exported[0]) : [])
+        if (trackIdRef.current) storePeaks(trackIdRef.current, exported, dur)
       } catch {
         setPeaks([])
       }
@@ -174,8 +181,21 @@ export function useWaveSurfer(
     setReady(false)
     setIsLoading(true)
     setCurrentTime(0)
-    setPeaks([])
-    ws.load(streamUrl).catch(() => {
+
+    // Reuse peaks decoded on an earlier play so the waveform is instant and
+    // wavesurfer skips re-decoding the audio.
+    const cached = trackIdRef.current ? getCachedPeaks(trackIdRef.current) : {}
+    if (cached.peaks) {
+      setPeaks(cached.peaks[0] ? Array.from(cached.peaks[0] as ArrayLike<number>) : [])
+    } else {
+      setPeaks([])
+    }
+
+    ws.load(
+      streamUrl,
+      cached.peaks as (number[] | Float32Array)[] | undefined,
+      cached.duration,
+    ).catch(() => {
       /* load can be aborted when superseded */
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps

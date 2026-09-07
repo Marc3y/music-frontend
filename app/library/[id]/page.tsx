@@ -19,6 +19,7 @@ import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { ImageCropDialog } from '@/components/app/image-crop-dialog'
 import { CollaboratorStack } from '@/components/app/collaborator-stack'
+import { Reveal } from '@/components/reveal'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -376,10 +377,11 @@ export default function PlaylistPage({
           )}
         </AnimatePresence>
 
-        <div className="relative">
+        <div className="relative isolate">
           <AppNav />
 
           <main className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+            <Reveal>
             <Link
               href="/library"
               className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -399,31 +401,17 @@ export default function PlaylistPage({
             ) : (
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
                 {(() => {
-                  const coverInner = (
-                    <>
-                      {playlist.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={playlist.coverUrl}
-                          alt=""
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center">
-                          <Music className="size-10 text-foreground/40" />
-                        </div>
-                      )}
-                      <input
-                        ref={coverInputRef}
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={(e) => {
-                          handleCoverSelect(e.target.files?.[0])
-                          e.target.value = ''
-                        }}
-                      />
-                    </>
+                  const coverInner = playlist.coverUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={playlist.coverUrl}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center">
+                      <Music className="size-10 text-foreground/40" />
+                    </div>
                   )
                   const coverClassName =
                     'group/cover relative aspect-square size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40'
@@ -464,6 +452,18 @@ export default function PlaylistPage({
                     </ContextMenu>
                   )
                 })()}
+                {/* Kept outside the cover so triggering it via the context menu
+                    never bubbles a click back to the cover's zoom handler. */}
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    handleCoverSelect(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
                 <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
@@ -556,15 +556,16 @@ export default function PlaylistPage({
                 </div>
               </div>
             )}
+            </Reveal>
 
-            <div className="mb-6">
+            <Reveal delayIndex={1} className="mb-6 block">
               <TrackUploader
                 ref={uploaderRef}
                 playlistId={id}
                 onUploaded={handleUploaded}
                 onPatched={handleTrackUpdated}
               />
-            </div>
+            </Reveal>
 
             {tracks === null ? (
               <div className="flex flex-col gap-1">

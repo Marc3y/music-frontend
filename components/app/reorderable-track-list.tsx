@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { GripVertical } from 'lucide-react'
 import { toast } from 'sonner'
 import { TrackRow } from '@/components/app/track-row'
 import { audioApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
+import { ease } from '@/lib/motion'
 import type { AudioFile } from '@/lib/types'
 
 const LONG_PRESS_MS = 240
@@ -44,6 +45,7 @@ export function ReorderableTrackList({
   onChange: (tracks: AudioFile[]) => void
 }) {
   const t = useT()
+  const reduce = useReducedMotion()
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const tracksRef = useRef(tracks)
@@ -168,13 +170,19 @@ export function ReorderableTrackList({
 
   return (
     <div className="flex flex-col gap-1">
-      {tracks.map((track) => {
+      {tracks.map((track, index) => {
         const isDragging = draggingId === track._id
         return (
           <motion.div
             key={track._id}
             layout={reordering ? 'position' : false}
-            transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              isDragging || reordering
+                ? { type: 'spring', stiffness: 500, damping: 40 }
+                : { duration: 0.35, delay: Math.min(index, 14) * 0.035, ease: ease.out }
+            }
             ref={(el) => {
               if (el) rowRefs.current.set(track._id, el)
               else rowRefs.current.delete(track._id)

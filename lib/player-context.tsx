@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { toast } from 'sonner'
+import { prefetchTrackAudio, resolveTrackAudio } from '@/lib/audio-cache'
 
 export type LoopMode = 'none' | 'all' | 'one'
 
@@ -109,13 +110,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     setStreamUrl(null)
     try {
-      const url = await track.getStreamUrl()
+      const url = await resolveTrackAudio(track.id, track.getStreamUrl)
       if (reqId !== requestIdRef.current) return // superseded
       setStreamUrl(url)
       setPlayToken((t) => t + 1)
       setIsPlaying(true)
       // isLoading stays true — the wavesurfer instance clears it once the
       // audio has actually finished downloading/decoding and is ready to play.
+
+      // Warm up the next track so skipping forward is instant.
+      const upcoming = tracks[i + 1]
+      if (upcoming) prefetchTrackAudio(upcoming.id, upcoming.getStreamUrl)
     } catch (err) {
       if (reqId !== requestIdRef.current) return
       toast.error(err instanceof Error ? err.message : 'Wiedergabe fehlgeschlagen')

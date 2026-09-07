@@ -37,14 +37,23 @@ export const AuroraBackground = memo(function AuroraBackground({
   return (
     <div
       aria-hidden
-      className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}
+      // `isolate` + `transform-gpu`: keeps this whole expensive layer (huge
+      // blurs + a masked grid) on its own compositor layer so it is NOT
+      // re-rasterized when a dialog/overlay mounts or unmounts above it — that
+      // re-raster is what made the page flash on every dialog close.
+      className={cn(
+        'pointer-events-none absolute inset-0 isolate transform-gpu overflow-hidden',
+        className,
+      )}
     >
-      {variant !== 'minimal' && <div className="absolute inset-0 bg-grid opacity-70" />}
+      {variant !== 'minimal' && (
+        <div className="absolute inset-0 bg-grid opacity-70 will-change-transform" />
+      )}
 
       <motion.div
         {...drift}
         className={cn(
-          'absolute rounded-full blur-[100px]',
+          'absolute rounded-full blur-[100px] will-change-transform',
           variant === 'auth' ? 'size-[40rem]' : 'size-[52rem]',
         )}
         style={{
@@ -57,7 +66,7 @@ export const AuroraBackground = memo(function AuroraBackground({
       />
       <motion.div
         {...drift2}
-        className="absolute size-[34rem] rounded-full blur-[120px]"
+        className="absolute size-[34rem] rounded-full blur-[120px] will-change-transform"
         style={{
           top: variant === 'auth' ? '2rem' : '6rem',
           right: '-14rem',

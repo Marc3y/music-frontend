@@ -18,7 +18,7 @@ export default function SettingsPage() {
       <div className="relative min-h-dvh pb-32">
         <AuroraBackground variant="page" />
 
-        <div className="relative">
+        <div className="relative isolate">
           <AppNav />
 
           <main className="mx-auto max-w-2xl px-4 pt-4 sm:px-6">

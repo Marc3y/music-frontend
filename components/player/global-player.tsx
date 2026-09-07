@@ -90,7 +90,7 @@ export function GlobalPlayer() {
             dragElastic={{ top: 0, bottom: 1 }}
             dragTransition={{ bounceStiffness: 500, bounceDamping: 40 }}
             onDragEnd={handleDismissDragEnd}
-            className="fixed inset-0 z-[70] flex flex-col bg-background"
+            className="fixed inset-0 z-[70] flex flex-col bg-background pt-[env(safe-area-inset-top)]"
           >
             <div className="relative z-10 flex shrink-0 touch-none justify-center pt-2.5 pb-1">
               <span className="h-1.5 w-10 rounded-full bg-muted-foreground/25" />
@@ -144,7 +144,8 @@ export function GlobalPlayer() {
               </div>
             </div>
 
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-6 overflow-y-auto px-6 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:gap-9 sm:pb-10">
+            <div className="relative z-10 flex flex-1 flex-col overflow-y-auto">
+              <div className="flex min-h-full flex-col items-center justify-center gap-6 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:gap-9 sm:py-8">
               <motion.div
                 initial={{ scale: 0.86, opacity: 0, y: 24 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -204,6 +205,7 @@ export function GlobalPlayer() {
                 onPointerDown={(e) => e.stopPropagation()}
                 className="hidden w-full max-w-[220px] sm:flex"
               />
+              </div>
             </div>
           </motion.div>
         )}
