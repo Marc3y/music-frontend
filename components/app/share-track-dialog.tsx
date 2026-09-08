@@ -13,7 +13,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { UpgradeHint } from '@/components/app/upgrade-hint'
 import { audioApi, ApiError } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
+import { hasPlus } from '@/lib/subscription'
 import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
 
@@ -35,11 +38,16 @@ export function ShareTrackDialog({
   onUpdated: (track: AudioFile) => void
 }) {
   const t = useT()
+  const { user } = useAuth()
+  const canPlus = hasPlus(user?.tier)
   const isProject = track?.kind === 'project' || !!forceProject
   const [loading, setLoading] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [shareProject, setShareProject] = useState(false)
+  const [pwDraft, setPwDraft] = useState('')
+  const [pwBusy, setPwBusy] = useState(false)
+  const passwordSet = Boolean(track?.sharePasswordSet)
 
   const selectedVersion = track?.versions?.find((v) => v._id === track.selectedVersionId)
   const hasProject = Boolean(selectedVersion?.projectFilename)
@@ -57,8 +65,27 @@ export function ShareTrackDialog({
       setShareUrl(null)
     }
     setShareProject(Boolean(track?.shareProject))
+    setPwDraft('')
     setCopied(false)
   }, [track, isProject])
+
+  async function setSharePassword(password: string | null) {
+    if (!track) return
+    setPwBusy(true)
+    try {
+      const res = await audioApi.setSharePassword(track._id, password)
+      onUpdated({ ...track, sharePasswordSet: res.sharePasswordSet })
+      setPwDraft('')
+      toast.success(
+        password ? t('shareTrack.passwordSet') : t('shareTrack.passwordRemoved'),
+      )
+    } catch (err) {
+      toast.error(errMsg(err, t('shareTrack.changeFailed')))
+      throw err
+    } finally {
+      setPwBusy(false)
+    }
+  }
 
   async function enableShare() {
     if (!track) return
@@ -168,6 +195,69 @@ export function ShareTrackDialog({
                 {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
               </Button>
             </div>
+
+            {!isProject && (
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-2">
+                    {t('shareTrack.passwordProtect')}
+                    {!canPlus && <UpgradeHint />}
+                  </span>
+                  <Switch
+                    checked={passwordSet}
+                    disabled={!canPlus || pwBusy}
+                    onCheckedChange={async (v) => {
+                      if (v) {
+                        setPwDraft('')
+                        return
+                      }
+                      try {
+                        await setSharePassword(null)
+                      } catch {
+                        /* handled */
+                      }
+                    }}
+                  />
+                </label>
+
+                {canPlus && !passwordSet && (
+                  <form
+                    className="flex gap-2 pl-1"
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      if (pwDraft.length < 1) return
+                      try {
+                        await setSharePassword(pwDraft)
+                      } catch {
+                        /* handled */
+                      }
+                    }}
+                  >
+                    <Input
+                      type="password"
+                      value={pwDraft}
+                      placeholder={t('shareTrack.passwordPlaceholder')}
+                      className="h-8 text-xs"
+                      onChange={(e) => setPwDraft(e.target.value)}
+                    />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      disabled={pwDraft.length < 1 || pwBusy}
+                    >
+                      {t('common.save')}
+                    </Button>
+                  </form>
+                )}
+                {passwordSet && (
+                  <p className="pl-1 text-xs text-emerald-600 dark:text-emerald-400">
+                    {t('shareTrack.passwordActive')}
+                  </p>
+                )}
+              </div>
+            )}
+
             <Button type="button" variant="outline" disabled={loading} onClick={disableShare}>
               {loading && <Loader2 className="size-4 animate-spin" />}
               {t('shareTrack.disable')}

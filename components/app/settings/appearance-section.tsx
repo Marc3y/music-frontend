@@ -104,8 +104,9 @@ export function AppearanceSection() {
                 type="button"
                 onClick={() => setBackground(preset.id)}
                 aria-pressed={active}
+                title={t(preset.labelKey)}
                 className={cn(
-                  'relative flex h-16 items-end overflow-hidden rounded-xl border bg-card p-2 text-left transition-colors ease-apple',
+                  'relative flex h-14 items-end overflow-hidden rounded-xl border bg-card p-2 text-left transition-colors ease-apple',
                   active
                     ? 'border-primary/50 ring-1 ring-primary/40'
                     : 'border-border hover:border-foreground/25',
@@ -113,10 +114,13 @@ export function AppearanceSection() {
               >
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute inset-0"
-                  style={{ backgroundImage: preset.swatch, backgroundSize: '14px 14px, cover' }}
+                  className="pointer-events-none absolute inset-0 text-foreground/50"
+                  style={{
+                    backgroundImage: preset.swatch,
+                    backgroundSize: preset.swatchSize ?? '100% 100%',
+                  }}
                 />
-                <span className="relative z-10 text-xs font-medium">
+                <span className="relative z-10 rounded bg-card/70 px-1 text-[11px] font-medium backdrop-blur-[1px]">
                   {t(preset.labelKey)}
                 </span>
                 {active && (

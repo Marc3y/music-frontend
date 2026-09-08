@@ -1,48 +1,116 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
 import { Avatar } from '@base-ui/react/avatar'
 import { Bell, Loader2, User } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useNotifications } from '@/lib/notifications-context'
 import { useI18n } from '@/lib/i18n/context'
-import { formatDateTime, timeAgo } from '@/lib/format'
+import { formatDateTime, formatMusicalKey, timeAgo } from '@/lib/format'
 import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import type { AppNotification } from '@/lib/types'
 
-const MESSAGE_KEY: Record<AppNotification['type'], string> = {
-  listen: 'notifications.listen',
-  collab_renamed: 'notifications.renamed',
-  collab_cover: 'notifications.cover',
-  collab_track_added: 'notifications.trackAdded',
-  collab_track_removed: 'notifications.trackRemoved',
-  collab_track_edited: 'notifications.trackEdited',
-  collab_track_cover: 'notifications.trackCover',
-  collab_version_added: 'notifications.versionAdded',
-  collab_version_removed: 'notifications.versionRemoved',
-  collab_version_selected: 'notifications.versionSelected',
-  collab_reordered: 'notifications.reordered',
-  collab_joined: 'notifications.joined',
+// Playlist-level actions never deep-link to a track.
+const PLAYLIST_LEVEL = new Set<AppNotification['type']>([
+  'collab_renamed',
+  'collab_cover',
+  'collab_reordered',
+  'collab_joined',
+])
+
+function notificationMessage(
+  n: AppNotification,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  const actor = n.actor.username
+  const track = n.trackTitle ?? ''
+  const playlist = n.playlistName ?? ''
+  const from = n.meta?.from ?? ''
+  const to = n.meta?.to ?? ''
+  const field = n.meta?.field
+
+  switch (n.type) {
+    case 'listen':
+      return t('notifications.listen', { actor, track })
+    case 'share_saved':
+      return n.meta?.savedKind === 'playlist'
+        ? t('notifications.shareSavedPlaylist', { actor, playlist: playlist || track })
+        : t('notifications.shareSavedTrack', { actor, track })
+    case 'collab_renamed':
+      return from
+        ? t('notifications.renamedFromTo', { actor, from, to })
+        : t('notifications.renamed', { actor, playlist })
+    case 'collab_cover':
+      return t('notifications.cover', { actor, playlist })
+    case 'collab_track_added':
+      return t('notifications.trackAdded', { actor, track, playlist })
+    case 'collab_track_removed':
+      return t('notifications.trackRemoved', { actor, track, playlist })
+    case 'collab_track_cover':
+      return t('notifications.trackCover', { actor, track })
+    case 'collab_version_added':
+      return t('notifications.versionAdded', { actor, track })
+    case 'collab_version_removed':
+      return t('notifications.versionRemoved', { actor, track })
+    case 'collab_version_selected':
+      return t('notifications.versionSelected', { actor, track })
+    case 'collab_reordered':
+      return t('notifications.reordered', { actor, playlist })
+    case 'collab_joined':
+      return t('notifications.joined', { actor, playlist })
+    case 'collab_track_edited': {
+      if (field === 'title')
+        return t('notifications.titleChanged', { actor, from: from || track, to })
+      if (field === 'artist')
+        return to
+          ? t('notifications.artistChanged', { actor, track, to })
+          : t('notifications.artistCleared', { actor, track })
+      if (field === 'description')
+        return t('notifications.descChanged', { actor, track })
+      if (field === 'bpm')
+        return to
+          ? t('notifications.bpmChanged', { actor, track, to })
+          : t('notifications.bpmCleared', { actor, track })
+      if (field === 'key')
+        return to
+          ? t('notifications.keyChanged', { actor, track, to: formatMusicalKey(to) })
+          : t('notifications.keyCleared', { actor, track })
+      if (field === 'label')
+        return t('notifications.labelChanged', { actor, track, to })
+      return t('notifications.trackEdited', { actor, track, playlist })
+    }
+    default:
+      return t('notifications.trackEdited', { actor, track, playlist })
+  }
 }
 
-function NotificationRow({ n, locale }: { n: AppNotification; locale: string }) {
-  const { t } = useI18n()
-  const message = t(MESSAGE_KEY[n.type], {
-    actor: n.actor.username,
-    track: n.trackTitle ?? '',
-    playlist: n.playlistName ?? '',
-  })
+function notificationHref(n: AppNotification): string | null {
+  if (!n.playlistId) return null
+  const anchor =
+    n.trackId && !PLAYLIST_LEVEL.has(n.type)
+      ? `?track=${encodeURIComponent(n.trackId)}`
+      : ''
+  return `/library/${n.playlistId}${anchor}`
+}
 
-  return (
-    <div
-      role="listitem"
-      className={cn(
-        'flex gap-3 px-3 py-2.5 transition-colors',
-        !n.read && 'bg-primary/[0.05]',
-      )}
-    >
+function NotificationRow({
+  n,
+  locale,
+  onNavigate,
+}: {
+  n: AppNotification
+  locale: string
+  onNavigate: (href: string) => void
+}) {
+  const { t } = useI18n()
+  const message = notificationMessage(n, t)
+  const href = notificationHref(n)
+
+  const inner = (
+    <>
       <Avatar.Root className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/30 to-accent/20 text-xs font-medium text-primary-foreground select-none">
         {n.actor.avatarUrl ? (
           <Avatar.Image src={n.actor.avatarUrl} alt="" className="size-full object-cover" />
@@ -54,6 +122,11 @@ function NotificationRow({ n, locale }: { n: AppNotification; locale: string }) 
 
       <div className="min-w-0 flex-1">
         <p className="text-sm leading-snug text-foreground">{message}</p>
+        {n.playlistName && (
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground/70">
+            {t('notifications.inPlaylist', { playlist: n.playlistName })}
+          </p>
+        )}
         <p
           className="mt-0.5 text-xs text-muted-foreground"
           title={formatDateTime(n.createdAt, locale)}
@@ -63,6 +136,30 @@ function NotificationRow({ n, locale }: { n: AppNotification; locale: string }) 
       </div>
 
       {!n.read && <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" />}
+    </>
+  )
+
+  const base = cn(
+    'flex w-full gap-3 px-3 py-2.5 text-left transition-colors',
+    !n.read && 'bg-primary/[0.05]',
+  )
+
+  if (href) {
+    return (
+      <button
+        type="button"
+        role="listitem"
+        onClick={() => onNavigate(href)}
+        className={cn(base, 'hover:bg-muted/50')}
+      >
+        {inner}
+      </button>
+    )
+  }
+
+  return (
+    <div role="listitem" className={base}>
+      {inner}
     </div>
   )
 }
@@ -70,7 +167,14 @@ function NotificationRow({ n, locale }: { n: AppNotification; locale: string }) 
 export function NotificationBell() {
   const { items, unreadCount, loading, hasMore, loadMore, markAllRead } = useNotifications()
   const { t, locale } = useI18n()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+
+  function navigate(href: string) {
+    setOpen(false)
+    if (unreadCount > 0) markAllRead()
+    router.push(href)
+  }
 
   function onOpenChange(next: boolean) {
     setOpen(next)
@@ -136,7 +240,7 @@ export function NotificationBell() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.28, delay: Math.min(i, 10) * 0.025, ease: ease.out }}
                 >
-                  <NotificationRow n={n} locale={locale} />
+                  <NotificationRow n={n} locale={locale} onNavigate={navigate} />
                 </motion.div>
               ))}
             </div>

@@ -113,7 +113,7 @@ export function AppNav() {
                 {user?.tier && user.tier !== 'free' && (
                   <span className="ml-auto text-xs font-medium text-primary">
                     {user.tier === 'unlimited'
-                      ? t('subscription.planUnlimited')
+                      ? t('subscription.tierUnlimitedShort')
                       : t('subscription.planPlus')}
                   </span>
                 )}

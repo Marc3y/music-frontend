@@ -17,6 +17,7 @@ export interface Subscription {
 
 export type NotificationType =
   | 'listen'
+  | 'share_saved'
   | 'collab_renamed'
   | 'collab_cover'
   | 'collab_track_added'
@@ -29,6 +30,13 @@ export type NotificationType =
   | 'collab_reordered'
   | 'collab_joined'
 
+export interface NotificationMeta {
+  field?: string
+  from?: string | null
+  to?: string | null
+  savedKind?: string
+}
+
 export interface AppNotification {
   id: string
   type: NotificationType
@@ -37,6 +45,7 @@ export interface AppNotification {
   playlistName?: string | null
   trackId?: string | null
   trackTitle?: string | null
+  meta?: NotificationMeta | null
   createdAt: string
   read: boolean
 }
@@ -233,6 +242,7 @@ export interface AudioFile {
   shareEnabled: boolean
   shareToken?: string
   shareProject?: boolean
+  sharePasswordSet?: boolean
   projectShareEnabled?: boolean
   projectShareToken?: string
   bpm?: number | null

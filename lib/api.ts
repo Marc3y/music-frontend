@@ -169,6 +169,11 @@ export const accountApi = {
     apiClient<{ message: string }>('/account/saved-shares', { method: 'POST', body }),
   removeSavedShare: (id: string) =>
     apiClient<{ message: string }>(`/account/saved-shares/${id}`, { method: 'DELETE' }),
+  reorderSavedShares: (orderedIds: string[]) =>
+    apiClient<{ message: string }>('/account/saved-shares/reorder', {
+      method: 'POST',
+      body: { orderedIds },
+    }),
 
   updateUsername: (username: string) =>
     apiClient<User>('/account/username', { method: 'PATCH', body: { username } }),
@@ -215,6 +220,11 @@ export const playlistApi = {
     apiClient<Playlist>(`/playlists/${id}`, { method: 'PATCH', body: { name } }),
   remove: (id: string) =>
     apiClient<{ message: string }>(`/playlists/${id}`, { method: 'DELETE' }),
+  reorder: (orderedIds: string[]) =>
+    apiClient<{ message: string }>('/playlists/reorder', {
+      method: 'POST',
+      body: { orderedIds },
+    }),
   coverUploadUrl: (id: string, body: { filename: string; contentType: string }) =>
     apiClient<{ uploadUrl: string; key: string }>(`/playlists/${id}/cover-upload-url`, {
       method: 'POST',
@@ -360,6 +370,17 @@ export const audioApi = {
     ),
   unshare: (id: string) =>
     apiClient<{ message: string }>(`/audio-files/${id}/unshare`, { method: 'POST' }),
+  setSharePassword: (id: string, password: string | null) =>
+    apiClient<{ sharePasswordSet: boolean }>(`/audio-files/${id}/share-password`, {
+      method: 'PATCH',
+      body: { password },
+    }),
+  unlockShare: (shareToken: string, password: string) =>
+    apiClient<{ unlockKey: string }>(`/audio-files/public/unlock/${shareToken}`, {
+      method: 'POST',
+      body: { password },
+      skipRefresh: true,
+    }),
   enableProjectShare: (id: string) =>
     apiClient<{ token: string; shareUrl: string }>(`/audio-files/${id}/project-share`, {
       method: 'POST',
@@ -371,7 +392,7 @@ export const audioApi = {
       `/audio-files/public/project/${token}`,
       { skipRefresh: true },
     ),
-  publicStream: (shareToken: string) =>
+  publicStream: (shareToken: string, unlockKey?: string | null) =>
     apiClient<{
       _id: string
       streamUrl: string
@@ -382,7 +403,12 @@ export const audioApi = {
       musicalKey?: string | null
       projectUrl?: string
       projectFilename?: string
-    }>(`/audio-files/public/stream/${shareToken}`, { skipRefresh: true }),
+    }>(
+      `/audio-files/public/stream/${shareToken}${
+        unlockKey ? `?k=${encodeURIComponent(unlockKey)}` : ''
+      }`,
+      { skipRefresh: true },
+    ),
 
   /* --- Versionen --- */
   initVersionUpload: (

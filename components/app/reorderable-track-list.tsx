@@ -19,6 +19,7 @@ export function ReorderableTrackList({
   projectView,
   fallbackCoverUrl,
   currentId,
+  highlightId,
   isPlaying,
   isLoading,
   onPlay,
@@ -34,6 +35,7 @@ export function ReorderableTrackList({
   projectView?: boolean
   fallbackCoverUrl?: string | null
   currentId: string | null
+  highlightId?: string | null
   isPlaying: boolean
   isLoading: boolean
   onPlay: (track: AudioFile) => void
@@ -175,6 +177,7 @@ export function ReorderableTrackList({
         return (
           <motion.div
             key={track._id}
+            id={`track-${track._id}`}
             layout={reordering ? 'position' : false}
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -198,7 +201,9 @@ export function ReorderableTrackList({
             className={
               isDragging
                 ? 'z-10 scale-[1.015] cursor-grabbing rounded-xl bg-card shadow-xl ring-1 ring-border'
-                : 'cursor-default'
+                : highlightId === track._id
+                  ? 'cursor-default rounded-xl ring-2 ring-primary transition-shadow'
+                  : 'cursor-default rounded-xl ring-0 transition-shadow'
             }
           >
             <div className="flex items-center">

@@ -82,6 +82,9 @@ export default function PlaylistPage({
 
   const [filter, setFilter] = useLibraryFilter()
 
+  const [highlightTrackId, setHighlightTrackId] = useState<string | null>(null)
+  const wantTrackRef = useRef<string | null>(null)
+
   const isOwner = playlist?.role !== 'collaborator'
 
   const [isDragOver, setIsDragOver] = useState(false)
@@ -110,6 +113,37 @@ export default function PlaylistPage({
   useEffect(() => {
     loadAll()
   }, [loadAll])
+
+  // Deep-link from a notification: ?track=<id> → scroll to that row and flash it.
+  useEffect(() => {
+    try {
+      const want = new URLSearchParams(window.location.search).get('track')
+      if (want) wantTrackRef.current = want
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  useEffect(() => {
+    const want = wantTrackRef.current
+    if (!want || !tracks) return
+    if (!tracks.some((tr) => tr._id === want)) return
+    wantTrackRef.current = null
+
+    const timer = setTimeout(() => {
+      document
+        .getElementById(`track-${want}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightTrackId(want)
+      setTimeout(() => setHighlightTrackId(null), 2600)
+      try {
+        router.replace(`/library/${id}`, { scroll: false })
+      } catch {
+        /* ignore */
+      }
+    }, 120)
+    return () => clearTimeout(timer)
+  }, [tracks, id, router])
 
   // Poll while any track is still being processed
   useEffect(() => {
@@ -643,6 +677,7 @@ export default function PlaylistPage({
                         projectView={filter === 'projects'}
                         fallbackCoverUrl={playlist?.coverUrl}
                         currentId={player.current?.id ?? null}
+                        highlightId={highlightTrackId}
                         isPlaying={player.isPlaying}
                         isLoading={player.isLoading}
                         onPlay={playTrack}

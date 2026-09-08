@@ -9,6 +9,7 @@ import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
 import { toast } from 'sonner'
 import { PlaylistCard } from '@/components/app/playlist-card'
+import { ReorderablePlaylistGrid } from '@/components/app/reorderable-playlist-grid'
 import { CreatePlaylistDialog } from '@/components/app/create-playlist-dialog'
 import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
@@ -20,7 +21,7 @@ import { Reveal } from '@/components/reveal'
 import { useLibraryData } from '@/lib/use-library-data'
 import { useT } from '@/lib/i18n/context'
 import { accountApi, playlistApi, ApiError } from '@/lib/api'
-import type { Playlist } from '@/lib/types'
+import type { Playlist, SavedShare } from '@/lib/types'
 
 type Tab = 'own' | 'shared' | 'collab'
 
@@ -88,6 +89,28 @@ export default function LibraryPage() {
     setSaved((prev) => prev.filter((s) => s._id !== id))
   }
 
+  function reorderOwn(next: Playlist[]) {
+    setPlaylists(() => next)
+  }
+  function persistOwn(orderedIds: string[]) {
+    void playlistApi.reorder(orderedIds).catch((err) => {
+      toast.error(err instanceof ApiError ? err.message : t('toast.reorderFailed'))
+    })
+  }
+
+  // Reordered subset (one saved-share type) merged back into the full `saved` list.
+  function reorderSavedSubset(subsetType: 'playlist' | 'collab', next: SavedShare[]) {
+    setSaved((prev) => {
+      let i = 0
+      return prev.map((s) => (s.type === subsetType ? next[i++] : s))
+    })
+  }
+  function persistSaved(orderedIds: string[]) {
+    void accountApi.reorderSavedShares(orderedIds).catch((err) => {
+      toast.error(err instanceof ApiError ? err.message : t('toast.reorderFailed'))
+    })
+  }
+
   const tabs: [Tab, string][] = [
     ['own', t('library.tabOwn')],
     ...(hasShared
@@ -144,31 +167,35 @@ export default function LibraryPage() {
             )}
 
             {tab === 'collab' ? (
-              <PlaylistGrid>
-                {collabPlaylists.map((s) => (
+              <ReorderablePlaylistGrid
+                items={collabPlaylists}
+                onOrderChange={(next) => reorderSavedSubset('collab', next)}
+                onPersist={persistSaved}
+                renderItem={(s) => (
                   <PlaylistCard
-                    key={s._id}
                     playlist={{ _id: s.playlistId ?? s._id, name: s.title, coverUrl: s.coverUrl }}
                     href={`/library/${s.playlistId}`}
                     badge={t('library.badgeMember', { count: s.trackCount ?? 0 })}
                     onRemove={() => removeSaved(s._id)}
                   />
-                ))}
-              </PlaylistGrid>
+                )}
+              />
             ) : tab === 'shared' ? (
               <div className="flex flex-col gap-6">
                 {sharedPlaylists.length > 0 && (
-                  <PlaylistGrid>
-                    {sharedPlaylists.map((s) => (
+                  <ReorderablePlaylistGrid
+                    items={sharedPlaylists}
+                    onOrderChange={(next) => reorderSavedSubset('playlist', next)}
+                    onPersist={persistSaved}
+                    renderItem={(s) => (
                       <PlaylistCard
-                        key={s._id}
                         playlist={{ _id: s._id, name: s.title, coverUrl: s.coverUrl }}
                         href={`/playlist/${s.token}`}
                         badge={t('library.badgeShared', { count: s.trackCount ?? 0 })}
                         onRemove={() => removeSaved(s._id)}
                       />
-                    ))}
-                  </PlaylistGrid>
+                    )}
+                  />
                 )}
                 {items.length > 0 && (
                   <SharedItemsList
@@ -223,19 +250,20 @@ export default function LibraryPage() {
                     </div>
                   </Reveal>
                 ) : (
-                  <PlaylistGrid>
-                    {playlists.map((playlist, i) => (
-                      <Reveal key={playlist._id} delayIndex={i % 10}>
-                        <PlaylistCard
-                          playlist={playlist}
-                          collaboratorCount={playlist.collaborators?.length ?? 0}
-                          onEdit={() => setEditingPlaylist(playlist)}
-                          onShare={() => setSharingPlaylist(playlist)}
-                          onDelete={() => setDeletingPlaylist(playlist)}
-                        />
-                      </Reveal>
-                    ))}
-                  </PlaylistGrid>
+                  <ReorderablePlaylistGrid
+                    items={playlists}
+                    onOrderChange={reorderOwn}
+                    onPersist={persistOwn}
+                    renderItem={(playlist) => (
+                      <PlaylistCard
+                        playlist={playlist}
+                        collaboratorCount={playlist.collaborators?.length ?? 0}
+                        onEdit={() => setEditingPlaylist(playlist)}
+                        onShare={() => setSharingPlaylist(playlist)}
+                        onDelete={() => setDeletingPlaylist(playlist)}
+                      />
+                    )}
+                  />
                 )}
               </>
             )}

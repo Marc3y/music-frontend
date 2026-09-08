@@ -50,12 +50,14 @@ export const AuroraBackground = memo(function AuroraBackground({
         <div className="absolute inset-0 bg-grid opacity-70 will-change-transform" />
       )}
 
-      {/* Optional dot/line pattern from the chosen background preset. */}
+      {/* Optional pattern from the chosen background preset. `currentColor`
+          (= text-foreground) keeps it readable in both themes. */}
       <div
-        className="absolute inset-0 text-foreground will-change-transform motion-safe:animate-[aurora-pattern-drift_90s_linear_infinite]"
+        className="absolute inset-0 text-foreground"
         style={{
           backgroundImage: 'var(--aurora-pattern)',
           backgroundSize: 'var(--aurora-pattern-size)',
+          backgroundPosition: 'var(--aurora-pattern-position)',
           opacity: 'var(--aurora-pattern-opacity)',
         }}
       />

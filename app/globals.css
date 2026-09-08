@@ -276,54 +276,47 @@
 
 /* ---------- Background presets ----------
    Each preset is a complete look (glow hues + optional pattern). `aurora` is
-   the default and needs no block. Consumed by <AuroraBackground/>. */
+   the default and needs no block. Consumed by <AuroraBackground/>. Patterns use
+   `currentColor` (= --foreground) so they adapt to light/dark automatically. */
 :root {
   --aurora-pattern: none;
   --aurora-pattern-size: 32px 32px;
+  --aurora-pattern-position: 0 0;
   --aurora-pattern-opacity: 0;
 }
-
-:root[data-bg='grid'] {
-  --grid-line: oklch(0.22 0.03 266 / 7%);
-  --glow-cool: oklch(0.62 0.19 264 / 0.1);
-  --glow-warm: oklch(0.72 0.15 52 / 0.08);
-}
-:root:not([data-theme='light'])[data-bg='grid'],
-.dark[data-bg='grid'] {
-  --grid-line: oklch(1 0 0 / 6%);
-  --glow-cool: oklch(0.62 0.2 264 / 0.28);
-  --glow-warm: oklch(0.72 0.15 52 / 0.16);
+.dark {
+  /* patterns read a touch stronger on dark */
+  --aurora-pattern-boost: 1;
 }
 
-:root[data-bg='dots'] {
-  --aurora-pattern: radial-gradient(
-    currentColor 1px,
-    transparent 1.4px
-  );
-  --aurora-pattern-size: 22px 22px;
-  --aurora-pattern-opacity: 0.05;
+/* --- colour looks (glow hues only) --- */
+:root[data-bg='minimal'] {
+  --grid-line: transparent;
+  --glow-cool: oklch(0.62 0.15 264 / 0.07);
+  --glow-warm: oklch(0.72 0.12 52 / 0.05);
 }
-.dark[data-bg='dots'] {
-  --aurora-pattern-opacity: 0.06;
+.dark[data-bg='minimal'] {
+  --glow-cool: oklch(0.6 0.16 264 / 0.18);
+  --glow-warm: oklch(0.72 0.12 52 / 0.09);
+}
+
+:root[data-bg='spotlight'] {
+  --grid-line: transparent;
+  --glow-cool: oklch(0.66 0.16 264 / 0.16);
+  --glow-warm: transparent;
+}
+.dark[data-bg='spotlight'] {
+  --glow-cool: oklch(0.62 0.2 264 / 0.5);
+  --glow-warm: transparent;
 }
 
 :root[data-bg='mesh'] {
-  --glow-cool: oklch(0.6 0.2 285 / 0.22);
-  --glow-warm: oklch(0.62 0.16 205 / 0.18);
+  --glow-cool: oklch(0.6 0.2 285 / 0.2);
+  --glow-warm: oklch(0.62 0.16 205 / 0.16);
 }
 .dark[data-bg='mesh'] {
   --glow-cool: oklch(0.6 0.22 285 / 0.5);
   --glow-warm: oklch(0.6 0.18 205 / 0.34);
-}
-
-:root[data-bg='minimal'] {
-  --grid-line: transparent;
-  --glow-cool: oklch(0.62 0.15 264 / 0.08);
-  --glow-warm: oklch(0.72 0.12 52 / 0.05);
-}
-.dark[data-bg='minimal'] {
-  --glow-cool: oklch(0.6 0.16 264 / 0.2);
-  --glow-warm: oklch(0.72 0.12 52 / 0.1);
 }
 
 :root[data-bg='warm'] {
@@ -340,14 +333,106 @@
   --glow-warm: oklch(0.5 0.01 260 / 0.1);
 }
 .dark[data-bg='mono'] {
-  --glow-cool: oklch(0.6 0.01 260 / 0.32);
-  --glow-warm: oklch(0.5 0.01 260 / 0.22);
+  --glow-cool: oklch(0.6 0.01 260 / 0.3);
+  --glow-warm: oklch(0.5 0.01 260 / 0.2);
 }
 
-@keyframes aurora-pattern-drift {
-  0% { background-position: 0 0; }
-  100% { background-position: var(--aurora-pattern-size); }
+/* --- patterns --- */
+:root[data-bg='dots'] {
+  --aurora-pattern: radial-gradient(currentColor 1px, transparent 1.5px);
+  --aurora-pattern-size: 22px 22px;
+  --aurora-pattern-opacity: 0.05;
 }
+.dark[data-bg='dots'] { --aurora-pattern-opacity: 0.07; }
+
+:root[data-bg='dotsLarge'] {
+  --aurora-pattern: radial-gradient(currentColor 1.6px, transparent 2.2px);
+  --aurora-pattern-size: 46px 46px;
+  --aurora-pattern-opacity: 0.055;
+}
+.dark[data-bg='dotsLarge'] { --aurora-pattern-opacity: 0.075; }
+
+:root[data-bg='grid'] {
+  --aurora-pattern: linear-gradient(currentColor 1px, transparent 1px),
+    linear-gradient(90deg, currentColor 1px, transparent 1px);
+  --aurora-pattern-size: 40px 40px;
+  --aurora-pattern-opacity: 0.045;
+  --grid-line: transparent;
+}
+.dark[data-bg='grid'] { --aurora-pattern-opacity: 0.06; }
+
+:root[data-bg='diagonal'] {
+  --aurora-pattern: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 16px);
+  --aurora-pattern-opacity: 0.045;
+}
+.dark[data-bg='diagonal'] { --aurora-pattern-opacity: 0.06; }
+
+:root[data-bg='crosshatch'] {
+  --aurora-pattern: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 17px),
+    repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 17px);
+  --aurora-pattern-opacity: 0.035;
+}
+.dark[data-bg='crosshatch'] { --aurora-pattern-opacity: 0.05; }
+
+:root[data-bg='rings'] {
+  --aurora-pattern: repeating-radial-gradient(circle, currentColor 0 1px, transparent 1px 22px);
+  --aurora-pattern-size: 44px 44px;
+  --aurora-pattern-opacity: 0.04;
+}
+.dark[data-bg='rings'] { --aurora-pattern-opacity: 0.055; }
+
+:root[data-bg='waves'] {
+  --aurora-pattern: repeating-radial-gradient(
+    circle at 100% 50%,
+    transparent 0 9px,
+    currentColor 9px 10px,
+    transparent 10px 20px
+  );
+  --aurora-pattern-size: 40px 20px;
+  --aurora-pattern-opacity: 0.04;
+}
+.dark[data-bg='waves'] { --aurora-pattern-opacity: 0.055; }
+
+:root[data-bg='zigzag'] {
+  --aurora-pattern: linear-gradient(135deg, currentColor 25%, transparent 25%),
+    linear-gradient(225deg, currentColor 25%, transparent 25%);
+  --aurora-pattern-size: 18px 18px;
+  --aurora-pattern-opacity: 0.03;
+}
+.dark[data-bg='zigzag'] { --aurora-pattern-opacity: 0.045; }
+
+:root[data-bg='carbon'] {
+  --aurora-pattern: radial-gradient(circle, currentColor 0.7px, transparent 0.9px),
+    radial-gradient(circle, currentColor 0.7px, transparent 0.9px);
+  --aurora-pattern-size: 8px 8px;
+  --aurora-pattern-position: 0 0, 4px 4px;
+  --aurora-pattern-opacity: 0.05;
+}
+.dark[data-bg='carbon'] { --aurora-pattern-opacity: 0.07; }
+
+:root[data-bg='plus'] {
+  --aurora-pattern: linear-gradient(currentColor 1px, transparent 0),
+    linear-gradient(90deg, currentColor 1px, transparent 0);
+  --aurora-pattern-size: 26px 6px, 6px 26px;
+  --aurora-pattern-position: center;
+  --aurora-pattern-opacity: 0.05;
+}
+.dark[data-bg='plus'] { --aurora-pattern-opacity: 0.07; }
+
+:root[data-bg='dashes'] {
+  --aurora-pattern: linear-gradient(90deg, currentColor 45%, transparent 0);
+  --aurora-pattern-size: 16px 16px;
+  --aurora-pattern-opacity: 0.04;
+}
+.dark[data-bg='dashes'] { --aurora-pattern-opacity: 0.055; }
+
+:root[data-bg='triangles'] {
+  --aurora-pattern: linear-gradient(60deg, currentColor 1px, transparent 0),
+    linear-gradient(-60deg, currentColor 1px, transparent 0);
+  --aurora-pattern-size: 24px 42px;
+  --aurora-pattern-opacity: 0.04;
+}
+.dark[data-bg='triangles'] { --aurora-pattern-opacity: 0.055; }
 
 @layer base {
   * {

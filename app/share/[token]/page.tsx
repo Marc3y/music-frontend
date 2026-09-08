@@ -1,12 +1,14 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { Download, Loader2, Music, Pause, Play } from 'lucide-react'
+import { Download, Loader2, Lock, Music, Pause, Play } from 'lucide-react'
+import { toast } from 'sonner'
 import { Logo } from '@/components/logo'
 import { AuroraBackground } from '@/components/aurora-background'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { audioApi, ApiError } from '@/lib/api'
 import { usePlayer } from '@/lib/player-context'
@@ -35,31 +37,83 @@ export default function SharePage({
 
   const [track, setTrack] = useState<SharedTrack | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [needsPassword, setNeedsPassword] = useState(false)
+  const [unlockKey, setUnlockKey] = useState<string | null>(null)
+  const [pw, setPw] = useState('')
+  const [unlocking, setUnlocking] = useState(false)
+
+  const storageKey = `music.unlock.${token}`
+
+  const load = useCallback(
+    (key: string | null) => {
+      audioApi
+        .publicStream(token, key)
+        .then((res) => {
+          setTrack({
+            _id: res._id,
+            title: res.title,
+            artist: res.artist,
+            description: res.description,
+            bpm: res.bpm,
+            musicalKey: res.musicalKey,
+            projectUrl: res.projectUrl,
+            projectFilename: res.projectFilename,
+          })
+          setNeedsPassword(false)
+          setError(null)
+        })
+        .catch((err) => {
+          if (err instanceof ApiError && err.status === 401) {
+            setNeedsPassword(true)
+            try {
+              sessionStorage.removeItem(storageKey)
+            } catch {
+              /* ignore */
+            }
+            return
+          }
+          setError(
+            err instanceof ApiError
+              ? t('publicShare.linkInvalid')
+              : t('publicShare.trackLoadFailed'),
+          )
+        })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [token],
+  )
 
   useEffect(() => {
-    audioApi
-      .publicStream(token)
-      .then((res) =>
-        setTrack({
-          _id: res._id,
-          title: res.title,
-          artist: res.artist,
-          description: res.description,
-          bpm: res.bpm,
-          musicalKey: res.musicalKey,
-          projectUrl: res.projectUrl,
-          projectFilename: res.projectFilename,
-        }),
-      )
-      .catch((err) =>
-        setError(
-          err instanceof ApiError
-            ? t('publicShare.linkInvalid')
-            : t('publicShare.trackLoadFailed'),
-        ),
-      )
+    let stored: string | null = null
+    try {
+      stored = sessionStorage.getItem(storageKey)
+    } catch {
+      /* ignore */
+    }
+    setUnlockKey(stored)
+    load(stored)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
+
+  async function submitPassword() {
+    if (!pw.trim()) return
+    setUnlocking(true)
+    try {
+      const res = await audioApi.unlockShare(token, pw)
+      try {
+        sessionStorage.setItem(storageKey, res.unlockKey)
+      } catch {
+        /* ignore */
+      }
+      setUnlockKey(res.unlockKey)
+      setPw('')
+      load(res.unlockKey)
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : t('publicShare.wrongPassword'))
+    } finally {
+      setUnlocking(false)
+    }
+  }
 
   const isCurrent = player.current?.id === `share-${token}`
 
@@ -74,7 +128,7 @@ export default function SharePage({
         title: track?.title ?? '',
         artist: track?.artist,
         getStreamUrl: async () => {
-          const res = await audioApi.publicStream(token)
+          const res = await audioApi.publicStream(token, unlockKey)
           return res.streamUrl
         },
         onListened: track?._id
@@ -100,6 +154,40 @@ export default function SharePage({
       >
         {error ? (
           <p className="text-sm text-muted-foreground">{error}</p>
+        ) : needsPassword ? (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+              <Lock className="size-5" />
+            </span>
+            <div>
+              <p className="font-medium">{t('publicShare.passwordTitle')}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t('publicShare.passwordBody')}
+              </p>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                void submitPassword()
+              }}
+              className="flex w-full max-w-xs gap-2"
+            >
+              <Input
+                type="password"
+                autoFocus
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                placeholder={t('publicShare.passwordPlaceholder')}
+              />
+              <Button type="submit" disabled={unlocking || !pw.trim()}>
+                {unlocking ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  t('publicShare.unlock')
+                )}
+              </Button>
+            </form>
+          </div>
         ) : !track ? (
           <div className="flex flex-col items-center gap-4 py-6">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
