@@ -440,7 +440,11 @@ function PlayButton({
         size === 'lg' ? 'size-16' : 'size-9',
       )}
     >
-      <AnimatePresence initial={false} mode="wait">
+      {/* `mode="wait"` (exit-then-enter, ~320ms total) made rapid pause/play
+          taps feel delayed — both icons are absolutely positioned and don't
+          affect layout, so a simultaneous crossfade (default mode) is safe
+          and roughly halves the time to the new icon settling. */}
+      <AnimatePresence initial={false}>
         <motion.span
           key={isLoading ? 'load' : isPlaying ? 'pause' : 'play'}
           initial={{ opacity: 0, scale: 0.6 }}
