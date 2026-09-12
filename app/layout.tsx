@@ -9,7 +9,7 @@ import { AccentProvider } from '@/lib/accent-context'
 import { BackgroundProvider } from '@/lib/background-context'
 import { I18nProvider } from '@/lib/i18n/context'
 import { DEFAULT_LOCALE, isKnownLocale } from '@/lib/i18n/messages'
-import { GlobalPlayer } from '@/components/player/global-player'
+import { GlobalPlayer } from '@/components/player/global-player-loader'
 import { AppToaster } from '@/components/app-toaster'
 import './globals.css'
 

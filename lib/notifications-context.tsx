@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -126,12 +127,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }, [user, refresh])
 
+  const value = useMemo(
+    () => ({ items, unreadCount, loading, hasMore, loadMore, markAllRead, refresh }),
+    [items, unreadCount, loading, hasMore, loadMore, markAllRead, refresh],
+  )
+
   return (
-    <NotificationsContext.Provider
-      value={{ items, unreadCount, loading, hasMore, loadMore, markAllRead, refresh }}
-    >
-      {children}
-    </NotificationsContext.Provider>
+    <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>
   )
 }
 

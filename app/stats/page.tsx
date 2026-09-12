@@ -9,6 +9,7 @@ import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
 import { Reveal } from '@/components/reveal'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CoverImage } from '@/components/ui/cover-image'
 import { accountApi } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import { ease } from '@/lib/motion'
@@ -73,10 +74,9 @@ function BarList({
                 {i + 1}
               </span>
               {r.cover !== undefined && (
-                <div className="size-9 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
+                <div className="relative size-9 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
                   {r.cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={r.cover} alt="" className="size-full object-cover" />
+                    <CoverImage src={r.cover} alt="" sizes="36px" />
                   ) : (
                     <div className="flex size-full items-center justify-center">
                       <Music className="size-4 text-foreground/40" />

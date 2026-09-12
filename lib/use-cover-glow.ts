@@ -8,12 +8,24 @@ import { useEffect, useState } from 'react'
  * or when the canvas is tainted (cross-origin without CORS headers) — callers
  * should fall back to a themed glow in that case.
  */
+// Module-level cache: replaying a playlist re-visits the same cover URLs, so
+// skip re-decoding an image we've already sampled (cheap unbounded cache —
+// glow entries are ~15 bytes each and bounded by distinct covers seen).
+const glowCache = new Map<string, string | null>()
+
 export function useCoverGlow(url: string | null | undefined): string | null {
-  const [glow, setGlow] = useState<string | null>(null)
+  const [glow, setGlow] = useState<string | null>(url ? (glowCache.get(url) ?? null) : null)
 
   useEffect(() => {
+    if (!url) {
+      setGlow(null)
+      return
+    }
+    if (glowCache.has(url)) {
+      setGlow(glowCache.get(url) ?? null)
+      return
+    }
     setGlow(null)
-    if (!url) return
 
     let cancelled = false
     const img = new Image()
@@ -49,7 +61,9 @@ export function useCoverGlow(url: string | null | undefined): string | null {
           }
         }
         if (n === 0 || cancelled) return
-        setGlow(`${Math.round(r / n)} ${Math.round(g / n)} ${Math.round(b / n)}`)
+        const result = `${Math.round(r / n)} ${Math.round(g / n)} ${Math.round(b / n)}`
+        glowCache.set(url, result)
+        setGlow(result)
       } catch {
         /* tainted canvas — keep the themed fallback */
       }

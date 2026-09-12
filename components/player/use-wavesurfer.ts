@@ -20,7 +20,8 @@ function waveColors() {
 }
 
 interface WaveSurferState {
-  currentTime: number
+  getCurrentTime: () => number
+  subscribeTime: (cb: () => void) => () => void
   duration: number
   peaks: number[]
   ready: boolean
@@ -54,6 +55,8 @@ export function useWaveSurfer(
   const currentRef = useRef(current)
   currentRef.current = current
   const listenLoggedForToken = useRef<number>(-1)
+  const playTokenRef = useRef(playToken)
+  playTokenRef.current = playToken
 
   const wsRef = useRef<WaveSurfer | null>(null)
   const shouldPlayRef = useRef(false)
@@ -66,12 +69,29 @@ export function useWaveSurfer(
   volumeRef.current = volume
   speedRef.current = speed
 
+  // `currentTime` updates ~60x/sec while playing. Routing it through
+  // `useState` would re-render this hook's caller (GlobalPlayer, and
+  // everything it renders — the always-mounted, blurred player chrome) on
+  // every tick. Instead it lives in a ref with a manual subscriber list, so
+  // only components that actually opt in (via `useSyncExternalStore`) re-render.
+  const currentTimeRef = useRef(0)
+  const timeListenersRef = useRef(new Set<() => void>())
+  const notifyTime = () => {
+    for (const cb of timeListenersRef.current) cb()
+  }
+  const getCurrentTime = () => currentTimeRef.current
+  const subscribeTime = (cb: () => void) => {
+    timeListenersRef.current.add(cb)
+    return () => {
+      timeListenersRef.current.delete(cb)
+    }
+  }
+
   // Web Audio graph for independent pitch shifting (lazily built on first play).
   const audioCtxRef = useRef<AudioContext | null>(null)
   const pitchNodeRef = useRef<AudioWorkletNode | null>(null)
   const graphStateRef = useRef<'idle' | 'pending' | 'ready' | 'failed'>('idle')
 
-  const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [peaks, setPeaks] = useState<number[]>([])
   const [ready, setReady] = useState(false)
@@ -155,7 +175,23 @@ export function useWaveSurfer(
         })
       }
     })
-    ws.on('timeupdate', (t: number) => setCurrentTime(t))
+    ws.on('timeupdate', (t: number) => {
+      currentTimeRef.current = t
+      notifyTime()
+      // A listen counts once the track has played for 15 seconds (once per play).
+      if (
+        t >= 15 &&
+        listenLoggedForToken.current !== playTokenRef.current &&
+        currentRef.current?.onListened
+      ) {
+        listenLoggedForToken.current = playTokenRef.current
+        try {
+          currentRef.current.onListened()
+        } catch {
+          /* best-effort */
+        }
+      }
+    })
     ws.on('play', () => {
       setIsPlaying(true)
       if (pitchRef.current !== 0 && graphStateRef.current === 'idle') {
@@ -189,7 +225,8 @@ export function useWaveSurfer(
     shouldPlayRef.current = true
     setReady(false)
     setIsLoading(true)
-    setCurrentTime(0)
+    currentTimeRef.current = 0
+    notifyTime()
 
     // Reuse peaks decoded on an earlier play so the waveform is instant and
     // wavesurfer skips re-decoding the audio.
@@ -221,22 +258,6 @@ export function useWaveSurfer(
       ws.pause()
     }
   }, [isPlaying, ready])
-
-  // A listen counts once the track has played for 15 seconds (once per play).
-  useEffect(() => {
-    if (
-      currentTime >= 15 &&
-      listenLoggedForToken.current !== playToken &&
-      currentRef.current?.onListened
-    ) {
-      listenLoggedForToken.current = playToken
-      try {
-        currentRef.current.onListened()
-      } catch {
-        /* best-effort */
-      }
-    }
-  }, [currentTime, playToken])
 
   // Reflect volume changes immediately, even mid-playback.
   useEffect(() => {
@@ -318,5 +339,5 @@ export function useWaveSurfer(
     if (ws) ws.seekTo(Math.max(0, Math.min(1, fraction)))
   }
 
-  return { currentTime, duration, peaks, ready, seekTo }
+  return { getCurrentTime, subscribeTime, duration, peaks, ready, seekTo }
 }

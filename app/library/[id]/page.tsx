@@ -10,7 +10,10 @@ import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
 import { TrackUploader, type TrackUploaderHandle } from '@/components/app/track-uploader'
-import { ReorderableTrackList } from '@/components/app/reorderable-track-list'
+import {
+  ReorderableTrackList,
+  type ReorderableTrackListHandle,
+} from '@/components/app/reorderable-track-list'
 import { EditTrackDialog } from '@/components/app/edit-track-dialog'
 import { ShareTrackDialog } from '@/components/app/share-track-dialog'
 import { VersionsDialog } from '@/components/app/versions-dialog'
@@ -18,6 +21,7 @@ import { EditPlaylistDialog } from '@/components/app/edit-playlist-dialog'
 import { PlaylistShareDialog } from '@/components/app/playlist-share-dialog'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { ImageCropDialog } from '@/components/app/image-crop-dialog'
+import { CoverImage } from '@/components/ui/cover-image'
 import { CollaboratorStack } from '@/components/app/collaborator-stack'
 import { Reveal } from '@/components/reveal'
 import {
@@ -84,8 +88,20 @@ export default function PlaylistPage({
 
   const [highlightTrackId, setHighlightTrackId] = useState<string | null>(null)
   const wantTrackRef = useRef<string | null>(null)
+  const trackListRef = useRef<ReorderableTrackListHandle>(null)
 
   const isOwner = playlist?.role !== 'collaborator'
+
+  // Kept in sync every render so the stable (`useCallback([])`) handlers below
+  // can read current values without needing those values in their dependency
+  // arrays — that stability is what lets `TrackRow` (React.memo) actually skip
+  // re-rendering every row on unrelated page re-renders (e.g. play/pause).
+  const playerRef = useRef(player)
+  playerRef.current = player
+  const tracksRef = useRef(tracks)
+  tracksRef.current = tracks
+  const playlistRef = useRef(playlist)
+  playlistRef.current = playlist
 
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -131,9 +147,7 @@ export default function PlaylistPage({
     wantTrackRef.current = null
 
     const timer = setTimeout(() => {
-      document
-        .getElementById(`track-${want}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      trackListRef.current?.scrollToTrack(want)
       setHighlightTrackId(want)
       setTimeout(() => setHighlightTrackId(null), 2600)
       try {
@@ -170,11 +184,11 @@ export default function PlaylistPage({
     setTracks((prev) => [...(prev ?? []), track])
   }
 
-  function handleTrackDeleted(trackId: string) {
+  const handleTrackDeleted = useCallback((trackId: string) => {
     setTracks((prev) => (prev ?? []).filter((t) => t._id !== trackId))
-  }
+  }, [])
 
-  function handleTrackUpdated(updated: AudioFile) {
+  const handleTrackUpdated = useCallback((updated: AudioFile) => {
     setTracks((prev) =>
       (prev ?? []).map((t) => (t._id === updated._id ? { ...t, ...updated } : t)),
     )
@@ -183,12 +197,12 @@ export default function PlaylistPage({
     setEditingTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
     // Reflect the change live in the player if this track is currently queued,
     // without restarting playback.
-    player.patchTrack(updated._id, {
+    playerRef.current.patchTrack(updated._id, {
       title: updated.title,
       artist: updated.artist,
-      coverUrl: updated.coverUrl || playlist?.coverUrl || null,
+      coverUrl: updated.coverUrl || playlistRef.current?.coverUrl || null,
     })
-  }
+  }, [])
 
   function handlePlaylistUpdated(updated: Playlist) {
     setPlaylist(updated)
@@ -266,25 +280,25 @@ export default function PlaylistPage({
     }
   }
 
-  function playTrack(track: AudioFile) {
+  const playTrack = useCallback((track: AudioFile) => {
     // Reine Projekt-Einträge werden bei der Wiedergabe ignoriert
-    const readyTracks = (tracks ?? []).filter(
+    const readyTracks = (tracksRef.current ?? []).filter(
       (t) => t.status === 'ready' && (t.kind ?? 'track') !== 'project',
     )
     const startIndex = readyTracks.findIndex((t) => t._id === track._id)
     if (startIndex === -1) return
 
-    if (player.current?.id === track._id) {
-      player.togglePlay()
+    if (playerRef.current.current?.id === track._id) {
+      playerRef.current.togglePlay()
       return
     }
 
-    player.playQueue(
+    playerRef.current.playQueue(
       readyTracks.map((t) => ({
         id: t._id,
         title: t.title,
         artist: t.artist,
-        coverUrl: t.coverUrl || playlist?.coverUrl || null,
+        coverUrl: t.coverUrl || playlistRef.current?.coverUrl || null,
         duration: t.duration,
         getStreamUrl: async () => {
           const res = await audioApi.stream(t._id)
@@ -294,7 +308,7 @@ export default function PlaylistPage({
       })),
       startIndex,
     )
-  }
+  }, [])
 
   async function handleDeletePlaylist() {
     try {
@@ -397,11 +411,10 @@ export default function PlaylistPage({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.92, opacity: 0 }}
                 transition={{ duration: 0.32, ease: ease.apple }}
-                className="aspect-square w-[min(80vw,32rem)] overflow-hidden rounded-3xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-3) ring-1 ring-border/60"
+                className="relative aspect-square w-[min(80vw,32rem)] overflow-hidden rounded-3xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-3) ring-1 ring-border/60"
               >
                 {playlist.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={playlist.coverUrl} alt="" className="size-full object-cover" />
+                  <CoverImage src={playlist.coverUrl} alt="" sizes="min(80vw, 512px)" />
                 ) : (
                   <div className="flex size-full items-center justify-center">
                     <Music className="size-16 text-foreground/40" />
@@ -437,11 +450,10 @@ export default function PlaylistPage({
               <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
                 {(() => {
                   const coverInner = playlist.coverUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <CoverImage
                       src={playlist.coverUrl}
                       alt=""
-                      className="size-full object-cover"
+                      sizes="(min-width: 640px) 160px, 128px"
                     />
                   ) : (
                     <div className="flex size-full items-center justify-center">
@@ -672,6 +684,7 @@ export default function PlaylistPage({
                       </p>
                     ) : (
                       <ReorderableTrackList
+                        ref={trackListRef}
                         playlistId={id}
                         tracks={visibleTracks}
                         projectView={filter === 'projects'}

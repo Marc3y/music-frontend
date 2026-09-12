@@ -9,6 +9,7 @@ import { Logo } from '@/components/logo'
 import { AuroraBackground } from '@/components/aurora-background'
 import { AddToLibraryButton } from '@/components/app/add-to-library-button'
 import { Button } from '@/components/ui/button'
+import { CoverImage } from '@/components/ui/cover-image'
 import { Input } from '@/components/ui/input'
 import { playlistApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
@@ -199,10 +200,9 @@ export default function PublicPlaylistPage({
         ) : (
           <>
             <div className="flex items-center gap-4">
-              <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 to-accent/20">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 to-accent/20">
                 {data.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.coverUrl} alt="" className="size-full object-cover" />
+                  <CoverImage src={data.coverUrl} alt="" sizes="64px" />
                 ) : (
                   <div className="flex size-full items-center justify-center">
                     <Music className="size-6 text-foreground/40" />

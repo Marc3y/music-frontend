@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useSyncExternalStore } from 'react'
 import { AnimatePresence, motion, type PanInfo } from 'motion/react'
 import {
   ChevronDown,
@@ -29,6 +29,7 @@ import { ease, spring } from '@/lib/motion'
 import { useCoverGlow } from '@/lib/use-cover-glow'
 import { useT } from '@/lib/i18n/context'
 import { Slider } from '@/components/ui/slider'
+import { CoverImage } from '@/components/ui/cover-image'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,14 +43,49 @@ import { BarsWaveform } from './bars-waveform'
 
 const OBJECT_ID = /^[a-f\d]{24}$/i
 
+const getServerCurrentTime = () => 0
+
+/**
+ * Subscribes to the ~60Hz playback clock via `useSyncExternalStore`, so only
+ * this leaf re-renders on every tick — not the whole player (see
+ * `use-wavesurfer.ts`'s `getCurrentTime`/`subscribeTime`).
+ */
+function PlaybackProgress({
+  getCurrentTime,
+  subscribeTime,
+  duration,
+  fallbackDuration,
+  peaks,
+  onSeek,
+}: {
+  getCurrentTime: () => number
+  subscribeTime: (cb: () => void) => () => void
+  duration: number
+  fallbackDuration: number | undefined
+  peaks: number[]
+  onSeek: (fraction: number) => void
+}) {
+  const currentTime = useSyncExternalStore(subscribeTime, getCurrentTime, getServerCurrentTime)
+  const progress = duration > 0 ? currentTime / duration : 0
+
+  return (
+    <>
+      <BarsWaveform peaks={peaks} progress={progress} onSeek={onSeek} />
+      <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground tabular-nums">
+        <span>{formatTime(currentTime)}</span>
+        <span>{formatTime(duration || fallbackDuration)}</span>
+      </div>
+    </>
+  )
+}
+
 export function GlobalPlayer() {
   const player = usePlayer()
   const t = useT()
   const containerRef = useRef<HTMLDivElement>(null)
-  const { currentTime, duration, peaks, seekTo } = useWaveSurfer(containerRef)
+  const { getCurrentTime, subscribeTime, duration, peaks, seekTo } = useWaveSurfer(containerRef)
 
   const { current, isPlaying, isLoading, shuffle, loop, expanded } = player
-  const progress = duration > 0 ? currentTime / duration : 0
   const hasTrack = Boolean(current)
   const coverGlow = useCoverGlow(current?.coverUrl)
 
@@ -163,8 +199,12 @@ export function GlobalPlayer() {
                 )}
               >
                 {current.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={current.coverUrl} alt="" className="size-full object-cover" />
+                  <CoverImage
+                    src={current.coverUrl}
+                    alt=""
+                    sizes="(min-width: 640px) 304px, 256px"
+                    priority
+                  />
                 ) : (
                   <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/25 to-accent/20">
                     <Music className="size-20 text-foreground/40" />
@@ -192,11 +232,14 @@ export function GlobalPlayer() {
                 transition={{ duration: 0.4, delay: 0.22, ease: ease.out }}
                 className="w-full max-w-md"
               >
-                <BarsWaveform peaks={peaks} progress={progress} onSeek={seekTo} />
-                <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground tabular-nums">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration || current.duration)}</span>
-                </div>
+                <PlaybackProgress
+                  getCurrentTime={getCurrentTime}
+                  subscribeTime={subscribeTime}
+                  duration={duration}
+                  fallbackDuration={current.duration}
+                  peaks={peaks}
+                  onSeek={seekTo}
+                />
               </motion.div>
 
               <Controls player={player} isPlaying={isPlaying} isLoading={isLoading} large />
@@ -231,8 +274,7 @@ export function GlobalPlayer() {
                   >
                     <div className="relative size-11 shrink-0 overflow-hidden rounded-xl ring-1 ring-border/70 sm:size-12">
                       {current?.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={current.coverUrl} alt="" className="size-full object-cover" />
+                        <CoverImage src={current.coverUrl} alt="" sizes="48px" />
                       ) : (
                         <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/30 to-accent/20">
                           <Music className="size-5 text-foreground/50" />

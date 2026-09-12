@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           'bg-primary text-primary-foreground shadow-(--elevate-1) hover:brightness-110 hover:shadow-(--elevate-2)',
         outline:
-          'border-border bg-card/50 backdrop-blur-sm hover:bg-card hover:border-border aria-expanded:bg-card',
+          'border-border bg-card/50 backdrop-blur-sm will-change-transform hover:bg-card hover:border-border aria-expanded:bg-card',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/70 aria-expanded:bg-secondary/70',
         ghost:

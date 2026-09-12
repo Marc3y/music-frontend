@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Cropper, { type Area } from 'react-easy-crop'
+import dynamic from 'next/dynamic'
+import type ReactEasyCrop from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -16,6 +18,13 @@ import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { accountApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
+
+// Cast restores defaultProps-aware JSX checking (rotation/minZoom/etc. have
+// defaults on the real class) that `next/dynamic`'s inferred type otherwise
+// drops — same component once loaded, just typed like the direct import.
+const Cropper = dynamic(() => import('react-easy-crop'), {
+  ssr: false,
+}) as unknown as typeof ReactEasyCrop
 
 const OUTPUT_SIZE = 512
 

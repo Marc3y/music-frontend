@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown, FileArchive, Info, Layers, Loader2, MoreHorizontal, Music, Pause, Pencil, Play, Share2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -16,6 +16,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { CoverImage } from '@/components/ui/cover-image'
 import { ConfirmDeleteDialog } from '@/components/app/confirm-delete-dialog'
 import { TrackInfoDialog } from '@/components/app/track-info-dialog'
 import { TrackProjectPanel } from '@/components/app/track-project-panel'
@@ -24,7 +25,7 @@ import { audioApi, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import type { AudioFile } from '@/lib/types'
 
-export function TrackRow({
+export const TrackRow = memo(function TrackRow({
   track,
   projectView,
   fallbackCoverUrl,
@@ -44,10 +45,10 @@ export function TrackRow({
   isCurrent: boolean
   isPlaying: boolean
   isLoading: boolean
-  onPlay: () => void
-  onEdit: () => void
-  onShare: () => void
-  onVersions: () => void
+  onPlay: (track: AudioFile) => void
+  onEdit: (track: AudioFile) => void
+  onShare: (track: AudioFile) => void
+  onVersions: (track: AudioFile) => void
   onUpdated: (track: AudioFile) => void
   onDeleted: (id: string) => void
 }) {
@@ -79,7 +80,7 @@ export function TrackRow({
   function handleRowDoubleClick(e: React.MouseEvent) {
     if (!canPlay) return
     if ((e.target as HTMLElement).closest('button,a,input')) return
-    onPlay()
+    onPlay(track)
   }
 
   function handleRowClick(e: React.MouseEvent) {
@@ -92,20 +93,20 @@ export function TrackRow({
       return
     if (!canPlay) return
     if ((e.target as HTMLElement).closest('button,a,input')) return
-    onPlay()
+    onPlay(track)
   }
 
   const menuItems = (
     <>
-      <ContextMenuItem onClick={onEdit}>
+      <ContextMenuItem onClick={() => onEdit(track)}>
         <Pencil className="size-4" />
         {t('common.edit')}
       </ContextMenuItem>
-      <ContextMenuItem onClick={onShare}>
+      <ContextMenuItem onClick={() => onShare(track)}>
         <Share2 className="size-4" />
         {t('common.share')}
       </ContextMenuItem>
-      <ContextMenuItem onClick={onVersions}>
+      <ContextMenuItem onClick={() => onVersions(track)}>
         <Layers className="size-4" />
         {t('versions.titleTrack')}
       </ContextMenuItem>
@@ -138,22 +139,20 @@ export function TrackRow({
           {showAsProject ? (
             <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
               {displayCover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayCover} alt="" className="size-full object-cover" />
+                <CoverImage src={displayCover} alt="" sizes="44px" />
               ) : (
                 <FileArchive className="size-4 text-foreground/40" />
               )}
             </div>
           ) : (
             <button
-              onClick={onPlay}
+              onClick={() => onPlay(track)}
               disabled={!isReady}
               aria-label={isPlaying && isCurrent ? t('trackRow.pause') : t('trackRow.play')}
               className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {displayCover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayCover} alt="" className="size-full object-cover" />
+                <CoverImage src={displayCover} alt="" sizes="44px" />
               ) : (
                 <Music className="size-4 text-foreground/40" />
               )}
@@ -235,15 +234,15 @@ export function TrackRow({
               <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
+              <DropdownMenuItem onClick={() => onEdit(track)}>
                 <Pencil className="size-4" />
                 {t('common.edit')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onShare}>
+              <DropdownMenuItem onClick={() => onShare(track)}>
                 <Share2 className="size-4" />
                 {t('common.share')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onVersions}>
+              <DropdownMenuItem onClick={() => onVersions(track)}>
                 <Layers className="size-4" />
                 {t('versions.titleTrack')}
               </DropdownMenuItem>
@@ -295,4 +294,4 @@ export function TrackRow({
       )}
     </div>
   )
-}
+})

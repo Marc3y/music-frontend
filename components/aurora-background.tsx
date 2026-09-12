@@ -1,7 +1,7 @@
 'use client'
 
-import { memo } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { memo, useEffect, useRef } from 'react'
+import { motion, useAnimation, useInView, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 type Variant = 'page' | 'auth' | 'minimal'
@@ -31,11 +31,30 @@ export const AuroraBackground = memo(function AuroraBackground({
   className?: string
 }) {
   const reduce = useReducedMotion()
-  const drift = reduce ? {} : DRIFT
-  const drift2 = reduce ? {} : DRIFT2
+  const containerRef = useRef<HTMLDivElement>(null)
+  // `amount: 0`: still "in view" as long as a single pixel is on screen —
+  // matches how easily visible this full-bleed background actually is.
+  const inView = useInView(containerRef, { amount: 0 })
+  const controls1 = useAnimation()
+  const controls2 = useAnimation()
+
+  // Freeze the drift animations (instead of endlessly ticking rAF) once the
+  // background scrolls off-screen or the tab is backgrounded — invisible by
+  // definition, since nothing is rendering it at that point.
+  useEffect(() => {
+    if (reduce) return
+    if (inView) {
+      void controls1.start(DRIFT.animate, DRIFT.transition)
+      void controls2.start(DRIFT2.animate, DRIFT2.transition)
+    } else {
+      controls1.stop()
+      controls2.stop()
+    }
+  }, [inView, reduce, controls1, controls2])
 
   return (
     <div
+      ref={containerRef}
       aria-hidden
       // `isolate` + `transform-gpu`: keeps this whole expensive layer (huge
       // blurs + a masked grid) on its own compositor layer so it is NOT
@@ -64,7 +83,7 @@ export const AuroraBackground = memo(function AuroraBackground({
 
 
       <motion.div
-        {...drift}
+        animate={reduce ? undefined : controls1}
         className={cn(
           'absolute rounded-full blur-[100px] will-change-transform',
           variant === 'auth' ? 'size-[40rem]' : 'size-[52rem]',
@@ -78,7 +97,7 @@ export const AuroraBackground = memo(function AuroraBackground({
         }}
       />
       <motion.div
-        {...drift2}
+        animate={reduce ? undefined : controls2}
         className="absolute size-[34rem] rounded-full blur-[120px] will-change-transform"
         style={{
           top: variant === 'auth' ? '2rem' : '6rem',

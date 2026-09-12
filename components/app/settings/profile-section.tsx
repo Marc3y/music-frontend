@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SettingsCard } from '@/components/app/settings/settings-card'
+import { CoverImage } from '@/components/ui/cover-image'
 import { AvatarCropDialog } from '@/components/app/settings/avatar-crop-dialog'
 import { useAuth } from '@/lib/auth-context'
 import { useT } from '@/lib/i18n/context'
@@ -77,8 +78,7 @@ export function ProfileSection() {
           className="group relative size-20 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-primary/25 to-accent/15"
         >
           {user?.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.avatarUrl} alt="" className="size-full object-cover" />
+            <CoverImage src={user.avatarUrl} alt="" sizes="80px" />
           ) : (
             <span className="flex size-full items-center justify-center">
               <UserIcon className="size-7 text-foreground/40" />

@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -51,11 +52,9 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  return (
-    <BackgroundContext.Provider value={{ background, setBackground }}>
-      {children}
-    </BackgroundContext.Provider>
-  )
+  const value = useMemo(() => ({ background, setBackground }), [background, setBackground])
+
+  return <BackgroundContext.Provider value={value}>{children}</BackgroundContext.Provider>
 }
 
 export function useBackground() {

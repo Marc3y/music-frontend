@@ -1,7 +1,23 @@
 'use client'
 
-import { useMemo, type MouseEvent } from 'react'
+import { memo, useMemo, type MouseEvent } from 'react'
 import { cn } from '@/lib/utils'
+
+const Bar = memo(function Bar({ height, played }: { height: number; played: boolean }) {
+  return (
+    <div
+      className={cn(
+        'flex-1 rounded-full transition-[background-color,transform] duration-200 ease-apple',
+        played ? 'bg-primary' : 'bg-muted-foreground/25',
+      )}
+      style={{
+        height: `${Math.round(height * 100)}%`,
+        transform: played ? 'scaleY(1)' : 'scaleY(0.86)',
+        transformOrigin: 'center',
+      }}
+    />
+  )
+})
 
 interface BarsWaveformProps {
   peaks: number[]
@@ -56,23 +72,9 @@ export function BarsWaveform({
       aria-label={onSeek ? 'Wiedergabeposition' : undefined}
       aria-valuenow={Math.round(progress * 100)}
     >
-      {bars.map((h, i) => {
-        const played = i / barCount <= progress
-        return (
-          <div
-            key={i}
-            className={cn(
-              'flex-1 rounded-full transition-[background-color,transform] duration-200 ease-apple',
-              played ? 'bg-primary' : 'bg-muted-foreground/25',
-            )}
-            style={{
-              height: `${Math.round(h * 100)}%`,
-              transform: played ? 'scaleY(1)' : 'scaleY(0.86)',
-              transformOrigin: 'center',
-            }}
-          />
-        )
-      })}
+      {bars.map((h, i) => (
+        <Bar key={i} height={h} played={i / barCount <= progress} />
+      ))}
     </div>
   )
 }

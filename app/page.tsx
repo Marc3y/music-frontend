@@ -1,7 +1,8 @@
 'use client'
 
+import { useRef } from 'react'
 import Link from 'next/link'
-import { motion } from 'motion/react'
+import { motion, useInView } from 'motion/react'
 import {
   AudioLines,
   FolderPlus,
@@ -182,8 +183,12 @@ export default function LandingPage() {
 
 function PlayerMock() {
   const bars = Array.from({ length: 48 }, (_, i) => 0.2 + Math.abs(Math.sin(i * 0.5)) * 0.8)
+  const containerRef = useRef<HTMLDivElement>(null)
+  // Freeze the 48 bar animations once this scrolls out of view instead of
+  // letting them run forever in the background.
+  const inView = useInView(containerRef, { amount: 0 })
   return (
-    <div className="glass rounded-3xl p-5 shadow-(--elevate-3) glow-primary">
+    <div ref={containerRef} className="glass rounded-3xl p-5 shadow-(--elevate-3) glow-primary">
       <div className="flex items-center gap-4">
         <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_24px_-8px_var(--primary)]">
           <AudioLines className="size-6 text-primary-foreground" />
@@ -209,7 +214,7 @@ function PlayerMock() {
           <motion.div
             key={i}
             initial={{ scaleY: 0.3 }}
-            animate={{ scaleY: [0.3, h, 0.4] }}
+            animate={inView ? { scaleY: [0.3, h, 0.4] } : undefined}
             transition={{
               duration: 1.2,
               repeat: Infinity,

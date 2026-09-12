@@ -8,6 +8,7 @@ import { BarChart3, Check, ChevronDown, CreditCard, Globe, HardDrive, ListMusic,
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { NotificationBell } from '@/components/app/notification-bell'
+import { CoverImage } from '@/components/ui/cover-image'
 import { TierBadge } from '@/components/app/tier-badge'
 import {
   DropdownMenu,
@@ -76,12 +77,9 @@ export function AppNav() {
           <DropdownMenu>
             <DropdownMenuTrigger className="group/trig flex cursor-pointer items-center gap-1.5 rounded-full py-1.5 pr-2.5 pl-1.5 outline-none transition-colors hover:bg-muted/60">
               {user?.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.avatarUrl}
-                  alt=""
-                  className="size-6 shrink-0 rounded-full object-cover"
-                />
+                <span className="relative size-6 shrink-0 overflow-hidden rounded-full">
+                  <CoverImage src={user.avatarUrl} alt="" sizes="24px" />
+                </span>
               ) : (
                 <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent">
                   <User className="size-3.5 text-primary-foreground" />

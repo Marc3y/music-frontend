@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -54,9 +55,9 @@ export function AccentProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  return (
-    <AccentContext.Provider value={{ accent, setAccent }}>{children}</AccentContext.Provider>
-  )
+  const value = useMemo(() => ({ accent, setAccent }), [accent, setAccent])
+
+  return <AccentContext.Provider value={value}>{children}</AccentContext.Provider>
 }
 
 export function useAccent() {

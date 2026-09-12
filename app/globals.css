@@ -472,6 +472,10 @@
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid color-mix(in oklch, var(--border), var(--foreground) 4%);
+    /* Promotes this element to its own compositor layer so Safari can cache
+       the blurred result instead of re-rasterizing it every frame something
+       nearby changes (e.g. the player's progress updating underneath it). */
+    will-change: transform;
   }
   .elevate-1 {
     box-shadow: var(--elevate-1);

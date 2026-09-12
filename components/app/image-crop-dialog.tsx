@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Cropper, { type Area } from 'react-easy-crop'
+import dynamic from 'next/dynamic'
+import type ReactEasyCrop from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -15,6 +17,16 @@ import {
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { useT } from '@/lib/i18n/context'
+
+// `react-easy-crop` is only needed once this dialog is actually open — this
+// keeps it out of the initial bundle for every page that merely imports
+// `ImageCropDialog` (library page, edit-playlist/track dialogs).
+// Cast restores defaultProps-aware JSX checking (rotation/minZoom/etc. have
+// defaults on the real class) that `next/dynamic`'s inferred type otherwise
+// drops — same component once loaded, just typed like the direct import.
+const Cropper = dynamic(() => import('react-easy-crop'), {
+  ssr: false,
+}) as unknown as typeof ReactEasyCrop
 
 /** Draws the selected crop area of `src` into a square canvas and returns a JPEG blob. */
 export async function getCroppedBlob(src: string, area: Area, size: number): Promise<Blob> {
