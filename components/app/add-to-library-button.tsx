@@ -36,7 +36,7 @@ export function AddToLibraryButton({
     <button
       onClick={add}
       disabled={state !== 'idle'}
-      className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium transition-colors hover:bg-muted disabled:opacity-70"
+      className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-border text-sm font-medium transition-colors hover:bg-muted disabled:opacity-70"
     >
       {state === 'busy' ? (
         <Loader2 className="size-4 animate-spin" />

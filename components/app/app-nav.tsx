@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion, useMotionValueEvent, useScroll } from 'motion/react'
+import { useMotionValueEvent, useScroll } from 'motion/react'
 import { useState } from 'react'
 import { BarChart3, Check, ChevronDown, CreditCard, Globe, HardDrive, ListMusic, LogOut, Settings, User } from 'lucide-react'
 import { Logo } from '@/components/logo'
@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n/context'
-import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function AppNav() {
@@ -42,47 +41,34 @@ export function AppNav() {
   }
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: ease.out }}
-      className="sticky top-0 z-40"
+    <header
+      className={cn(
+        'sticky top-0 z-40 border-b transition-[background-color,border-color] duration-300 ease-apple',
+        scrolled ? 'material-bar border-border' : 'border-transparent',
+      )}
     >
-      <div
-        className={cn(
-          'mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 transition-[padding] duration-300 ease-apple sm:px-4',
-          scrolled ? 'py-2.5' : 'py-4',
-        )}
-      >
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link
           href="/library"
-          className={cn(
-            'glass rounded-full px-4 py-2 transition-shadow duration-300',
-            scrolled && 'shadow-(--elevate-2)',
-          )}
+          className="-ml-1 rounded-lg px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <Logo />
         </Link>
 
-        <div
-          className={cn(
-            'glass flex items-center gap-1 rounded-full p-1 pl-2 transition-shadow duration-300',
-            scrolled && 'shadow-(--elevate-2)',
-          )}
-        >
+        <div className="flex items-center gap-0.5">
           <ThemeToggle />
 
           <NotificationBell />
 
           <DropdownMenu>
-            <DropdownMenuTrigger className="group/trig flex cursor-pointer items-center gap-1.5 rounded-full py-1.5 pr-2.5 pl-1.5 outline-none transition-colors hover:bg-muted/60">
+            <DropdownMenuTrigger className="group/trig ml-1 flex cursor-pointer items-center gap-2 rounded-full py-1 pr-2 pl-1 outline-none transition-colors duration-150 hover:bg-muted active:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40 data-[popup-open]:bg-muted">
               {user?.avatarUrl ? (
                 <span className="relative size-6 shrink-0 overflow-hidden rounded-full">
                   <CoverImage src={user.avatarUrl} alt="" sizes="24px" />
                 </span>
               ) : (
-                <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent">
-                  <User className="size-3.5 text-primary-foreground" />
+                <span className="flex size-6 items-center justify-center rounded-full bg-foreground/10 text-[0.6875rem] font-semibold uppercase text-foreground">
+                  {user?.username?.charAt(0) ?? <User className="size-3.5" />}
                 </span>
               )}
               <span className="max-w-[5rem] truncate text-sm font-medium sm:max-w-[9rem]">
@@ -157,6 +143,6 @@ export function AppNav() {
           </DropdownMenu>
         </div>
       </div>
-    </motion.header>
+    </header>
   )
 }

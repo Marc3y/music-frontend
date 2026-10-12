@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Avatar } from '@base-ui/react/avatar'
-import { BarChart3, Download, Headphones, Music, Users } from 'lucide-react'
+import { Download, Headphones, Music, Users } from 'lucide-react'
 import { RequireAuth } from '@/components/app/require-auth'
 import { AppNav } from '@/components/app/app-nav'
 import { AuroraBackground } from '@/components/aurora-background'
@@ -32,11 +32,11 @@ function StatTile({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay, ease: ease.out }}
-      className="glass flex flex-col gap-1 rounded-2xl p-4 shadow-(--elevate-1)"
+      className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4"
     >
       <Icon className="size-4 text-muted-foreground" />
-      <span className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{value}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="mt-2 text-[1.75rem] leading-none font-semibold tracking-[-0.03em] tabular-nums">{value}</span>
+      <span className="mt-1 text-xs text-muted-foreground">{label}</span>
     </motion.div>
   )
 }
@@ -53,7 +53,7 @@ function BarList({
   const t = useT()
   const max = Math.max(1, ...rows.map((r) => r.value))
   return (
-    <div className="glass rounded-2xl p-5 shadow-(--elevate-1)">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <p className="mb-4 flex items-center gap-2 text-sm font-medium">
         <Icon className="size-4 text-muted-foreground" />
         {title}
@@ -74,7 +74,7 @@ function BarList({
                 {i + 1}
               </span>
               {r.cover !== undefined && (
-                <div className="relative size-9 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
+                <div className="relative size-9 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {r.cover ? (
                     <CoverImage src={r.cover} alt="" sizes="36px" />
                   ) : (
@@ -88,7 +88,7 @@ function BarList({
                 <p className="truncate text-sm font-medium">{r.label}</p>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary"
+                    className="h-full rounded-full bg-primary"
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.max(4, (r.value / max) * 100)}%` }}
                     transition={{ duration: 0.6, delay: 0.1 + i * 0.04, ease: ease.out }}
@@ -114,7 +114,7 @@ function Sparkline({ data }: { data: { _id: string; listens: number }[] }) {
     .map((d, i) => `${(i / (data.length - 1)) * w},${h - (d.listens / max) * h}`)
     .join(' ')
   return (
-    <div className="glass rounded-2xl p-5 shadow-(--elevate-1)">
+    <div className="rounded-2xl border border-border bg-card p-5">
       <p className="mb-3 text-sm font-medium">{t('stats.last30Days')}</p>
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-16 w-full">
         <motion.polyline
@@ -163,12 +163,9 @@ export default function StatsPage() {
         <div className="relative isolate">
           <AppNav />
 
-          <main className="mx-auto max-w-3xl px-4 pt-4 sm:px-6">
+          <main className="mx-auto max-w-3xl px-4 pt-6 sm:px-6">
             <Reveal className="pb-8">
-              <h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight">
-                <BarChart3 className="size-7 text-primary" />
-                {t('stats.title')}
-              </h1>
+              <h1 className="title-1 text-balance">{t('stats.title')}</h1>
               <p className="mt-1 text-muted-foreground">{t('stats.subtitle')}</p>
             </Reveal>
 
@@ -199,7 +196,7 @@ export default function StatsPage() {
 
                 {stats.topListeners.length > 0 && (
                   <Reveal delayIndex={2}>
-                    <div className="glass rounded-2xl p-5 shadow-(--elevate-1)">
+                    <div className="rounded-2xl border border-border bg-card p-5">
                       <p className="mb-4 flex items-center gap-2 text-sm font-medium">
                         <Users className="size-4 text-muted-foreground" />
                         {t('stats.topListeners')}
@@ -212,7 +209,7 @@ export default function StatsPage() {
                               <span className="w-4 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
                                 {i + 1}
                               </span>
-                              <Avatar.Root className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/30 to-accent/20 text-xs font-medium text-primary-foreground uppercase">
+                              <Avatar.Root className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/10 text-xs font-semibold text-foreground uppercase">
                                 {l.avatarUrl ? (
                                   <Avatar.Image src={l.avatarUrl} alt="" className="size-full object-cover" />
                                 ) : null}
@@ -222,7 +219,7 @@ export default function StatsPage() {
                                 <p className="truncate text-sm font-medium">@{l.username}</p>
                                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                                   <motion.div
-                                    className="h-full rounded-full bg-gradient-to-r from-accent/70 to-accent"
+                                    className="h-full rounded-full bg-foreground/35"
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.max(4, (l.listens / max) * 100)}%` }}
                                     transition={{ duration: 0.6, delay: 0.1 + i * 0.04, ease: ease.out }}

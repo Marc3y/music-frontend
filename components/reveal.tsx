@@ -2,13 +2,12 @@
 
 import { motion, useInView, useReducedMotion } from 'motion/react'
 import { useRef, type ReactNode } from 'react'
-import { ease } from '@/lib/motion'
 
 export function Reveal({
   children,
   className,
   delayIndex = 0,
-  y = 20,
+  y = 10,
 }: {
   children: ReactNode
   className?: string
@@ -35,7 +34,7 @@ export function Reveal({
       className={className}
       initial={{ opacity: 0, y }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y }}
-      transition={{ duration: 0.6, delay: delayIndex * 0.07, ease: ease.out }}
+      transition={{ type: 'spring', bounce: 0, duration: 0.5, delay: delayIndex * 0.05 }}
     >
       {children}
     </motion.div>

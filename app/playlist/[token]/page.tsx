@@ -138,14 +138,14 @@ export default function PublicPlaylistPage({
       <AuroraBackground variant="auth" />
 
       <Link href="/" className="relative mb-8">
-        <Logo className="[&_span]:text-xl" />
+        <Logo />
       </Link>
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="glass relative w-full max-w-lg rounded-3xl p-6 shadow-(--elevate-3)"
+        className="relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-(--elevate-2)"
       >
         {error ? (
           <div className="py-6 text-center">
@@ -153,7 +153,7 @@ export default function PublicPlaylistPage({
             {error.needsLogin && (
               <Link
                 href={`/login?next=${encodeURIComponent(`/playlist/${token}`)}`}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 {tr('nav.signIn')}
               </Link>
@@ -200,7 +200,7 @@ export default function PublicPlaylistPage({
         ) : (
           <>
             <div className="flex items-center gap-4">
-              <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 to-accent/20">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted shadow-(--elevate-1)">
                 {data.coverUrl ? (
                   <CoverImage src={data.coverUrl} alt="" sizes="64px" />
                 ) : (
@@ -210,10 +210,10 @@ export default function PublicPlaylistPage({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+                <p className="eyebrow">
                   {tr('playlistPage.playlistKicker')}
                 </p>
-                <h1 className="truncate text-xl font-semibold">{data.name}</h1>
+                <h1 className="mt-1 truncate text-xl font-semibold tracking-[-0.02em]">{data.name}</h1>
                 <p className="text-sm text-muted-foreground">
                   {data.trackCount === 1
                     ? tr('playlistPage.trackCountOne')
@@ -229,19 +229,24 @@ export default function PublicPlaylistPage({
                 return (
                   <div key={t._id} className="flex items-center gap-3 bg-card/40 px-3 py-2.5">
                     {isProject ? (
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
                         <FileArchive className="size-4 text-foreground/50" />
                       </div>
                     ) : (
                       <button
                         onClick={() => playTrack(t)}
                         aria-label={playing ? tr('publicShare.pause') : tr('publicShare.play')}
-                        className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-accent/15"
+                        className={
+                          'flex size-8 shrink-0 items-center justify-center rounded-full transition-colors duration-150 active:scale-95 ' +
+                          (playing
+                            ? 'bg-foreground text-background'
+                            : 'bg-muted text-foreground hover:bg-foreground/15')
+                        }
                       >
                         {playing ? (
-                          <Pause className="size-4" />
+                          <Pause className="size-3.5 fill-current" />
                         ) : (
-                          <Play className="size-4 translate-x-px" />
+                          <Play className="size-3.5 translate-x-px fill-current" />
                         )}
                       </button>
                     )}
@@ -260,7 +265,7 @@ export default function PublicPlaylistPage({
                       </p>
                     </div>
                     {!isProject && t.duration != null && (
-                      <span className="shrink-0 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                         {formatTime(t.duration)}
                       </span>
                     )}

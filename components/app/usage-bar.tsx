@@ -22,7 +22,7 @@ export function UsageBar({
     ? 'bg-destructive'
     : warn
       ? 'bg-amber-500'
-      : 'bg-gradient-to-r from-primary/80 to-primary'
+      : 'bg-primary'
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -38,7 +38,7 @@ export function UsageBar({
         <motion.div
           className={cn(
             'h-full rounded-full',
-            unlimited ? 'bg-gradient-to-r from-primary/80 to-accent' : barColor,
+            unlimited ? 'bg-primary' : barColor,
           )}
           initial={{ width: 0 }}
           animate={{ width: unlimited ? '100%' : `${Math.max(pct, 2)}%` }}

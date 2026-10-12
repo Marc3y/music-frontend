@@ -110,7 +110,7 @@ function NotificationRow({
 
   const inner = (
     <>
-      <Avatar.Root className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/30 to-accent/20 text-xs font-medium text-primary-foreground select-none">
+      <Avatar.Root className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/10 text-xs font-semibold text-foreground select-none">
         {n.actor.avatarUrl ? (
           <Avatar.Image src={n.actor.avatarUrl} alt="" className="size-full object-cover" />
         ) : null}
@@ -187,7 +187,7 @@ export function NotificationBell() {
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
         aria-label={t('notifications.title')}
-        className="relative inline-flex size-8 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted/60 hover:text-foreground data-[popup-open]:bg-muted/60 data-[popup-open]:text-foreground"
+        className="relative inline-flex size-9 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-[popup-open]:bg-muted data-[popup-open]:text-foreground"
       >
         <Bell className="size-4" />
         <AnimatePresence>

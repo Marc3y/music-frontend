@@ -129,16 +129,16 @@ export const TrackRow = memo(function TrackRow({
               onClick={handleRowClick}
               onDoubleClick={handleRowDoubleClick}
               className={
-                'group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-card/60 sm:gap-4 sm:px-3' +
-                (isCurrent ? ' bg-card/60' : '')
+                'group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors duration-150 sm:gap-4 sm:px-3' +
+                (isCurrent ? ' bg-foreground/[0.06]' : ' hover:bg-foreground/[0.035]')
               }
             />
           }
         >
           {showAsProject ? (
-            <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
+            <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
               {displayCover ? (
-                <CoverImage src={displayCover} alt="" sizes="44px" />
+                <CoverImage src={displayCover} alt="" sizes="40px" />
               ) : (
                 <FileArchive className="size-4 text-foreground/40" />
               )}
@@ -148,21 +148,26 @@ export const TrackRow = memo(function TrackRow({
               onClick={() => onPlay(track)}
               disabled={!isReady}
               aria-label={isPlaying && isCurrent ? t('trackRow.pause') : t('trackRow.play')}
-              className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/25 to-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
+              className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {displayCover ? (
-                <CoverImage src={displayCover} alt="" sizes="44px" />
+                <CoverImage src={displayCover} alt="" sizes="40px" />
               ) : (
                 <Music className="size-4 text-foreground/40" />
               )}
               {isReady && (
-                <span className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 transition-opacity group-hover:opacity-100">
+                <span
+                  className={
+                    'absolute inset-0 flex items-center justify-center bg-black/45 text-white transition-opacity duration-150 group-hover:opacity-100 ' +
+                    (isCurrent ? 'opacity-100' : 'opacity-0')
+                  }
+                >
                   {isLoading && isCurrent ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : isPlaying && isCurrent ? (
-                    <Pause className="size-4" />
+                    <Pause className="size-4 fill-current" />
                   ) : (
-                    <Play className="size-4 translate-x-px" />
+                    <Play className="size-4 translate-x-px fill-current" />
                   )}
                 </span>
               )}
@@ -170,26 +175,35 @@ export const TrackRow = memo(function TrackRow({
           )}
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{track.title}</p>
-            <p className="truncate text-xs text-muted-foreground">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className={'truncate text-sm font-medium' + (isCurrent ? ' text-primary' : '')}>
+                {track.title}
+              </p>
+              {shared && (
+                <span className="shrink-0 rounded-full bg-primary/12 px-1.5 py-px text-[0.625rem] font-semibold tracking-wide text-primary uppercase">
+                  {t('trackRow.shared')}
+                </span>
+              )}
+            </div>
+            <p className="truncate text-[0.8125rem] text-muted-foreground">
               {showAsProject
                 ? selVersion?.projectFilename || t('trackRow.project')
                 : track.artist || t('trackRow.unknownArtist')}
             </p>
           </div>
 
-          <div className="hidden w-14 shrink-0 text-center text-xs text-muted-foreground lg:block">
+          <div className="hidden w-16 shrink-0 text-right text-xs text-muted-foreground tabular-nums lg:block">
             {showAsProject ? '' : track.bpm ? `${track.bpm} BPM` : '—'}
           </div>
-          <div className="hidden w-12 shrink-0 text-center text-xs text-muted-foreground lg:block">
+          <div className="hidden w-12 shrink-0 text-right text-xs text-muted-foreground lg:block">
             {showAsProject ? '' : formatMusicalKey(track.musicalKey) || '—'}
           </div>
 
-          <div className="hidden shrink-0 text-xs text-muted-foreground xl:block">
+          <div className="hidden w-24 shrink-0 text-right text-xs text-muted-foreground tabular-nums xl:block">
             {formatDate(track.createdAt)}
           </div>
 
-          <div className="hidden shrink-0 text-xs text-muted-foreground sm:block">
+          <div className="hidden min-w-12 shrink-0 text-right text-xs text-muted-foreground tabular-nums sm:block">
             {showAsProject ? (
               selVersion?.projectSize
                 ? formatBytes(selVersion.projectSize)
@@ -206,18 +220,12 @@ export const TrackRow = memo(function TrackRow({
             )}
           </div>
 
-          {shared && (
-            <span className="hidden shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary sm:inline-block">
-              {t('trackRow.shared')}
-            </span>
-          )}
-
           {hasProjectPanel && (
             <button
               onClick={() => setExpanded((e) => !e)}
               aria-expanded={expanded}
               aria-label={expanded ? t('trackRow.collapse') : t('trackRow.expand')}
-              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.07] hover:text-foreground"
             >
               <ChevronDown
                 className={
@@ -229,7 +237,7 @@ export const TrackRow = memo(function TrackRow({
           )}
 
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground">
+            <DropdownMenuTrigger className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.07] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-[popup-open]:bg-foreground/[0.07] data-[popup-open]:text-foreground">
               <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

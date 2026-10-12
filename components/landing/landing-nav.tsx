@@ -1,14 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { motion, useMotionValueEvent, useScroll } from 'motion/react'
+import { useMotionValueEvent, useScroll } from 'motion/react'
 import { useState } from 'react'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
 import { useT } from '@/lib/i18n/context'
-import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function LandingNav() {
@@ -19,48 +18,39 @@ export function LandingNav() {
   useMotionValueEvent(scrollY, 'change', (v) => setScrolled(v > 8))
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: ease.out }}
-      className="fixed inset-x-0 top-0 z-50"
+    <header
+      className={cn(
+        'fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color] duration-300 ease-apple',
+        scrolled ? 'material-bar border-border' : 'border-transparent',
+      )}
     >
-      <div
-        className={cn(
-          'mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 transition-[padding] duration-300 ease-apple sm:px-4',
-          scrolled ? 'py-2.5' : 'py-4',
-        )}
-      >
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link
           href="/"
-          className={cn(
-            'glass rounded-full px-4 py-2 transition-shadow duration-300',
-            scrolled && 'shadow-(--elevate-2)',
-          )}
+          className="-ml-1 rounded-lg px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <Logo />
         </Link>
-        <div
-          className={cn(
-            'glass flex items-center gap-1.5 rounded-full p-1.5 pl-2 transition-shadow duration-300',
-            scrolled && 'shadow-(--elevate-2)',
-          )}
-        >
+        <div className="flex items-center gap-1">
           <ThemeToggle />
           {loading ? (
-            <div className="h-9 w-28 animate-pulse rounded-full bg-muted" />
+            <div className="h-8 w-24 animate-pulse rounded-full bg-muted" />
           ) : user ? (
-            <Button render={<Link href="/library" />}>{t('nav.toLibrary')}</Button>
+            <Button render={<Link href="/library" />} size="sm" className="rounded-full px-3.5">
+              {t('nav.toLibrary')}
+            </Button>
           ) : (
             <>
-              <Button render={<Link href="/login" />} variant="ghost">
+              <Button render={<Link href="/login" />} variant="ghost" size="sm" className="rounded-full px-3">
                 {t('nav.signIn')}
               </Button>
-              <Button render={<Link href="/register" />}>{t('nav.signUp')}</Button>
+              <Button render={<Link href="/register" />} size="sm" className="rounded-full px-3.5">
+                {t('nav.signUp')}
+              </Button>
             </>
           )}
         </div>
       </div>
-    </motion.header>
+    </header>
   )
 }

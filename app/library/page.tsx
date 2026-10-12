@@ -27,7 +27,7 @@ type Tab = 'own' | 'shared' | 'collab'
 
 function PlaylistGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4 lg:grid-cols-5">
       {children}
     </div>
   )
@@ -127,10 +127,10 @@ export default function LibraryPage() {
         <div className="relative isolate">
           <AppNav />
 
-          <main className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+          <main className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-4 pb-8">
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-balance">
+                <h1 className="title-1 text-balance">
                   {t('library.title')}
                 </h1>
                 <p className="mt-1 text-muted-foreground">{t('library.subtitle')}</p>
@@ -139,7 +139,7 @@ export default function LibraryPage() {
             </div>
 
             {tabs.length > 1 && (
-              <div className="mb-6 flex gap-1 rounded-xl bg-muted/60 p-1 text-sm sm:w-fit">
+              <div className="mb-6 flex gap-1 rounded-[0.6rem] bg-muted p-[3px] text-sm sm:w-fit">
                 {tabs.map(([value, label]) => (
                   <button
                     key={value}
@@ -155,7 +155,7 @@ export default function LibraryPage() {
                       <motion.span
                         layoutId="library-tab"
                         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                        className="absolute inset-0 -z-10 rounded-lg bg-background shadow-sm"
+                        className="absolute inset-0 -z-10 rounded-[0.45rem] bg-card shadow-(--elevate-1) dark:bg-foreground/14"
                       />
                     )}
                     {label}
@@ -226,7 +226,7 @@ export default function LibraryPage() {
                 {playlists === null ? (
                   <PlaylistGrid>
                     {Array.from({ length: 10 }).map((_, i) => (
-                      <div key={i} className="flex flex-col gap-3 p-2">
+                      <div key={i} className="flex flex-col gap-2.5">
                         <Skeleton className="aspect-square w-full rounded-xl" />
                         <Skeleton className="h-4 w-3/4" />
                       </div>
@@ -234,7 +234,7 @@ export default function LibraryPage() {
                   </PlaylistGrid>
                 ) : playlists.length === 0 ? (
                   <Reveal>
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-border py-24 text-center">
+                    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border py-24 text-center">
                       <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
                         <Music className="size-6 text-muted-foreground" />
                       </div>

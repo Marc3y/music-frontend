@@ -105,7 +105,7 @@ export function EditPlaylistDialog({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="group relative size-20 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primary/25 to-accent/15"
+              className="group relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted"
             >
               {coverPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element

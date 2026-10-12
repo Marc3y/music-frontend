@@ -143,14 +143,14 @@ export default function SharePage({
       <AuroraBackground variant="auth" />
 
       <Link href="/" className="relative mb-8">
-        <Logo className="[&_span]:text-xl" />
+        <Logo />
       </Link>
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="glass relative w-full max-w-sm rounded-3xl p-7 text-center shadow-(--elevate-3)"
+        className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-7 text-center shadow-(--elevate-2)"
       >
         {error ? (
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -194,10 +194,10 @@ export default function SharePage({
           </div>
         ) : (
           <>
-            <div className="mx-auto flex size-28 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-accent/20 glow-primary">
+            <div className="mx-auto flex size-32 items-center justify-center rounded-xl bg-muted shadow-(--elevate-2)">
               <Music className="size-10 text-foreground/50" />
             </div>
-            <h1 className="mt-5 text-xl font-semibold text-balance">{track.title}</h1>
+            <h1 className="mt-6 text-[1.375rem] leading-tight font-semibold tracking-[-0.02em] text-balance">{track.title}</h1>
             <p className="mt-1 text-muted-foreground">
               {track.artist || t('publicShare.unknownArtist')}
             </p>
@@ -214,11 +214,11 @@ export default function SharePage({
               </p>
             )}
 
-            <Button size="lg" className="mt-6 h-11 w-full" onClick={handlePlay}>
+            <Button size="lg" className="mt-6 h-11 w-full rounded-full" onClick={handlePlay}>
               {isCurrent && player.isPlaying ? (
-                <Pause className="size-4" />
+                <Pause className="size-4 fill-current" />
               ) : (
-                <Play className="size-4" />
+                <Play className="size-4 fill-current" />
               )}
               {isCurrent && player.isPlaying ? t('publicShare.pause') : t('publicShare.play')}
             </Button>
@@ -226,7 +226,7 @@ export default function SharePage({
             {track.projectUrl && (
               <a
                 href={track.projectUrl}
-                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium transition-colors hover:bg-muted"
+                className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-border text-sm font-medium transition-colors hover:bg-muted"
               >
                 <Download className="size-4" />
                 {t('publicShare.downloadProjectFile')}

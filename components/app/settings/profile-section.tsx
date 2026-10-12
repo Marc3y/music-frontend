@@ -75,7 +75,7 @@ export function ProfileSection() {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="group relative size-20 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-primary/25 to-accent/15"
+          className="group relative size-20 shrink-0 overflow-hidden rounded-full bg-muted"
         >
           {user?.avatarUrl ? (
             <CoverImage src={user.avatarUrl} alt="" sizes="80px" />

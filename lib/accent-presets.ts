@@ -16,7 +16,7 @@ export interface AccentPreset {
 }
 
 export const ACCENT_PRESETS: AccentPreset[] = [
-  { id: 'indigo', labelKey: 'settings.accentIndigo', swatch: 'oklch(0.52 0.2 264)' },
+  { id: 'indigo', labelKey: 'settings.accentIndigo', swatch: 'oklch(0.55 0.19 268)' },
   { id: 'blue', labelKey: 'settings.accentBlue', swatch: 'oklch(0.5 0.18 246)' },
   { id: 'teal', labelKey: 'settings.accentTeal', swatch: 'oklch(0.52 0.13 195)' },
   { id: 'green', labelKey: 'settings.accentGreen', swatch: 'oklch(0.54 0.15 148)' },

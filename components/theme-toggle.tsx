@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '@/lib/theme-context'
-import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function ThemeToggle({ className }: { className?: string }) {
@@ -14,23 +13,23 @@ export function ThemeToggle({ className }: { className?: string }) {
     <motion.button
       type="button"
       onClick={toggle}
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.92 }}
       aria-label={isDark ? 'Zu hellem Modus wechseln' : 'Zu dunklem Modus wechseln'}
       className={cn(
-        'relative flex size-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full text-muted-foreground transition-colors hover:text-foreground',
+        'relative flex size-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40',
         className,
       )}
     >
       <AnimatePresence initial={false} mode="wait">
         <motion.span
           key={mounted ? theme : 'ssr'}
-          initial={{ y: 12, opacity: 0, rotate: -35 }}
-          animate={{ y: 0, opacity: 1, rotate: 0 }}
-          exit={{ y: -12, opacity: 0, rotate: 35 }}
-          transition={{ duration: 0.28, ease: ease.out }}
+          initial={{ opacity: 0, scale: 0.6, rotate: -45 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          exit={{ opacity: 0, scale: 0.6, rotate: 45 }}
+          transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          {isDark ? <Moon className="size-[18px]" /> : <Sun className="size-[18px]" />}
+          {isDark ? <Moon className="size-[17px]" /> : <Sun className="size-[17px]" />}
         </motion.span>
       </AnimatePresence>
     </motion.button>

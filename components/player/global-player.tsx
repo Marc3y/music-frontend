@@ -66,7 +66,7 @@ function PlaybackProgress({
   return (
     <>
       <BarsWaveform peaks={peaks} progress={progress} onSeek={onSeek} />
-      <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground tabular-nums">
+      <div className="mt-2 flex justify-between text-xs font-medium text-muted-foreground tabular-nums">
         <span>{formatTime(currentTime)}</span>
         <span>{formatTime(duration || fallbackDuration)}</span>
       </div>
@@ -129,7 +129,7 @@ export function GlobalPlayer() {
               className="pointer-events-none absolute inset-x-0 -top-24 bottom-0 transition-[background] duration-700 ease-out"
               style={{
                 background: coverGlow
-                  ? `radial-gradient(130% 62% at 50% 4%, rgb(${coverGlow} / 0.5), transparent 62%)`
+                  ? `radial-gradient(130% 62% at 50% 4%, rgb(${coverGlow} / 0.38), transparent 62%)`
                   : 'radial-gradient(120% 60% at 50% 4%, var(--glow-cool), transparent 64%)',
               }}
             />
@@ -137,7 +137,7 @@ export function GlobalPlayer() {
               className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 transition-[background] duration-700 ease-out"
               style={{
                 background: coverGlow
-                  ? `radial-gradient(80% 100% at 78% 100%, rgb(${coverGlow} / 0.32), transparent 70%)`
+                  ? `radial-gradient(80% 100% at 78% 100%, rgb(${coverGlow} / 0.2), transparent 70%)`
                   : 'radial-gradient(80% 100% at 80% 100%, var(--glow-warm), transparent 70%)',
               }}
             />
@@ -146,12 +146,12 @@ export function GlobalPlayer() {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => player.setExpanded(false)}
-                className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.07] hover:text-foreground"
                 aria-label={t('player.close')}
               >
                 <ChevronDown className="size-6" />
               </motion.button>
-              <span className="text-[0.7rem] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+              <span className="eyebrow">
                 {t('player.playback')}
               </span>
               <div className="flex items-center gap-1">
@@ -161,7 +161,7 @@ export function GlobalPlayer() {
                     onClick={openShare}
                     disabled={loadingShare}
                     aria-label={t('player.share')}
-                    className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    className="inline-flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.07] hover:text-foreground disabled:opacity-50"
                   >
                     {loadingShare ? (
                       <Loader2 className="size-4 animate-spin" />
@@ -183,13 +183,13 @@ export function GlobalPlayer() {
                 style={
                   coverGlow
                     ? {
-                        boxShadow: `0 32px 120px -24px rgb(${coverGlow} / 0.65), 0 0 60px -12px rgb(${coverGlow} / 0.45)`,
+                        boxShadow: `0 30px 80px -28px rgb(${coverGlow} / 0.6), 0 8px 24px -12px rgb(0 0 0 / 0.35)`,
                       }
                     : undefined
                 }
                 className={cn(
-                  'relative aspect-square w-full max-w-64 shrink-0 overflow-hidden rounded-[2rem] transition-shadow duration-700 ease-out sm:max-w-[19rem]',
-                  !coverGlow && 'glow-primary',
+                  'relative aspect-square w-full max-w-64 shrink-0 overflow-hidden rounded-2xl transition-shadow duration-700 ease-out sm:max-w-[19rem]',
+                  !coverGlow && 'shadow-(--elevate-3)',
                 )}
               >
                 {current.coverUrl ? (
@@ -200,7 +200,7 @@ export function GlobalPlayer() {
                     priority
                   />
                 ) : (
-                  <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/25 to-accent/20">
+                  <div className="flex size-full items-center justify-center bg-muted">
                     <Music className="size-20 text-foreground/40" />
                   </div>
                 )}
@@ -212,7 +212,7 @@ export function GlobalPlayer() {
                 transition={{ duration: 0.4, delay: 0.16, ease: ease.out }}
                 className="w-full max-w-md text-center"
               >
-                <h2 className="truncate text-2xl font-semibold tracking-tight text-balance">
+                <h2 className="truncate text-2xl font-semibold tracking-[-0.022em] text-balance">
                   {current.title}
                 </h2>
                 <p className="mt-1 truncate text-muted-foreground">
@@ -257,19 +257,19 @@ export function GlobalPlayer() {
           !hasTrack && 'pointer-events-none',
         )}
       >
-        <div className="mx-auto max-w-xl px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div className="glass relative overflow-hidden rounded-2xl shadow-(--elevate-3)">
+        <div className="mx-auto max-w-2xl px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="glass relative overflow-hidden rounded-[1.125rem] shadow-(--elevate-3)">
                 <div className="flex items-center gap-3 p-2.5 sm:gap-4 sm:p-3">
                   <button
                     onClick={() => player.setExpanded(true)}
-                    className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left transition-opacity hover:opacity-80"
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring/40"
                     aria-label={t('player.expand')}
                   >
-                    <div className="relative size-11 shrink-0 overflow-hidden rounded-xl ring-1 ring-border/70 sm:size-12">
+                    <div className="relative size-11 shrink-0 overflow-hidden rounded-lg shadow-(--elevate-1) after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-1 after:ring-foreground/8 after:ring-inset">
                       {current?.coverUrl ? (
                         <CoverImage src={current.coverUrl} alt="" sizes="48px" />
                       ) : (
-                        <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/30 to-accent/20">
+                        <div className="flex size-full items-center justify-center bg-muted">
                           <Music className="size-5 text-foreground/50" />
                         </div>
                       )}
@@ -290,7 +290,7 @@ export function GlobalPlayer() {
 
                   <VolumeControl className="hidden w-24 shrink-0 xl:flex" />
 
-                  <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-secondary/60 p-1">
+                  <div className="flex shrink-0 items-center gap-0.5">
                     <IconButton
                       onClick={player.toggleShuffle}
                       active={shuffle}
@@ -300,7 +300,7 @@ export function GlobalPlayer() {
                       <Shuffle className="size-3.5" />
                     </IconButton>
                     <IconButton onClick={player.prev} label={t('player.previous')} className="size-8">
-                      <SkipBack className="size-4" />
+                      <SkipBack className="size-4 fill-current" />
                     </IconButton>
                     <PlayButton
                       isPlaying={isPlaying}
@@ -313,7 +313,7 @@ export function GlobalPlayer() {
                       label={t('player.next')}
                       className="size-8"
                     >
-                      <SkipForward className="size-4" />
+                      <SkipForward className="size-4 fill-current" />
                     </IconButton>
                     <IconButton
                       onClick={player.cycleLoop}
@@ -353,7 +353,7 @@ function PlaybackFxMenu() {
       <DropdownMenuTrigger
         aria-label={t('player.playbackFx')}
         className={cn(
-          'inline-flex size-9 items-center justify-center rounded-full outline-none transition-colors hover:bg-muted',
+          'inline-flex size-9 items-center justify-center rounded-full outline-none transition-colors hover:bg-foreground/[0.07]',
           active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
         )}
       >
@@ -364,7 +364,7 @@ function PlaybackFxMenu() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs font-medium">
               <span>{t('player.speed')}</span>
-              <span className="font-mono text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground tabular-nums">
                 {speed.toFixed(2)}×
               </span>
             </div>
@@ -380,7 +380,7 @@ function PlaybackFxMenu() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs font-medium">
               <span>{t('player.pitch')}</span>
-              <span className="font-mono text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground tabular-nums">
                 {pitch > 0 ? `+${pitch}` : pitch} st
               </span>
             </div>
@@ -427,7 +427,7 @@ function PlayButton({
       transition={{ duration: 0.12, ease: ease.apple }}
       aria-label={isPlaying ? t('player.pause') : t('player.play')}
       className={cn(
-        'relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-(--elevate-2)',
+        'relative inline-flex items-center justify-center rounded-full bg-foreground text-background outline-none transition-transform focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         size === 'lg' ? 'size-16' : 'size-9',
       )}
     >
@@ -443,9 +443,9 @@ function PlayButton({
           {isLoading ? (
             <Loader2 className={cn(size === 'lg' ? 'size-7' : 'size-4', 'animate-spin')} />
           ) : isPlaying ? (
-            <Pause className={size === 'lg' ? 'size-7' : 'size-4'} />
+            <Pause className={cn(size === 'lg' ? 'size-7' : 'size-4', 'fill-current')} />
           ) : (
-            <Play className={cn(size === 'lg' ? 'size-7' : 'size-4', 'translate-x-px')} />
+            <Play className={cn(size === 'lg' ? 'size-7 translate-x-0.5' : 'size-4 translate-x-px', 'fill-current')} />
           )}
         </motion.span>
       </AnimatePresence>
@@ -518,8 +518,10 @@ function IconButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        'inline-flex size-9 items-center justify-center rounded-full transition-colors',
-        active ? 'text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        'relative inline-flex size-9 items-center justify-center rounded-full outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/40',
+        active
+          ? 'text-primary after:absolute after:bottom-0.5 after:size-1 after:rounded-full after:bg-primary'
+          : 'text-foreground/70 hover:bg-foreground/[0.07] hover:text-foreground',
         className,
       )}
     >
@@ -541,7 +543,7 @@ function Controls({
 }) {
   const t = useT()
   return (
-    <div className="flex items-center justify-center gap-3 sm:gap-4">
+    <div className="flex items-center justify-center gap-4 sm:gap-7">
       <IconButton
         onClick={player.toggleShuffle}
         active={player.shuffle}
@@ -550,9 +552,9 @@ function Controls({
         <Shuffle className="size-5" />
       </IconButton>
 
-      <div className="flex items-center gap-1 rounded-full bg-secondary/60 p-1.5">
-        <IconButton onClick={player.prev} label={t('player.previous')} className="size-11">
-          <SkipBack className="size-6" />
+      <div className="flex items-center gap-3 sm:gap-5">
+        <IconButton onClick={player.prev} label={t('player.previous')} className="size-12 text-foreground">
+          <SkipBack className="size-7 fill-current" />
         </IconButton>
         <PlayButton
           isPlaying={isPlaying}
@@ -560,8 +562,8 @@ function Controls({
           onClick={player.togglePlay}
           size={large ? 'lg' : 'sm'}
         />
-        <IconButton onClick={() => player.next()} label={t('player.next')} className="size-11">
-          <SkipForward className="size-6" />
+        <IconButton onClick={() => player.next()} label={t('player.next')} className="size-12 text-foreground">
+          <SkipForward className="size-7 fill-current" />
         </IconButton>
       </div>
 

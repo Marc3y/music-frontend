@@ -44,17 +44,9 @@ export default function SubscriptionPage() {
         <div className="relative isolate">
           <AppNav />
 
-          <main className="mx-auto max-w-5xl px-4 pt-4 sm:px-6">
-            <Reveal className="pt-6 pb-8 text-center">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ ...{ type: 'spring', stiffness: 260, damping: 20 }, delay: 0.05 }}
-                className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/12 text-primary"
-              >
-                <Sparkles className="size-6" />
-              </motion.div>
-              <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          <main className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+            <Reveal className="pt-4 pb-8 text-center sm:pt-8">
+              <h1 className="text-[1.875rem] leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-[2.5rem]">
                 {t('subscription.title')}
               </h1>
               <p className="mx-auto mt-2 max-w-md text-muted-foreground">
@@ -63,7 +55,7 @@ export default function SubscriptionPage() {
             </Reveal>
 
             <Reveal delayIndex={1} className="mb-8 flex justify-center">
-              <div className="flex items-center gap-1 rounded-full bg-muted/60 p-1 text-sm">
+              <div className="flex items-center gap-1 rounded-full bg-muted p-[3px] text-sm">
                 {([false, true] as const).map((y) => (
                   <button
                     key={String(y)}
@@ -79,7 +71,7 @@ export default function SubscriptionPage() {
                       <motion.span
                         layoutId="billing-toggle"
                         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                        className="absolute inset-0 -z-10 rounded-full bg-background shadow-sm"
+                        className="absolute inset-0 -z-10 rounded-full bg-card shadow-(--elevate-1) dark:bg-foreground/14"
                       />
                     )}
                     {y ? t('subscription.yearly') : t('subscription.monthly')}
@@ -106,12 +98,11 @@ export default function SubscriptionPage() {
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.15 + i * 0.09, ease: ease.out }}
-                    whileHover={{ y: -4 }}
                     className={cn(
-                      'relative flex flex-col rounded-3xl border p-6 shadow-(--elevate-1)',
+                      'relative flex flex-col rounded-2xl border p-6',
                       featured
-                        ? 'border-primary/40 bg-card shadow-(--elevate-2)'
-                        : 'border-border bg-card/60',
+                        ? 'border-primary/50 bg-card shadow-(--elevate-2) ring-1 ring-primary/20'
+                        : 'border-border bg-card',
                     )}
                   >
                     {featured && (
@@ -124,7 +115,7 @@ export default function SubscriptionPage() {
                       {Icon && (
                         <span
                           className={cn(
-                            'flex size-8 items-center justify-center rounded-xl',
+                            'flex size-8 items-center justify-center rounded-lg',
                             plan.id === 'unlimited'
                               ? 'bg-amber-500/15 text-amber-500'
                               : 'bg-primary/15 text-primary',
@@ -137,7 +128,7 @@ export default function SubscriptionPage() {
                     </div>
 
                     <div className="mt-4 flex items-baseline gap-1">
-                      <span className="text-3xl font-semibold tracking-tight">
+                      <span className="text-3xl font-semibold tracking-[-0.03em] tabular-nums">
                         {price === 0 ? t('subscription.free') : `€${price.toFixed(2)}`}
                       </span>
                       {price > 0 && (

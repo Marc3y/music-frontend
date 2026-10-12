@@ -149,15 +149,15 @@ export default function UsagePage() {
         <div className="relative isolate">
           <AppNav />
 
-          <main className="mx-auto max-w-3xl px-4 pt-4 sm:px-6">
+          <main className="mx-auto max-w-3xl px-4 pt-6 sm:px-6">
             <Reveal className="pb-8">
-              <h1 className="text-3xl font-semibold tracking-tight text-balance">
+              <h1 className="title-1 text-balance">
                 {tr('usagePage.title')}
               </h1>
               <p className="mt-1 text-muted-foreground">{tr('usagePage.subtitle')}</p>
             </Reveal>
 
-            <Reveal delayIndex={1} className="glass block rounded-2xl p-5 shadow-(--elevate-1)">
+            <Reveal delayIndex={1} className="block rounded-2xl border border-border bg-card p-5">
               {usage === null ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -196,7 +196,7 @@ export default function UsagePage() {
               )}
             </Reveal>
 
-            <Reveal delayIndex={2} className="mt-8 mb-3 flex gap-1 rounded-xl bg-muted/60 p-1 text-sm">
+            <Reveal delayIndex={2} className="mt-8 mb-3 flex gap-1 rounded-[0.6rem] bg-muted p-[3px] text-sm">
               {(['tracks', 'projects'] as Tab[]).map((t) => (
                 <button
                   key={t}
@@ -212,7 +212,7 @@ export default function UsagePage() {
                     <motion.span
                       layoutId="usage-tab"
                       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                      className="absolute inset-0 -z-10 rounded-lg bg-background shadow-sm"
+                      className="absolute inset-0 -z-10 rounded-[0.45rem] bg-card shadow-(--elevate-1) dark:bg-foreground/14"
                     />
                   )}
                   {t === 'tracks'
@@ -378,7 +378,7 @@ function Row({
         </p>
         <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
       </div>
-      <span className="shrink-0 font-mono text-sm tabular-nums">{formatBytes(size)}</span>
+      <span className="shrink-0 text-sm tabular-nums">{formatBytes(size)}</span>
       <button
         onClick={onDelete}
         disabled={deleting}

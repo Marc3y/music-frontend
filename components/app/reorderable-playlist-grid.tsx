@@ -133,7 +133,7 @@ export function ReorderablePlaylistGrid<T extends WithId>({
   const reordering = draggingId !== null
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4 lg:grid-cols-5">
       {items.map((item) => {
         const isDragging = draggingId === item._id
         return (
@@ -158,7 +158,7 @@ export function ReorderablePlaylistGrid<T extends WithId>({
             style={{ touchAction: isDragging ? 'none' : undefined }}
             className={
               isDragging
-                ? 'relative z-10 scale-[1.03] cursor-grabbing rounded-2xl shadow-xl ring-1 ring-primary/40'
+                ? 'relative z-10 scale-[1.03] cursor-grabbing rounded-xl opacity-90'
                 : 'cursor-default'
             }
           >

@@ -204,7 +204,7 @@ const PlainTrackList = forwardRef<ReorderableTrackListHandle, Props>(function Pl
   const reordering = draggingId !== null
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="-mx-2 flex flex-col gap-px sm:-mx-3">
       {tracks.map((track, index) => {
         const isDragging = draggingId === track._id
         return (
@@ -233,18 +233,18 @@ const PlainTrackList = forwardRef<ReorderableTrackListHandle, Props>(function Pl
             }}
             className={
               isDragging
-                ? 'z-10 scale-[1.015] cursor-grabbing rounded-xl bg-card shadow-xl ring-1 ring-border'
+                ? 'z-10 scale-[1.01] cursor-grabbing rounded-lg bg-popover shadow-(--elevate-3) ring-1 ring-border'
                 : highlightId === track._id
-                  ? 'cursor-default rounded-xl ring-2 ring-primary transition-shadow'
-                  : 'cursor-default rounded-xl ring-0 transition-shadow'
+                  ? 'cursor-default rounded-lg ring-2 ring-primary transition-shadow'
+                  : 'cursor-default rounded-lg ring-0 transition-shadow'
             }
           >
-            <div className="flex items-center">
+            <div className="relative flex items-center">
               <div
                 className={
                   isDragging
-                    ? 'flex w-5 shrink-0 items-center justify-center text-muted-foreground transition-colors'
-                    : 'flex w-5 shrink-0 items-center justify-center text-transparent transition-colors'
+                    ? 'pointer-events-none absolute top-1/2 -left-5 hidden w-5 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors sm:flex'
+                    : 'pointer-events-none absolute top-1/2 -left-5 hidden w-5 -translate-y-1/2 items-center justify-center text-transparent transition-colors sm:flex'
                 }
               >
                 <GripVertical className="size-4" />

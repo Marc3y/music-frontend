@@ -97,12 +97,12 @@ export function SharedItemsList({
               <button
                 onClick={() => playAudio(item)}
                 aria-label={playing ? t('player.pause') : t('player.play')}
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-accent/15"
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted"
               >
                 {playing ? <Pause className="size-4" /> : <Play className="size-4 translate-x-px" />}
               </button>
             ) : (
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-accent/15">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
                 <FileArchive className="size-4 text-foreground/50" />
               </div>
             )}

@@ -31,7 +31,7 @@ function Circle({ user, className }: { user: UserBrief; className?: string }) {
   return (
     <Avatar.Root
       className={cn(
-        'inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/30 to-accent/20 text-[10px] font-medium text-primary-foreground ring-2 ring-background select-none',
+        'inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/10 text-[10px] font-semibold text-foreground ring-2 ring-background select-none',
         className,
       )}
       title={user.username}

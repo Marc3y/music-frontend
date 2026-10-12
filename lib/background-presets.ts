@@ -32,36 +32,34 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   {
     id: 'aurora',
     labelKey: 'settings.bgAurora',
-    swatch:
-      'radial-gradient(circle at 28% 22%, oklch(0.62 0.19 264 / 0.55), transparent 60%), radial-gradient(circle at 78% 85%, oklch(0.72 0.15 52 / 0.4), transparent 60%)',
+    swatch: 'radial-gradient(120% 90% at 50% -10%, oklch(0.6 0.12 268 / 0.35), transparent 70%)',
   },
   {
     id: 'minimal',
     labelKey: 'settings.bgMinimal',
-    swatch: 'radial-gradient(circle at 50% 0%, oklch(0.6 0.12 264 / 0.3), transparent 75%)',
+    swatch: 'linear-gradient(transparent, transparent)',
   },
   {
     id: 'spotlight',
     labelKey: 'settings.bgSpotlight',
-    swatch: 'radial-gradient(circle at 50% 25%, oklch(0.68 0.16 264 / 0.6), transparent 65%)',
+    swatch: 'radial-gradient(80% 90% at 50% 0%, oklch(0.62 0.16 268 / 0.55), transparent 70%)',
   },
   {
     id: 'mesh',
     labelKey: 'settings.bgMesh',
     swatch:
-      'radial-gradient(circle at 18% 28%, oklch(0.6 0.22 285 / 0.55), transparent 55%), radial-gradient(circle at 78% 72%, oklch(0.6 0.18 200 / 0.45), transparent 55%)',
+      'radial-gradient(circle at 20% 0%, oklch(0.6 0.16 285 / 0.4), transparent 60%), radial-gradient(circle at 90% 100%, oklch(0.6 0.13 205 / 0.3), transparent 60%)',
   },
   {
     id: 'warm',
     labelKey: 'settings.bgWarm',
     swatch:
-      'radial-gradient(circle at 25% 20%, oklch(0.72 0.16 42 / 0.55), transparent 60%), radial-gradient(circle at 80% 85%, oklch(0.74 0.15 70 / 0.45), transparent 60%)',
+      'radial-gradient(circle at 30% 0%, oklch(0.72 0.13 45 / 0.45), transparent 60%), radial-gradient(circle at 90% 100%, oklch(0.74 0.11 75 / 0.3), transparent 60%)',
   },
   {
     id: 'mono',
     labelKey: 'settings.bgMono',
-    swatch:
-      'radial-gradient(circle at 30% 25%, oklch(0.6 0.01 260 / 0.55), transparent 60%), radial-gradient(circle at 80% 85%, oklch(0.5 0.01 260 / 0.45), transparent 60%)',
+    swatch: 'radial-gradient(120% 90% at 50% -10%, oklch(0.6 0 0 / 0.35), transparent 70%)',
   },
   {
     id: 'dots',

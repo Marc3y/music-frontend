@@ -3,7 +3,6 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { audioApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 import { analyzeAudioFile } from '@/lib/audio-analysis'
@@ -192,13 +191,17 @@ export const TrackUploader = forwardRef<
           e.target.value = ''
         }}
       />
-      <Button size="lg" onClick={() => inputRef.current?.click()}>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-foreground/15 text-sm font-medium text-muted-foreground outline-none transition-[color,background-color,border-color,transform] duration-150 hover:border-foreground/30 hover:bg-foreground/[0.03] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.995]"
+      >
         <Upload className="size-4" />
         {t('uploader.button')}
-      </Button>
+      </button>
 
       {items.length > 0 && (
-        <div className="glass flex flex-col gap-2 rounded-2xl p-3 shadow-(--elevate-1)">
+        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3">
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-3 text-sm">
               <div className="min-w-0 flex-1">

@@ -27,10 +27,10 @@ export function TierBadge({
       title={label}
       aria-label={label}
       className={cn(
-        'inline-flex size-5 shrink-0 items-center justify-center rounded-full ring-1',
+        'inline-flex size-5 shrink-0 items-center justify-center rounded-full',
         isUnlimited
-          ? 'bg-amber-500/15 text-amber-500 ring-amber-500/30'
-          : 'bg-primary/15 text-primary ring-primary/30',
+          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+          : 'bg-primary/12 text-primary',
         className,
       )}
     >

@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'motion/react'
 import { Music, Pencil, Share2, Trash2, Users, X } from 'lucide-react'
 import {
   ContextMenu,
@@ -10,7 +9,6 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
 import { CoverImage } from '@/components/ui/cover-image'
-import { liftHover } from '@/lib/motion'
 import { useT } from '@/lib/i18n/context'
 import type { Playlist } from '@/lib/types'
 
@@ -46,16 +44,16 @@ export function PlaylistCard({
             onRemove()
           }}
           aria-label={t('common.remove')}
-          className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity will-change-transform hover:text-destructive group-hover:opacity-100"
+          className="absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-md transition-opacity duration-150 hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100 [@media(pointer:coarse)]:opacity-100"
         >
           <X className="size-4" />
         </button>
       )}
       <Link
         href={href ?? `/library/${playlist._id}`}
-        className="flex flex-col gap-3 rounded-2xl p-2 transition-colors hover:bg-card/60"
+        className="flex flex-col gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-4 focus-visible:ring-offset-background"
       >
-        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-all duration-300 group-hover:shadow-(--elevate-3) group-hover:ring-primary/30">
+        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted shadow-(--elevate-1) transition-[transform,box-shadow] duration-200 ease-out after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:ring-1 after:ring-foreground/8 after:ring-inset after:transition-colors after:duration-200 group-hover:shadow-(--elevate-2) group-hover:after:bg-foreground/5 group-active:scale-[0.98] group-active:duration-75">
           {playlist.coverUrl ? (
             <CoverImage
               src={playlist.coverUrl}
@@ -64,13 +62,13 @@ export function PlaylistCard({
             />
           ) : (
             <div className="flex size-full items-center justify-center">
-              <Music className="size-10 text-foreground/40" />
+              <Music className="size-9 text-muted-foreground/60" strokeWidth={1.5} />
             </div>
           )}
         </div>
-        <div className="min-w-0 px-1">
-          <p className="truncate text-sm font-medium">{playlist.name}</p>
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+        <div className="min-w-0">
+          <p className="truncate text-[0.8125rem] leading-snug font-medium">{playlist.name}</p>
+          <p className="mt-0.5 flex items-center gap-1 text-[0.8125rem] leading-snug text-muted-foreground">
             {!!collaboratorCount && (
               <span
                 title={t('library.hasCollaborators', { count: collaboratorCount })}
@@ -88,15 +86,15 @@ export function PlaylistCard({
 
   if (!hasMenu) {
     return (
-      <motion.div {...liftHover} className="group relative">
+      <div className="group relative">
         {card}
-      </motion.div>
+      </div>
     )
   }
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger render={<motion.div {...liftHover} className="group relative" />}>
+      <ContextMenuTrigger render={<div className="group relative" />}>
         {card}
       </ContextMenuTrigger>
       <ContextMenuContent>

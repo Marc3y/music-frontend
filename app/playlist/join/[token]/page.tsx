@@ -52,12 +52,12 @@ export default function JoinPlaylistPage({
     <main className="relative flex min-h-dvh flex-col items-center justify-center px-4 py-16">
       <AuroraBackground variant="auth" />
       <Link href="/" className="relative mb-8">
-        <Logo className="[&_span]:text-xl" />
+        <Logo />
       </Link>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass relative w-full max-w-sm rounded-3xl p-7 text-center shadow-(--elevate-3)"
+        className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-7 text-center shadow-(--elevate-2)"
       >
         {error ? (
           <>

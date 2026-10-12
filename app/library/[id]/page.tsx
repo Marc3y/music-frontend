@@ -376,7 +376,7 @@ export default function PlaylistPage({
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.94, y: 8 }}
                 transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-                className="glass flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-primary/60 px-12 py-10 text-center shadow-(--elevate-3)"
+                className="glass flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/60 px-12 py-10 text-center shadow-(--elevate-3)"
               >
                 <Upload className="size-8 text-primary" />
                 <p className="font-medium">{t('playlistPage.dropHere')}</p>
@@ -394,14 +394,14 @@ export default function PlaylistPage({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25, ease: ease.apple }}
               onClick={() => setCoverZoom(false)}
-              className="fixed inset-0 z-[70] flex items-center justify-center bg-background/70 p-8"
+              className="fixed inset-0 z-[70] flex cursor-zoom-out items-center justify-center bg-black/40 p-8 dark:bg-black/65"
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.92, opacity: 0 }}
                 transition={{ duration: 0.32, ease: ease.apple }}
-                className="relative aspect-square w-[min(80vw,32rem)] overflow-hidden rounded-3xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-3) ring-1 ring-border/60"
+                className="relative aspect-square w-[min(80vw,32rem)] overflow-hidden rounded-2xl bg-muted shadow-(--elevate-3)"
               >
                 {playlist.coverUrl ? (
                   <CoverImage src={playlist.coverUrl} alt="" sizes="min(80vw, 512px)" />
@@ -418,7 +418,7 @@ export default function PlaylistPage({
         <div className="relative isolate">
           <AppNav />
 
-          <main className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+          <main className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
             <Reveal>
             <Link
               href="/library"
@@ -430,14 +430,14 @@ export default function PlaylistPage({
 
             {!playlist ? (
               <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-                <Skeleton className="size-32 shrink-0 rounded-2xl sm:size-40" />
+                <Skeleton className="size-36 shrink-0 rounded-xl sm:size-48" />
                 <div className="flex flex-1 flex-col gap-2">
                   <Skeleton className="h-8 w-64" />
                   <Skeleton className="h-4 w-32" />
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-6 pb-8 sm:flex-row sm:items-end">
+              <div className="flex flex-col gap-6 pb-10 sm:flex-row sm:items-end sm:gap-8">
                 {(() => {
                   const coverInner = playlist.coverUrl ? (
                     <CoverImage
@@ -451,13 +451,11 @@ export default function PlaylistPage({
                     </div>
                   )
                   const coverClassName =
-                    'group/cover relative aspect-square size-32 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-primary/25 to-accent/15 shadow-(--elevate-2) ring-1 ring-border/60 transition-shadow duration-300 select-none group-hover/cover:shadow-(--elevate-3) sm:size-40'
+                    'group/cover relative aspect-square size-36 shrink-0 cursor-zoom-in overflow-hidden rounded-xl bg-muted shadow-(--elevate-2) transition-transform duration-200 ease-out select-none after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:ring-1 after:ring-foreground/8 after:ring-inset active:scale-[0.98] sm:size-48'
 
                   if (!isOwner) {
                     return (
                       <motion.div
-                        whileHover={{ y: -3 }}
-                        transition={spring.soft}
                         onClick={handleCoverClick}
                         className={coverClassName}
                       >
@@ -471,8 +469,6 @@ export default function PlaylistPage({
                       <ContextMenuTrigger
                         render={
                           <motion.div
-                            whileHover={{ y: -3 }}
-                            transition={spring.soft}
                             onClick={handleCoverClick}
                             className={coverClassName}
                           />
@@ -501,7 +497,7 @@ export default function PlaylistPage({
                 />
                 <div className="flex flex-1 flex-wrap items-end justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+                    <p className="eyebrow">
                       {t('playlistPage.playlistKicker')}
                     </p>
                     {nameDraft !== null ? (
@@ -519,12 +515,12 @@ export default function PlaylistPage({
                             setNameDraft(null)
                           }
                         }}
-                        className="mt-1 w-full max-w-md bg-transparent p-0 text-3xl font-semibold tracking-tight outline-none focus:outline-none focus-visible:ring-0"
+                        className="mt-2 w-full max-w-md bg-transparent p-0 text-[1.875rem] leading-tight font-semibold tracking-[-0.025em] outline-none focus:outline-none focus-visible:ring-0 sm:text-[2.5rem]"
                       />
                     ) : (
                       <h1
                         onDoubleClick={() => setNameDraft(playlist.name)}
-                        className="mt-1 text-3xl font-semibold tracking-tight text-balance"
+                        className="mt-2 text-[1.875rem] leading-tight font-semibold tracking-[-0.025em] text-balance sm:text-[2.5rem]"
                       >
                         {playlist.name}
                         {savingName && (
@@ -534,7 +530,7 @@ export default function PlaylistPage({
                         )}
                       </h1>
                     )}
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1.5 text-sm text-muted-foreground">
                       {(() => {
                         const ts = tracks ?? []
                         const audio = ts.filter((x) => (x.kind ?? 'track') !== 'project').length
@@ -615,7 +611,7 @@ export default function PlaylistPage({
                 ))}
               </div>
             ) : tracks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border py-20 text-center">
+              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
                 <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
                   <Music className="size-6 text-muted-foreground" />
                 </div>
@@ -642,7 +638,7 @@ export default function PlaylistPage({
                   <>
                     {hasAudio && hasProjects && (
                       <div className="mb-3 flex justify-end">
-                        <div className="flex gap-1 rounded-xl bg-muted/60 p-1 text-xs">
+                        <div className="flex gap-1 rounded-[0.6rem] bg-muted p-[3px] text-xs">
                           {(
                             [
                               ['all', t('playlistPage.filterAll')],
@@ -654,9 +650,9 @@ export default function PlaylistPage({
                               key={value}
                               onClick={() => setFilter(value)}
                               className={
-                                'rounded-lg px-3 py-1 font-medium transition-colors ' +
+                                'rounded-[0.45rem] px-3 py-1 font-medium transition-colors ' +
                                 (filter === value
-                                  ? 'bg-background text-foreground shadow-sm'
+                                  ? 'bg-card text-foreground shadow-(--elevate-1) dark:bg-foreground/14'
                                   : 'text-muted-foreground hover:text-foreground')
                               }
                             >

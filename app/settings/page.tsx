@@ -21,9 +21,9 @@ export default function SettingsPage() {
         <div className="relative isolate">
           <AppNav />
 
-          <main className="mx-auto max-w-2xl px-4 pt-4 sm:px-6">
+          <main className="mx-auto max-w-2xl px-4 pt-6 sm:px-6">
             <div className="pb-8">
-              <h1 className="text-3xl font-semibold tracking-tight text-balance">
+              <h1 className="title-1 text-balance">
                 {t('settings.title')}
               </h1>
               <p className="mt-1 text-muted-foreground">{t('settings.subtitle')}</p>
