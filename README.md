@@ -1,5 +1,7 @@
 # music-frontend
 
+Preview: [music.marcey.net](https://music.marcey.net/)
+
 Dieses Projekt ist die eine Hälfte des music-Projekts (die andere ist [music-backend](https://github.com/Marc3y/music-backend)). Die Inspiration liegt hierbei bei dem Projekt untitled. Auf der Seite kann man Songs, Beats und Projekte hochladen und in verschiedenen Playlists kategorisieren, sowie bestimmte Songs, Projekte oder auch Playlists mit anderen Personen teilen. Ebenfalls ist es möglich, Personen als Collaborator bestimmter Playlists hinzuzufügen.
 
 Das Projekt setzt die Zielgruppe auf Producer und Musiker.
