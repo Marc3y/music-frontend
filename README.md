@@ -9,75 +9,70 @@ Daneben gibt es auch eine native SwiftUI-App für iOS und macOS ([music-app](htt
 ## Tech-Stack
 
 - **Next.js 16** (App Router) mit React und TypeScript
-- Tailwind CSS, shadcn-artige Komponenten auf Basis von Base UI
-- [wavesurfer.js](https://wavesurfer.xyz/) für die Wellenform-Darstellung im Player
-- `fft.js` + `web-audio-beat-detector` für clientseitige BPM-/Tonart-Erkennung beim Upload
-- `@tanstack/react-virtual` zum Virtualisieren großer Track-/Playlist-Listen
-- `motion` (Framer Motion) für Animationen
-- Supabase ausschließlich als Google-OAuth-Broker (keine eigene Datenhaltung dort)
+- Tailwind CSS und shadcn-artige Komponenten
+- wavesurfer.js für die Wellenform-UI im Player
+- `fft.js` + `web-audio-beat-detector` für BPM-/Key-Erkennung beim Upload (clientseitig)
+- `@tanstack/react-virtual` zum Virtualisieren großer Track & Playlist-Listen
+- `motion` (Framer Motion) für Animations
+- Supabase für Google-Login
 
 ## Features
 
-### Konten & Login
+### Konto & Login
 
 - Registrierung mit E-Mail-Verifizierung per Code
-- Login mit E-Mail/Passwort oder Google (über Supabase als OAuth-Broker)
+- Login mit Email / Passwort oder Google
 - Passwort vergessen / zurücksetzen per E-Mail-Link
-- Eigenes Profil mit Benutzername, Profilbild (inkl. Zuschneiden) und Konto-Löschung
+- Profil mit Username, Profilbild (mit zuschneiden-Option) und Konto-Löschung
 
 ### Bibliothek & Playlists
 
-- Eigene Playlists anlegen, umbenennen, mit Cover versehen und löschen
-- Drei Bereiche in der Bibliothek: eigene Playlists, mit dir geteilte Inhalte, Playlists bei denen du Collaborator bist
+- Eigene Playlists erstellen, umbenennen, Cover hinzufügen und löschen
+- Drei Sections in Bibliothek: eigene Playlists, geteilte Inhalte, Playlists bei denen man Collaborator ist
 - Collaborator zu Playlists einladen und wieder entfernen
-- Drag & Drop zum Sortieren von Playlists und Tracks
+- Drag & Drop zum Sortieren von Tracks in playlists
 
 ### Tracks, Versionen & Projektdateien
 
 - Upload von Audiodateien (MP3, WAV, FLAC, AAC, OGG, …) sowie Projektarchiven (`.zip`/`.rar`)
-- Automatische BPM- und Tonart-Erkennung direkt im Browser nach dem Upload
-- Mehrere Versionen pro Track (z. B. verschiedene Mixe), mit Auswahl der aktiven Hauptversion
-- Pro Version lässt sich zusätzlich eine Projektdatei (DAW-Projekt als Archiv) anhängen, herunterladen oder entfernen
+- Automatische BPM und Key-Erkennung im Browser nach Upload (unstable)
+- Mehrere Versionen pro Track (z. B. verschiedene Mixe etc.), mit Auswahl der aktiven Hauptversion
+- Pro Version kann man eine Projektdatei (DAW-Projekt als .zip) anhängen, herunterladen oder entfernen
 - Metadaten (Titel, Künstler, Beschreibung, BPM, Tonart) nachträglich bearbeitbar
 - Track-Infoseite mit Höranzahl, Downloads, Dateigröße, Format und mehr
 
 ### Player
 
-- Durchgehender Player über die ganze App hinweg (Mini-Player + ausklappbare Vollansicht)
-- Wellenform-Visualisierung, Warteschlange, Shuffle und Loop (aus/alle/einzeln)
-- Wiedergabegeschwindigkeit einstellbar, inklusive tonhöhenunabhängigem Zeitlupen-/Zeitraffer-Modus
-- Hörvorgänge werden nach 15 Sekunden Wiedergabe automatisch gezählt
+- Durchgehender Player über die ganze Seite hinweg (Mini-Player + ausklappbare Vollansicht)
+- Waveform, Warteschlange, Shuffle & Loop
+- Geschwindigkeit & Pitch anpassbar
+- Nach 15s Abspielzeit gilt ein Song als gehört und wird gespeichert
 
 ### Teilen
 
-- Öffentliche Links für einzelne Tracks, Projektdateien oder ganze Playlists
+- Öffentliche Links für Tracks, Projektdateien oder Playlists
 - Optionaler Passwortschutz pro Link
-- Steuerbar, ob Download erlaubt ist
-- Playlist-Links lassen sich auf bestimmte Benutzernamen einschränken
-- Empfangene geteilte Inhalte lassen sich in die eigene Bibliothek übernehmen
+- Anpassbar, ob Download erlaubt ist
+- Playlist-Links lassen sich auf bestimmte Usernames einschränken
+- Geteilte Inhalte lassen sich zur eigenen Bibliothek hinzufügen
 
 ### Benachrichtigungen
 
-- Echtzeit-Benachrichtigungscenter (Server-Sent Events) für neue Collaborator, geteilte Inhalte, Versionsänderungen u. Ä.
+- Benachrichtigungscenter (Server-Sent Events) für neue Collaborator, geteilte Inhalte, Versionsänderungen, etc.
 
 ### Statistiken & Nutzung
 
 - Übersicht zu Speicherverbrauch, Top-Tracks und Top-Hörern
-- Verwaltung aller eigenen Tracks/Projekte inkl. Löschen einzelner Dateien zur Speicherfreigabe
+- Verwaltung aller eigenen Tracks/Projekte + Löschen einzelner Dateien für Speicherplatz
 
 ### Abo-Stufen
 
-- Drei Stufen (Free / Plus / Unlimited) mit unterschiedlichen Speicherlimits
+- Drei Stufen (Free / Plus / Unlimited) mit unterschiedlichen Speicherlimits (Derzeit noch nicht kaufbar)
 
 ### Individualisierung
 
-- Helles und dunkles Theme
-- Mehrere wählbare Akzentfarben
-- Zahlreiche Hintergrund-Presets (Farbverläufe und Muster)
-- Vollständig zweisprachig (Deutsch/Englisch)
+- Light & Darkmode
+- Mehrere wählbare Farben
+- Mehrere Hintergrund-Presets (Gradients und Muster)
+- Zweisprachig (Deutsch/Englisch)
 
-### Performance
-
-- Re-Render-Optimierungen für den Player (60-Hz-Zeitupdates laufen außerhalb von React-State)
-- Virtualisierte Listen für sehr große Playlists
-- Bildoptimierung über `next/image`, Code-Splitting selten genutzter Dialoge
