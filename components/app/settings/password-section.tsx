@@ -54,7 +54,7 @@ export function PasswordSection() {
     setLoading(true)
     try {
       await accountApi.confirmPasswordChange(code)
-      // Session wurde serverseitig beendet.
+
       setUser(null)
       toast.success(t('toast.passwordChangedRelogin'))
       router.push('/login')

@@ -12,13 +12,13 @@ export function tierAtLeast(tier: Tier | undefined | null, min: Tier): boolean {
 
 export interface PlanInfo {
   id: Tier
-  /** i18n key for the display name */
+
   nameKey: string
   monthly: number
   yearly: number
-  /** i18n keys for the feature bullet list */
+
   featureKeys: string[]
-  /** lucide icon name used for the badge (rendered by tier-badge) */
+
   accent: string
 }
 

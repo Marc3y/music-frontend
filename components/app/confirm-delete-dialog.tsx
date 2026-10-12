@@ -14,12 +14,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-/**
- * Fully controlled confirm dialog. The caller owns the open state and is
- * responsible for triggering it (e.g. a button's onClick sets open=true).
- * This avoids composing base-ui's `render` merging through nested portals
- * (dropdown item -> alert dialog trigger), which is fragile.
- */
 export function ConfirmDeleteDialog({
   open,
   onOpenChange,

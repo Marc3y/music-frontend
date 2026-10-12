@@ -56,7 +56,7 @@ export function ReorderablePlaylistGrid<T extends WithId>({
         const d = (cx - x) ** 2 + (cy - y) ** 2
         if (d < best) {
           best = d
-          // insert before this card if pointer is left/above its center, else after
+
           const after = y > cy + 4 || (Math.abs(y - cy) <= r.height / 2 && x > cx)
           closest = after ? i + 1 : i
         }

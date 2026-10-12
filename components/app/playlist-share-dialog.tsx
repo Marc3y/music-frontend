@@ -25,7 +25,6 @@ function errMsg(err: unknown, fallback: string) {
   return err instanceof ApiError ? err.message : fallback
 }
 
-/** Switch that flips its visual state immediately and reverts if the request fails. */
 function ToggleRow({
   label,
   checked,
@@ -254,7 +253,6 @@ export function PlaylistShareDialog({
         </DialogHeader>
 
         <div className="flex max-h-[65vh] flex-col gap-5 overflow-x-hidden overflow-y-auto scrollbar-gutter-stable">
-          {/* Öffentlich teilen */}
           <section className="flex flex-col gap-3">
             <ToggleRow
               label={t('playlistShare.sharePlaylist')}
@@ -295,7 +293,6 @@ export function PlaylistShareDialog({
                   </div>
                 )}
 
-                {/* Passwortschutz (music+) */}
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-2">
@@ -313,7 +310,7 @@ export function PlaylistShareDialog({
                         try {
                           await share({ sharePassword: null })
                         } catch {
-                          /* handled */
+
                         }
                       }}
                     />
@@ -339,7 +336,7 @@ export function PlaylistShareDialog({
                             setPwDraft('')
                             toast.success(t('playlistShare.passwordSet'))
                           } catch {
-                            /* handled */
+
                           }
                         }}
                       >
@@ -357,7 +354,6 @@ export function PlaylistShareDialog({
             )}
           </section>
 
-          {/* Mitglieder */}
           <section className="flex flex-col gap-3 border-t border-border pt-4">
             <div>
               <p className="text-sm font-medium">{t('playlistShare.members')}</p>

@@ -12,22 +12,9 @@ import type { ReorderableTrackListHandle } from './reorderable-track-list'
 
 const LONG_PRESS_MS = 240
 const MOVE_CANCEL_THRESHOLD = 6
-// Estimate only (44px cover + 2×8px padding + the 4px `gap-1` the
-// non-virtualized list gets from flex): actual layout uses each row's
-// measured height via `measureElement`.
+
 const ROW_HEIGHT_ESTIMATE = 64
 
-/**
- * Windowed sibling of `ReorderableTrackList`'s plain rendering path — kept as
- * a wholly separate component (not a branch inside one component) so that
- * `useWindowVirtualizer` — which attaches real `window` scroll/resize
- * listeners the moment it's called, whether or not anything uses its output —
- * is only ever invoked while this component is actually mounted, i.e. only
- * for lists over the virtualize threshold. Calling it unconditionally inside
- * one shared component was adding a permanent scroll listener + ResizeObserver
- * to every playlist page regardless of size, which is exactly the kind of
- * background main-thread cost this refactor exists to remove.
- */
 export const VirtualizedTrackList = forwardRef<ReorderableTrackListHandle, {
   playlistId: string
   tracks: AudioFile[]
@@ -112,11 +99,6 @@ export const VirtualizedTrackList = forwardRef<ReorderableTrackListHandle, {
     [playlistId, t],
   )
 
-  // The pointer is always within the currently-rendered (visible + overscan)
-  // window while dragging — a physical constraint, since the pointer itself
-  // has to stay on screen — so we never need an off-screen row's position;
-  // this reads positions from the virtualizer's own measurements instead of
-  // live DOM rects.
   const handleMove = useCallback(
     (clientY: number) => {
       const dragId = activeId.current

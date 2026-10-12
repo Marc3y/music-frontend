@@ -36,7 +36,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (isBackground(raw)) stored = raw
     } catch {
-      /* ignore */
+
     }
     setBgState(stored)
     apply(stored)
@@ -48,7 +48,7 @@ export function BackgroundProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, next)
     } catch {
-      /* ignore */
+
     }
   }, [])
 

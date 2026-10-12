@@ -39,7 +39,7 @@ export function AccentProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (isAccent(raw)) stored = raw
     } catch {
-      /* ignore */
+
     }
     setAccentState(stored)
     apply(stored)
@@ -51,7 +51,7 @@ export function AccentProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, next)
     } catch {
-      /* ignore */
+
     }
   }, [])
 

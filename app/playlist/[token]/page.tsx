@@ -50,7 +50,7 @@ export default function PublicPlaylistPage({
             try {
               sessionStorage.removeItem(storageKey)
             } catch {
-              /* ignore */
+
             }
             return
           }
@@ -73,7 +73,7 @@ export default function PublicPlaylistPage({
     try {
       stored = sessionStorage.getItem(storageKey)
     } catch {
-      /* ignore */
+
     }
     setUnlockKey(stored)
     load(stored)
@@ -88,7 +88,7 @@ export default function PublicPlaylistPage({
       try {
         sessionStorage.setItem(storageKey, res.unlockKey)
       } catch {
-        /* ignore */
+
       }
       setUnlockKey(res.unlockKey)
       setPw('')

@@ -11,7 +11,7 @@ export type Accent =
 export interface AccentPreset {
   id: Accent
   labelKey: string
-  /** Representative swatch color shown in the picker (light-mode value). */
+
   swatch: string
 }
 

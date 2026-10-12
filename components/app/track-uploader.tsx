@@ -77,7 +77,7 @@ export const TrackUploader = forwardRef<
 
       const run = project ? uploadProjectOne(file, id) : uploadOne(file, id)
       run.catch(() => {
-        // errors are handled inside the upload fns
+
       })
     }
   }
@@ -112,7 +112,6 @@ export const TrackUploader = forwardRef<
       setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: 'done' } : it)))
       onUploaded(track)
 
-      // BPM/Key im Browser ermitteln und nachtragen (blockt den Upload nicht)
       void analyzeAudioFile(file)
         .then(({ bpm, musicalKey }) => {
           if (bpm == null && musicalKey == null) return
@@ -121,10 +120,9 @@ export const TrackUploader = forwardRef<
             .then((updated) => onPatched?.(updated))
         })
         .catch(() => {
-          /* Analyse ist best effort */
+
         })
 
-      // Remove finished item from the list after a short delay
       setTimeout(() => {
         setItems((prev) => prev.filter((it) => it.id !== id))
       }, 1500)

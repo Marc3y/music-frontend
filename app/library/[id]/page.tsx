@@ -39,18 +39,16 @@ import { ease, spring } from '@/lib/motion'
 import { useT } from '@/lib/i18n/context'
 import type { AudioFile, Playlist } from '@/lib/types'
 
-// Neue sichtbare Reihenfolge in die volle Liste zurückmergen (versteckte behalten Position)
 function mergeVisibleOrder(full: AudioFile[], visible: AudioFile[]): AudioFile[] {
   const visibleIds = new Set(visible.map((t) => t._id))
   let vi = 0
   return full.map((t) => (visibleIds.has(t._id) ? visible[vi++] : t))
 }
 
-// Hat der Eintrag auf der Hauptversion eine Projektdatei?
 function hasSelectedProject(t: AudioFile): boolean {
   return !!t.versions?.find((v) => v._id === t.selectedVersionId)?.projectFilename
 }
-// Zählt der Eintrag als "Projekt" (reiner Projekt-Eintrag ODER Audio mit verknüpftem Projekt)?
+
 function countsAsProject(t: AudioFile): boolean {
   return (t.kind ?? 'track') === 'project' || hasSelectedProject(t)
 }
@@ -92,10 +90,6 @@ export default function PlaylistPage({
 
   const isOwner = playlist?.role !== 'collaborator'
 
-  // Kept in sync every render so the stable (`useCallback([])`) handlers below
-  // can read current values without needing those values in their dependency
-  // arrays — that stability is what lets `TrackRow` (React.memo) actually skip
-  // re-rendering every row on unrelated page re-renders (e.g. play/pause).
   const playerRef = useRef(player)
   playerRef.current = player
   const tracksRef = useRef(tracks)
@@ -130,13 +124,12 @@ export default function PlaylistPage({
     loadAll()
   }, [loadAll])
 
-  // Deep-link from a notification: ?track=<id> → scroll to that row and flash it.
   useEffect(() => {
     try {
       const want = new URLSearchParams(window.location.search).get('track')
       if (want) wantTrackRef.current = want
     } catch {
-      /* ignore */
+
     }
   }, [])
 
@@ -153,13 +146,12 @@ export default function PlaylistPage({
       try {
         router.replace(`/library/${id}`, { scroll: false })
       } catch {
-        /* ignore */
+
       }
     }, 120)
     return () => clearTimeout(timer)
   }, [tracks, id, router])
 
-  // Poll while any track is still being processed
   useEffect(() => {
     const hasProcessing = tracks?.some((t) => t.status === 'processing')
     if (!hasProcessing) {
@@ -171,7 +163,7 @@ export default function PlaylistPage({
         const fresh = await audioApi.listByPlaylist(id)
         setTracks(fresh)
       } catch {
-        // silent retry on next tick
+
       }
     }, POLL_INTERVAL)
     return () => {
@@ -180,7 +172,7 @@ export default function PlaylistPage({
   }, [tracks, id])
 
   function handleUploaded(track: AudioFile) {
-    // New uploads are appended at the end, matching how the backend orders them.
+
     setTracks((prev) => [...(prev ?? []), track])
   }
 
@@ -195,8 +187,7 @@ export default function PlaylistPage({
     setVersionsTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
     setSharingTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
     setEditingTrack((prev) => (prev && prev._id === updated._id ? { ...prev, ...updated } : prev))
-    // Reflect the change live in the player if this track is currently queued,
-    // without restarting playback.
+
     playerRef.current.patchTrack(updated._id, {
       title: updated.title,
       artist: updated.artist,
@@ -206,8 +197,7 @@ export default function PlaylistPage({
 
   function handlePlaylistUpdated(updated: Playlist) {
     setPlaylist(updated)
-    // Any queued track that has no own cover falls back to the playlist cover -
-    // patch those live in the player so a cover change shows immediately.
+
     for (const track of tracks ?? []) {
       if (!track.coverKey) {
         player.patchTrack(track._id, { coverUrl: updated.coverUrl || null })
@@ -281,7 +271,7 @@ export default function PlaylistPage({
   }
 
   const playTrack = useCallback((track: AudioFile) => {
-    // Reine Projekt-Einträge werden bei der Wiedergabe ignoriert
+
     const readyTracks = (tracksRef.current ?? []).filter(
       (t) => t.status === 'ready' && (t.kind ?? 'track') !== 'project',
     )
@@ -499,8 +489,6 @@ export default function PlaylistPage({
                     </ContextMenu>
                   )
                 })()}
-                {/* Kept outside the cover so triggering it via the context menu
-                    never bubbles a click back to the cover's zoom handler. */}
                 <input
                   ref={coverInputRef}
                   type="file"

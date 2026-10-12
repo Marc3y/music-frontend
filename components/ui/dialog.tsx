@@ -31,9 +31,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        // No backdrop-filter here on purpose: a full-screen blur that toggles on
-        // open/close forces a page repaint that reads as a flicker. The frosted
-        // look lives on the popup itself instead.
+
         "fixed inset-0 z-80 bg-background/70 duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}

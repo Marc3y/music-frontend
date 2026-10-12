@@ -28,10 +28,6 @@ interface WaveSurferState {
   seekTo: (fraction: number) => void
 }
 
-/**
- * Owns the single WaveSurfer instance used for real audio playback.
- * Reads playback intent from the player context and keeps it in sync.
- */
 export function useWaveSurfer(
   containerRef: RefObject<HTMLDivElement | null>,
 ): WaveSurferState {
@@ -69,11 +65,6 @@ export function useWaveSurfer(
   volumeRef.current = volume
   speedRef.current = speed
 
-  // `currentTime` updates ~60x/sec while playing. Routing it through
-  // `useState` would re-render this hook's caller (GlobalPlayer, and
-  // everything it renders — the always-mounted, blurred player chrome) on
-  // every tick. Instead it lives in a ref with a manual subscriber list, so
-  // only components that actually opt in (via `useSyncExternalStore`) re-render.
   const currentTimeRef = useRef(0)
   const timeListenersRef = useRef(new Set<() => void>())
   const notifyTime = () => {
@@ -87,7 +78,6 @@ export function useWaveSurfer(
     }
   }
 
-  // Web Audio graph for independent pitch shifting (lazily built on first play).
   const audioCtxRef = useRef<AudioContext | null>(null)
   const pitchNodeRef = useRef<AudioWorkletNode | null>(null)
   const graphStateRef = useRef<'idle' | 'pending' | 'ready' | 'failed'>('idle')
@@ -126,7 +116,6 @@ export function useWaveSurfer(
   const pitchRef = useRef(pitch)
   pitchRef.current = pitch
 
-  // Create the instance once the container exists.
   useEffect(() => {
     if (!containerRef.current || wsRef.current) return
 
@@ -154,7 +143,7 @@ export function useWaveSurfer(
       try {
         ws.setPlaybackRate(speedRef.current, true)
       } catch {
-        /* ignore */
+
       }
       try {
         const exported = ws.exportPeaks({ maxLength: 200 })
@@ -167,7 +156,7 @@ export function useWaveSurfer(
       setIsLoading(false)
       if (shouldPlayRef.current) {
         ws.play().catch(() => {
-          // Autoplay blocked — resume the context and try once more.
+
           void audioCtxRef.current?.resume()
           setTimeout(() => {
             if (shouldPlayRef.current) ws.play().catch(() => {})
@@ -178,7 +167,7 @@ export function useWaveSurfer(
     ws.on('timeupdate', (t: number) => {
       currentTimeRef.current = t
       notifyTime()
-      // A listen counts once the track has played for 15 seconds (once per play).
+
       if (
         t >= 15 &&
         listenLoggedForToken.current !== playTokenRef.current &&
@@ -188,7 +177,7 @@ export function useWaveSurfer(
         try {
           currentRef.current.onListened()
         } catch {
-          /* best-effort */
+
         }
       }
     })
@@ -218,7 +207,6 @@ export function useWaveSurfer(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerRef])
 
-  // Load a new track whenever the stream URL / play token changes.
   useEffect(() => {
     const ws = wsRef.current
     if (!ws || !streamUrl) return
@@ -228,8 +216,6 @@ export function useWaveSurfer(
     currentTimeRef.current = 0
     notifyTime()
 
-    // Reuse peaks decoded on an earlier play so the waveform is instant and
-    // wavesurfer skips re-decoding the audio.
     const cached = trackIdRef.current ? getCachedPeaks(trackIdRef.current) : {}
     if (cached.peaks) {
       setPeaks(cached.peaks[0] ? Array.from(cached.peaks[0] as ArrayLike<number>) : [])
@@ -242,12 +228,11 @@ export function useWaveSurfer(
       cached.peaks as (number[] | Float32Array)[] | undefined,
       cached.duration,
     ).catch(() => {
-      /* load can be aborted when superseded */
+
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamUrl, playToken])
 
-  // Reflect play/pause intent from the context onto the instance.
   useEffect(() => {
     const ws = wsRef.current
     if (!ws || !ready) return
@@ -259,21 +244,18 @@ export function useWaveSurfer(
     }
   }, [isPlaying, ready])
 
-  // Reflect volume changes immediately, even mid-playback.
   useEffect(() => {
     wsRef.current?.setVolume(volume)
   }, [volume])
 
-  // Tempo — independent of pitch (browser time-stretch keeps pitch constant).
   useEffect(() => {
     try {
       wsRef.current?.setPlaybackRate(speed, true)
     } catch {
-      /* ignore */
+
     }
   }, [speed])
 
-  // Pitch — needs the Web Audio graph; build it on first non-zero value.
   useEffect(() => {
     if (graphStateRef.current === 'ready') {
       applyPitch(pitch)
@@ -284,24 +266,18 @@ export function useWaveSurfer(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pitch])
 
-  // Tear down the audio context on unmount.
   useEffect(() => {
     return () => {
       void audioCtxRef.current?.close()
     }
   }, [])
 
-  // Mobile browsers block programmatic playback that isn't inside a user
-  // gesture. Our play flow always crosses an async gap (URL resolve → load →
-  // 'ready' → play), so the first tap anywhere primes the media element +
-  // AudioContext once, and every play after that just works.
   useEffect(() => {
     let armed = true
     const unlock = () => {
       if (!armed) return
       armed = false
-      // Blessing the media element inside a real gesture lets later
-      // programmatic ws.play() calls run even though they cross an async gap.
+
       const el = wsRef.current?.getMediaElement()
       if (el) {
         const wasPlaying = !el.paused
@@ -321,14 +297,13 @@ export function useWaveSurfer(
     }
   }, [])
 
-  // Re-tint the waveform when the theme changes (no reload).
   useEffect(() => {
     if (typeof window === 'undefined') return
     const id = requestAnimationFrame(() => {
       try {
         wsRef.current?.setOptions(waveColors())
       } catch {
-        /* ignore */
+
       }
     })
     return () => cancelAnimationFrame(id)

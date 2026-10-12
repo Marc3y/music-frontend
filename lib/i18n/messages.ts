@@ -1,8 +1,4 @@
-/**
- * Loads every translation file in `locales/`. To add a language, drop a new
- * `<code>.json` file in that folder (e.g. `fr.json`) with a `"_meta": { "name": "..." }`
- * entry — it is picked up automatically, no code change needed.
- */
+
 
 export interface LocaleFile {
   _meta?: { name?: string }
@@ -11,7 +7,6 @@ export interface LocaleFile {
 
 export const DEFAULT_LOCALE = 'en'
 
-// Turbopack / webpack: bundles every JSON in the locales folder at build time.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ctx = (require as any).context('../../locales', false, /\.json$/)
 

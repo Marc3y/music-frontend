@@ -4,11 +4,6 @@ import { useEffect, useState } from 'react'
 import { accountApi, playlistApi, ApiError } from '@/lib/api'
 import type { Playlist, SavedShare, StorageSummary } from '@/lib/types'
 
-/**
- * Module-level cache so navigating back to the library shows the last known
- * playlists/shares instantly instead of flashing the skeleton grid while it
- * refetches. Data is still revalidated on every mount.
- */
 const cache: {
   playlists: Playlist[] | null
   saved: SavedShare[]

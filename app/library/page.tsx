@@ -51,7 +51,6 @@ export default function LibraryPage() {
   const hasShared = items.length + sharedPlaylists.length > 0
   const hasCollab = collabPlaylists.length > 0
 
-  // Falls der aktive Tab wegfällt → zurück auf "own"
   useEffect(() => {
     if ((tab === 'shared' && !hasShared) || (tab === 'collab' && !hasCollab)) setTab('own')
   }, [tab, hasShared, hasCollab])
@@ -98,7 +97,6 @@ export default function LibraryPage() {
     })
   }
 
-  // Reordered subset (one saved-share type) merged back into the full `saved` list.
   function reorderSavedSubset(subsetType: 'playlist' | 'collab', next: SavedShare[]) {
     setSaved((prev) => {
       let i = 0

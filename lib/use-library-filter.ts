@@ -6,10 +6,6 @@ export type LibraryFilter = 'all' | 'tracks' | 'projects'
 
 const KEY = 'music.library.filter'
 
-/**
- * Persistierter Playlist-Filter (localStorage, global). SSR-sicher: startet mit
- * 'all' und übernimmt den gespeicherten Wert nach der Hydration.
- */
 export function useLibraryFilter(): [LibraryFilter, (next: LibraryFilter) => void] {
   const [filter, setFilterState] = useState<LibraryFilter>('all')
 
@@ -20,7 +16,7 @@ export function useLibraryFilter(): [LibraryFilter, (next: LibraryFilter) => voi
         setFilterState(stored)
       }
     } catch {
-      // ignore
+
     }
   }, [])
 
@@ -29,7 +25,7 @@ export function useLibraryFilter(): [LibraryFilter, (next: LibraryFilter) => voi
     try {
       localStorage.setItem(KEY, next)
     } catch {
-      // ignore
+
     }
   }
 

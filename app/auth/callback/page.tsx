@@ -76,7 +76,7 @@ function CallbackInner() {
           setUser(res.user)
           router.replace(dest)
         } else {
-          // Keep the Supabase session alive — googleComplete needs the token too.
+
           setPhase({ kind: 'username', accessToken })
         }
       } catch (err) {

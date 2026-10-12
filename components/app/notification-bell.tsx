@@ -13,7 +13,6 @@ import { ease } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import type { AppNotification } from '@/lib/types'
 
-// Playlist-level actions never deep-link to a track.
 const PLAYLIST_LEVEL = new Set<AppNotification['type']>([
   'collab_renamed',
   'collab_cover',
@@ -179,7 +178,7 @@ export function NotificationBell() {
   function onOpenChange(next: boolean) {
     setOpen(next)
     if (next && unreadCount > 0) {
-      // give the badge a beat to animate out, then clear
+
       setTimeout(markAllRead, 1200)
     }
   }

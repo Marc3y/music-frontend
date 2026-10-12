@@ -5,10 +5,6 @@ import { Sparkles } from 'lucide-react'
 import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 
-/**
- * Quiet, non-nagging pointer to the subscription page, shown next to a feature
- * that needs music+. Two flavours: an inline chip and a soft banner.
- */
 export function UpgradeHint({
   variant = 'chip',
   labelKey = 'subscription.needsPlus',

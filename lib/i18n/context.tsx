@@ -57,13 +57,12 @@ export function I18nProvider({
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Reconcile with the client's stored choice (cookie is the source of truth
-    // for SSR, but localStorage may be ahead on the very first switch).
+
     try {
       const stored = localStorage.getItem(LOCALE_STORAGE_KEY)
       if (isKnownLocale(stored) && stored !== locale) setLocaleState(stored)
     } catch {
-      /* ignore */
+
     }
     setMounted(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,7 +78,7 @@ export function I18nProvider({
     try {
       localStorage.setItem(LOCALE_STORAGE_KEY, code)
     } catch {
-      /* ignore */
+
     }
     document.cookie = `${LOCALE_COOKIE}=${code}; path=/; max-age=31536000; samesite=lax`
   }, [])
@@ -109,7 +108,6 @@ export function useI18n() {
   return ctx
 }
 
-/** Shorthand for components that only need the translate function. */
 export function useT() {
   return useI18n().t
 }

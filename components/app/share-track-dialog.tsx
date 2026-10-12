@@ -214,7 +214,7 @@ export function ShareTrackDialog({
                       try {
                         await setSharePassword(null)
                       } catch {
-                        /* handled */
+
                       }
                     }}
                   />
@@ -229,7 +229,7 @@ export function ShareTrackDialog({
                       try {
                         await setSharePassword(pwDraft)
                       } catch {
-                        /* handled */
+
                       }
                     }}
                   >

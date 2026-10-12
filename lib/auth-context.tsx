@@ -34,9 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else window.localStorage.removeItem(STORAGE_KEY)
   }, [])
 
-  // Restore session on mount: read cached user for an instant paint, then
-  // validate the cookie against /account/me (which also triggers the refresh
-  // flow) and refresh the cached profile (username, avatar).
   useEffect(() => {
     let cancelled = false
     const raw =
@@ -50,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setUserState(JSON.parse(raw))
     } catch {
-      // ignore malformed cache
+
     }
 
     accountApi

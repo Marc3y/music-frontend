@@ -6,10 +6,6 @@ import { useT } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import type { Tier } from '@/lib/types'
 
-/**
- * Small badge shown next to the username for paying users.
- * `plus` = sparkles, `unlimited` = crown.
- */
 export function TierBadge({
   tier,
   className,

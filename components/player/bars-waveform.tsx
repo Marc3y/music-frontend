@@ -21,16 +21,12 @@ const Bar = memo(function Bar({ height, played }: { height: number; played: bool
 
 interface BarsWaveformProps {
   peaks: number[]
-  progress: number // 0..1
+  progress: number
   onSeek?: (fraction: number) => void
   className?: string
   barCount?: number
 }
 
-/**
- * A decorative, progress-synced bar waveform for the expanded player view.
- * Falls back to a generated shape until real peaks are available.
- */
 export function BarsWaveform({
   peaks,
   progress,
@@ -46,7 +42,7 @@ export function BarsWaveform({
         const idx = Math.floor((i / barCount) * source.length)
         result.push(source[idx] ?? 0)
       } else {
-        // pseudo-random but stable placeholder shape
+
         result.push(0.25 + Math.abs(Math.sin(i * 0.6)) * 0.6)
       }
     }

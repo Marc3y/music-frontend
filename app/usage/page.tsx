@@ -129,7 +129,7 @@ export default function UsagePage() {
       try {
         localStorage.setItem(SKIP_CONFIRM_KEY, '1')
       } catch {
-        // ignore
+
       }
     }
     const target = deleteTarget

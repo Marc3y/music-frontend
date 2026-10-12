@@ -1,13 +1,11 @@
 import type { Transition, Variants } from 'motion/react'
 
-/** Weiche Ease-Kurven (Apple-Gefühl). */
 export const ease = {
   out: [0.16, 1, 0.3, 1] as const,
   inOut: [0.65, 0, 0.35, 1] as const,
   apple: [0.32, 0.72, 0, 1] as const,
 }
 
-/** Spring-Presets. */
 export const spring = {
   snappy: { type: 'spring', stiffness: 400, damping: 32, mass: 0.9 } satisfies Transition,
   soft: { type: 'spring', stiffness: 260, damping: 30 } satisfies Transition,
@@ -40,7 +38,6 @@ export const staggerContainer = (gap = 0.06): Variants => ({
   visible: { transition: { staggerChildren: gap, delayChildren: 0.04 } },
 })
 
-/** Hover/Tap-Presets für Karten & interaktive Flächen. */
 export const liftHover = {
   whileHover: { y: -3, transition: spring.soft },
   whileTap: { scale: 0.985, transition: { duration: 0.1 } },

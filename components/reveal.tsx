@@ -18,8 +18,7 @@ export function Reveal({
 }) {
   const reduce = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
-  // `once: true` latches — stays true across re-renders, so closing a dialog
-  // (or any parent re-render) can never snap the content back to hidden.
+
   const inView = useInView(ref, { once: true, amount: 0.25 })
 
   if (reduce) {

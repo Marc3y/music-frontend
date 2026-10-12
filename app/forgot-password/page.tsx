@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
     try {
       await authApi.forgotPassword({ email })
     } catch {
-      // Response is intentionally uniform; always show success state.
+
     } finally {
       setLoading(false)
       setSent(true)

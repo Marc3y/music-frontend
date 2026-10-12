@@ -2,15 +2,6 @@
 
 import { useEffect, useState } from 'react'
 
-/**
- * Samples the border pixels of a cover image and returns an average `"r g b"`
- * channel string usable in `rgb(... / a)`. Returns null while loading, on error,
- * or when the canvas is tainted (cross-origin without CORS headers) — callers
- * should fall back to a themed glow in that case.
- */
-// Module-level cache: replaying a playlist re-visits the same cover URLs, so
-// skip re-decoding an image we've already sampled (cheap unbounded cache —
-// glow entries are ~15 bytes each and bounded by distinct covers seen).
 const glowCache = new Map<string, string | null>()
 
 export function useCoverGlow(url: string | null | undefined): string | null {
@@ -65,7 +56,7 @@ export function useCoverGlow(url: string | null | undefined): string | null {
         glowCache.set(url, result)
         setGlow(result)
       } catch {
-        /* tainted canvas — keep the themed fallback */
+
       }
     }
 

@@ -49,7 +49,6 @@
   --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* ---------- Light (default) ---------- */
 :root {
   color-scheme: light;
   --radius: 0.9rem;
@@ -101,7 +100,6 @@
   --sidebar-ring: oklch(0.52 0.2 264);
 }
 
-/* ---------- Dark ---------- */
 .dark {
   color-scheme: dark;
 
@@ -152,9 +150,6 @@
   --sidebar-ring: oklch(0.6 0.19 264);
 }
 
-/* ---------- Accent presets ----------
-   Override just the "primary action" tokens (buttons, focus ring, sidebar
-   highlight). `indigo` is the default and needs no override block. */
 :root[data-accent='blue'] {
   --primary: oklch(0.5 0.18 246);
   --primary-foreground: oklch(0.99 0 0);
@@ -274,10 +269,6 @@
   --sidebar-ring: oklch(0.62 0.02 260);
 }
 
-/* ---------- Background presets ----------
-   Each preset is a complete look (glow hues + optional pattern). `aurora` is
-   the default and needs no block. Consumed by <AuroraBackground/>. Patterns use
-   `currentColor` (= --foreground) so they adapt to light/dark automatically. */
 :root {
   --aurora-pattern: none;
   --aurora-pattern-size: 32px 32px;
@@ -285,11 +276,10 @@
   --aurora-pattern-opacity: 0;
 }
 .dark {
-  /* patterns read a touch stronger on dark */
+
   --aurora-pattern-boost: 1;
 }
 
-/* --- colour looks (glow hues only) --- */
 :root[data-bg='minimal'] {
   --grid-line: transparent;
   --glow-cool: oklch(0.62 0.15 264 / 0.07);
@@ -337,7 +327,6 @@
   --glow-warm: oklch(0.5 0.01 260 / 0.2);
 }
 
-/* --- patterns --- */
 :root[data-bg='dots'] {
   --aurora-pattern: radial-gradient(currentColor 1px, transparent 1.5px);
   --aurora-pattern-size: 22px 22px;
@@ -440,13 +429,12 @@
   }
   html {
     @apply bg-background;
-    /* Reserve the scrollbar gutter permanently so opening a modal (base-ui locks
-       page scroll) doesn't shift the whole layout sideways = no flicker. */
+
     scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;
-    /* Theme-Farbwechsel weich */
+
     transition: background-color 0.4s var(--ease-out-soft), color 0.4s var(--ease-out-soft);
   }
 }
@@ -472,9 +460,7 @@
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid color-mix(in oklch, var(--border), var(--foreground) 4%);
-    /* Promotes this element to its own compositor layer so Safari can cache
-       the blurred result instead of re-rasterizing it every frame something
-       nearby changes (e.g. the player's progress updating underneath it). */
+
     will-change: transform;
   }
   .elevate-1 {
@@ -493,7 +479,6 @@
   }
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -512,7 +497,6 @@
   background-clip: content-box;
 }
 
-/* Reduced motion – Safety net */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

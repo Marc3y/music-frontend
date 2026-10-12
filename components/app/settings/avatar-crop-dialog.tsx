@@ -19,16 +19,12 @@ import { Slider } from '@/components/ui/slider'
 import { accountApi, uploadToPresignedUrl, ApiError } from '@/lib/api'
 import { useT } from '@/lib/i18n/context'
 
-// Cast restores defaultProps-aware JSX checking (rotation/minZoom/etc. have
-// defaults on the real class) that `next/dynamic`'s inferred type otherwise
-// drops — same component once loaded, just typed like the direct import.
 const Cropper = dynamic(() => import('react-easy-crop'), {
   ssr: false,
 }) as unknown as typeof ReactEasyCrop
 
 const OUTPUT_SIZE = 512
 
-/** Draws the selected crop area of `src` into a square canvas and returns a JPEG blob. */
 async function getCroppedBlob(src: string, area: Area): Promise<Blob> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image()

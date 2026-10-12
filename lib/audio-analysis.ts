@@ -1,14 +1,7 @@
 import FFT from 'fft.js'
 
-/**
- * Browser-seitige (grobe) Analyse einer Audiodatei: BPM + Tonart.
- * Läuft komplett clientseitig auf dem dekodierten AudioBuffer. Jeder Fehler
- * führt zu `null` – der Nutzer kann die Werte dann manuell setzen.
- */
-
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
-// Krumhansl-Schmuckler Tonprofile
 const MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88]
 const MINOR = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17]
 
@@ -38,16 +31,16 @@ export async function analyzeAudioFile(
       const detected = await analyze(audioBuffer)
       if (Number.isFinite(detected) && detected > 0) bpm = Math.round(detected)
     } catch {
-      // BPM-Erkennung fehlgeschlagen -> null
+
     }
 
     try {
       musicalKey = detectKey(audioBuffer)
     } catch {
-      // Key-Erkennung fehlgeschlagen -> null
+
     }
   } catch {
-    // Datei nicht dekodierbar -> alles null
+
   }
 
   return { bpm, musicalKey }
@@ -75,7 +68,6 @@ function detectKey(buffer: AudioBuffer): string | null {
   const hann = new Float32Array(N)
   for (let i = 0; i < N; i++) hann[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (N - 1)))
 
-  // Bin -> Pitch-Class (nur musikalisch sinnvoller Bereich)
   const half = N / 2
   const binPc = new Int8Array(half).fill(-1)
   for (let k = 1; k < half; k++) {
@@ -117,7 +109,6 @@ function detectKey(buffer: AudioBuffer): string | null {
   return `${NOTES[best.tonic]}${best.mode === 'moll' ? 'm' : ' maj'}`
 }
 
-// Pearson-Korrelation von chroma mit dem um `tonic` rotierten Profil
 function correlation(chroma: Float64Array, profile: number[], tonic: number): number {
   const rotated = new Array(12)
   for (let i = 0; i < 12; i++) rotated[i] = profile[(i - tonic + 12) % 12]

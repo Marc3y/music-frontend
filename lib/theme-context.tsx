@@ -34,7 +34,7 @@ function apply(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // SSR-Default = dark (das Blocking-Script im <head> korrigiert vor Paint)
+
   const [theme, setThemeState] = useState<Theme>('dark')
   const [mounted, setMounted] = useState(false)
 
@@ -44,7 +44,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw === 'light' || raw === 'dark') stored = raw
     } catch {
-      /* ignore */
+
     }
     setThemeState(stored)
     apply(stored)
@@ -57,7 +57,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, next)
     } catch {
-      /* ignore */
+
     }
   }, [])
 
@@ -68,7 +68,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(STORAGE_KEY, next)
       } catch {
-        /* ignore */
+
       }
       return next
     })

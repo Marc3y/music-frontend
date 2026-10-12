@@ -109,7 +109,7 @@ export function CollaboratorStack({
       try {
         localStorage.setItem(SKIP_CONFIRM_KEY, '1')
       } catch {
-        /* ignore */
+
       }
     }
     const user = removeTarget

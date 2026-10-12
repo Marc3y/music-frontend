@@ -14,16 +14,10 @@ import type { AudioFile } from '@/lib/types'
 const LONG_PRESS_MS = 240
 const MOVE_CANCEL_THRESHOLD = 6
 
-// Below this many tracks, render the plain (non-windowed) list exactly as
-// before — today's playlists are far below this, so windowing only kicks in
-// as a future-proofing path for very large lists, never changing current
-// behavior. Below the threshold, `VirtualizedTrackList` (and the `window`
-// scroll/resize listeners its virtualizer hook attaches the moment it's
-// called) is never mounted at all.
 const VIRTUALIZE_THRESHOLD = 80
 
 export interface ReorderableTrackListHandle {
-  /** Scrolls a track into view, whether or not it's currently mounted. */
+
   scrollToTrack: (id: string) => void
 }
 
@@ -40,9 +34,7 @@ interface Props {
   onEdit: (track: AudioFile) => void
   onShare: (track: AudioFile) => void
   onVersions: (track: AudioFile) => void
-  // ^ passed straight through to each `TrackRow` (itself `React.memo`'d) —
-  // keep these referentially stable at the call site (e.g. `useCallback([])`)
-  // so unrelated re-renders don't force every row to re-render.
+
   onUpdated: (track: AudioFile) => void
   onDeleted: (id: string) => void
   onChange: (tracks: AudioFile[]) => void
@@ -181,7 +173,7 @@ const PlainTrackList = forwardRef<ReorderableTrackListHandle, Props>(function Pl
   }, [draggingId, handleMove, endDrag])
 
   function onRowPointerDown(e: React.PointerEvent<HTMLDivElement>, trackId: string) {
-    // Don't arm dragging when interacting with buttons/menus inside the row
+
     if ((e.target as HTMLElement).closest('button')) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
 
@@ -196,7 +188,7 @@ const PlainTrackList = forwardRef<ReorderableTrackListHandle, Props>(function Pl
   }
 
   function onRowPointerMoveWhileArming(e: React.PointerEvent<HTMLDivElement>) {
-    if (activeId.current) return // already dragging, handled globally
+    if (activeId.current) return
     if (!longPressTimer.current) return
     const dx = Math.abs(e.clientX - startPos.current.x)
     const dy = Math.abs(e.clientY - startPos.current.y)
@@ -209,9 +201,6 @@ const PlainTrackList = forwardRef<ReorderableTrackListHandle, Props>(function Pl
     clearLongPress()
   }
 
-  // `layout` re-measures every row on every commit — while idle that turns any
-  // sub-pixel reflow (e.g. a dialog's scroll-lock toggling the scrollbar) into a
-  // visible flicker. Only enable it while a drag is actually happening.
   const reordering = draggingId !== null
 
   return (

@@ -71,7 +71,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     notificationsApi.markRead().catch(() => {})
   }, [])
 
-  // Load + live stream while authenticated.
   useEffect(() => {
     if (!user) {
       setItems([])
@@ -98,7 +97,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           )
           if (!n.read) setUnreadCount((c) => c + 1)
         } catch {
-          /* ignore */
+
         }
       })
 
@@ -106,7 +105,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         es.close()
         esRef.current = null
         if (closed) return
-        // The access cookie may have expired — a normal authed call refreshes it.
+
         accountApi
           .me()
           .catch(() => {})

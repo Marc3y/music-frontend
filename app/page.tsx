@@ -43,7 +43,6 @@ export default function LandingPage() {
 
       <LandingNav />
 
-      {/* Hero */}
       <section className="relative mx-auto flex max-w-4xl flex-col items-center px-4 pt-40 pb-24 text-center sm:pt-48">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -93,7 +92,6 @@ export default function LandingPage() {
           )}
         </motion.div>
 
-        {/* Floating player mock */}
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -104,7 +102,6 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* Features */}
       <section className="relative mx-auto max-w-6xl px-4 py-20">
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
@@ -141,7 +138,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="relative mx-auto max-w-6xl px-4 py-20">
         <Reveal>
           <div className="glass relative overflow-hidden rounded-3xl px-6 py-16 text-center shadow-(--elevate-2) sm:px-16">
@@ -184,8 +180,7 @@ export default function LandingPage() {
 function PlayerMock() {
   const bars = Array.from({ length: 48 }, (_, i) => 0.2 + Math.abs(Math.sin(i * 0.5)) * 0.8)
   const containerRef = useRef<HTMLDivElement>(null)
-  // Freeze the 48 bar animations once this scrolls out of view instead of
-  // letting them run forever in the background.
+
   const inView = useInView(containerRef, { amount: 0 })
   return (
     <div ref={containerRef} className="glass rounded-3xl p-5 shadow-(--elevate-3) glow-primary">

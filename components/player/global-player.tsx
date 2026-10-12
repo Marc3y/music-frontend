@@ -45,11 +45,6 @@ const OBJECT_ID = /^[a-f\d]{24}$/i
 
 const getServerCurrentTime = () => 0
 
-/**
- * Subscribes to the ~60Hz playback clock via `useSyncExternalStore`, so only
- * this leaf re-renders on every tick — not the whole player (see
- * `use-wavesurfer.ts`'s `getCurrentTime`/`subscribeTime`).
- */
 function PlaybackProgress({
   getCurrentTime,
   subscribeTime,
@@ -113,7 +108,6 @@ export function GlobalPlayer() {
 
   return (
     <>
-      {/* Expanded full-screen view */}
       <AnimatePresence>
         {expanded && current && (
           <motion.div
@@ -254,7 +248,6 @@ export function GlobalPlayer() {
         )}
       </AnimatePresence>
 
-      {/* Mini bar (always mounted so wavesurfer keeps its container) */}
       <motion.div
         initial={false}
         animate={{ y: hasTrack ? 0 : 96, opacity: hasTrack ? 1 : 0 }}
@@ -291,14 +284,12 @@ export function GlobalPlayer() {
                     </div>
                   </button>
 
-                  {/* Real waveform lives here (hidden on small screens, container stays mounted) */}
                   <div className="hidden min-w-0 max-w-[9rem] flex-1 md:block lg:max-w-[12rem]">
                     <div ref={containerRef} className="w-full" />
                   </div>
 
                   <VolumeControl className="hidden w-24 shrink-0 xl:flex" />
 
-                  {/* transport pill */}
                   <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-secondary/60 p-1">
                     <IconButton
                       onClick={player.toggleShuffle}
@@ -440,10 +431,6 @@ function PlayButton({
         size === 'lg' ? 'size-16' : 'size-9',
       )}
     >
-      {/* `mode="wait"` (exit-then-enter, ~320ms total) made rapid pause/play
-          taps feel delayed — both icons are absolutely positioned and don't
-          affect layout, so a simultaneous crossfade (default mode) is safe
-          and roughly halves the time to the new icon settling. */}
       <AnimatePresence initial={false}>
         <motion.span
           key={isLoading ? 'load' : isPlaying ? 'pause' : 'play'}

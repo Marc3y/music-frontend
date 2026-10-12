@@ -20,9 +20,9 @@ export interface PlayerTrack {
   artist?: string
   coverUrl?: string | null
   duration?: number
-  /** Resolves a fresh (short-lived) stream URL every time playback (re)starts. */
+
   getStreamUrl: () => Promise<string>
-  /** Fired once per play, after the 15s listen threshold. Best-effort. */
+
   onListened?: () => void
 }
 
@@ -37,16 +37,16 @@ interface PlayerContextValue {
   loop: LoopMode
   expanded: boolean
   volume: number
-  /** Playback tempo, 1 = normal. Session-only, resets on full reload. */
+
   speed: number
-  /** Pitch shift in semitones, 0 = unchanged. Session-only. */
+
   pitch: number
-  /** Bumped whenever the current track should (re)start from the beginning. */
+
   playToken: number
   playQueue: (tracks: PlayerTrack[], startIndex?: number) => void
   togglePlay: () => void
   setIsPlaying: (playing: boolean) => void
-  /** Owned by the wavesurfer instance once a stream URL resolves — stays true until it reports 'ready'. */
+
   setIsLoading: (loading: boolean) => void
   next: (auto?: boolean) => void
   prev: () => void
@@ -57,12 +57,7 @@ interface PlayerContextValue {
   setSpeed: (speed: number) => void
   setPitch: (semitones: number) => void
   resetPlaybackFx: () => void
-  /**
-   * Patches display metadata (title/artist/coverUrl) of a track that is
-   * currently in the queue, without touching playback state. Used so that
-   * editing a track's info or cover reflects live in the player instead of
-   * requiring a reload.
-   */
+
   patchTrack: (id: string, patch: Partial<Omit<PlayerTrack, 'id' | 'getStreamUrl'>>) => void
 }
 
@@ -113,14 +108,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setStreamUrl(null)
     try {
       const url = await resolveTrackAudio(track.id, track.getStreamUrl)
-      if (reqId !== requestIdRef.current) return // superseded
+      if (reqId !== requestIdRef.current) return
       setStreamUrl(url)
       setPlayToken((t) => t + 1)
       setIsPlaying(true)
-      // isLoading stays true — the wavesurfer instance clears it once the
-      // audio has actually finished downloading/decoding and is ready to play.
 
-      // Warm up the next track so skipping forward is instant.
       const upcoming = tracks[i + 1]
       if (upcoming) prefetchTrackAudio(upcoming.id, upcoming.getStreamUrl)
     } catch (err) {
@@ -149,8 +141,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     (auto = false) => {
       const tracks = queueRef.current
       if (tracks.length === 0) return
-      // A single-track queue has nowhere to advance to — restart it instead of
-      // doing nothing (only auto-stop at the end when not repeating).
+
       if (tracks.length === 1) {
         if (auto && loop !== 'all') {
           setIsPlaying(false)
@@ -183,7 +174,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const prev = useCallback(() => {
     const tracks = queueRef.current
     if (tracks.length === 0) return
-    // Nothing before the first track (or a single-track queue) → restart it.
+
     const prevIndex = index - 1 < 0 ? 0 : index - 1
     void loadIndex(tracks, prevIndex)
   }, [index, loadIndex])

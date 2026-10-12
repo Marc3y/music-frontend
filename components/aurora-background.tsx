@@ -15,14 +15,6 @@ const DRIFT2 = {
   transition: { duration: 32, repeat: Infinity, ease: 'easeInOut' as const },
 }
 
-/**
- * Ruhiger Seitenhintergrund: ein kühler + ein warmer weicher Blob, dazu ein
- * sehr feines Raster. Ersetzt die überall duplizierten inline-Gradient-Blöcke.
- *
- * `memo` + module-level animation configs: the page re-renders on every dialog
- * open/close, and without this the drifting blobs' keyframe animations would
- * restart on each render and visibly jump.
- */
 export const AuroraBackground = memo(function AuroraBackground({
   variant = 'page',
   className,
@@ -32,15 +24,11 @@ export const AuroraBackground = memo(function AuroraBackground({
 }) {
   const reduce = useReducedMotion()
   const containerRef = useRef<HTMLDivElement>(null)
-  // `amount: 0`: still "in view" as long as a single pixel is on screen —
-  // matches how easily visible this full-bleed background actually is.
+
   const inView = useInView(containerRef, { amount: 0 })
   const controls1 = useAnimation()
   const controls2 = useAnimation()
 
-  // Freeze the drift animations (instead of endlessly ticking rAF) once the
-  // background scrolls off-screen or the tab is backgrounded — invisible by
-  // definition, since nothing is rendering it at that point.
   useEffect(() => {
     if (reduce) return
     if (inView) {
@@ -56,10 +44,7 @@ export const AuroraBackground = memo(function AuroraBackground({
     <div
       ref={containerRef}
       aria-hidden
-      // `isolate` + `transform-gpu`: keeps this whole expensive layer (huge
-      // blurs + a masked grid) on its own compositor layer so it is NOT
-      // re-rasterized when a dialog/overlay mounts or unmounts above it — that
-      // re-raster is what made the page flash on every dialog close.
+
       className={cn(
         'pointer-events-none absolute inset-0 isolate transform-gpu overflow-hidden',
         className,
@@ -69,8 +54,6 @@ export const AuroraBackground = memo(function AuroraBackground({
         <div className="absolute inset-0 bg-grid opacity-70 will-change-transform" />
       )}
 
-      {/* Optional pattern from the chosen background preset. `currentColor`
-          (= text-foreground) keeps it readable in both themes. */}
       <div
         className="absolute inset-0 text-foreground"
         style={{
@@ -80,7 +63,6 @@ export const AuroraBackground = memo(function AuroraBackground({
           opacity: 'var(--aurora-pattern-opacity)',
         }}
       />
-
 
       <motion.div
         animate={reduce ? undefined : controls1}

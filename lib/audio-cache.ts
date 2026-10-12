@@ -1,17 +1,8 @@
 'use client'
 
-/**
- * In-memory cache of already-downloaded audio, keyed by track id. Lets a track
- * that was played once this session start again instantly — no backend round
- * trip for a fresh presigned URL, no re-download, no re-decode for the waveform.
- *
- * Cleared on full page reload (that's fine — the goal is snappy re-plays within
- * a session). Capped so a long listening session can't grow memory unbounded.
- */
-
 interface Entry {
   blobUrl: string
-  /** Waveform peaks exported by wavesurfer after the first decode. */
+
   peaks?: Array<number[] | Float32Array>
   duration?: number
 }
@@ -37,18 +28,13 @@ function evict() {
       try {
         URL.revokeObjectURL(entry.blobUrl)
       } catch {
-        /* ignore */
+
       }
     }
     store.delete(oldest)
   }
 }
 
-/**
- * Returns a `blob:` URL for the track's audio, downloading it once and reusing
- * it forever after. `fetchUrl` resolves a fresh (short-lived) presigned URL and
- * is only called on a cache miss.
- */
 export async function resolveTrackAudio(
   id: string,
   fetchUrl: () => Promise<string>,
@@ -73,8 +59,7 @@ export async function resolveTrackAudio(
       evict()
       return blobUrl
     } catch {
-      // CORS / network hiccup — fall back to streaming the presigned URL
-      // directly. Playback still works, just without the re-play caching.
+
       return url
     }
   })()
@@ -87,11 +72,10 @@ export async function resolveTrackAudio(
   }
 }
 
-/** Fire-and-forget warm-up of a track that's likely to be played next. */
 export function prefetchTrackAudio(id: string, fetchUrl: () => Promise<string>) {
   if (store.has(id) || inflight.has(id)) return
   void resolveTrackAudio(id, fetchUrl).catch(() => {
-    /* best-effort */
+
   })
 }
 

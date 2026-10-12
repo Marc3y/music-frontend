@@ -122,7 +122,7 @@ export interface Playlist {
   allowedUsernames?: string[]
   collabToken?: string
   collaborators?: { username: string; userId?: string }[]
-  /** Only on the single-playlist endpoint (getPlaylistById). */
+
   ownerUser?: UserBrief | null
   activeCollaborators?: UserBrief[]
   sharePasswordSet?: boolean

@@ -13,8 +13,6 @@ import { GlobalPlayer } from '@/components/player/global-player-loader'
 import { AppToaster } from '@/components/app-toaster'
 import './globals.css'
 
-// Loaded as the fallback for non-Apple platforms; Apple devices use their
-// native SF Pro via the `-apple-system` entry in --font-sans (globals.css).
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',

@@ -61,7 +61,7 @@ export const TrackRow = memo(function TrackRow({
   const displayCover = track.coverUrl || fallbackCoverUrl
 
   const selVersion = track.versions?.find((v) => v._id === track.selectedVersionId)
-  // In der Projekt-Ansicht auch Audio-mit-Projekt als Projekt darstellen
+
   const showAsProject = isProject || (!!projectView && !!selVersion?.projectFilename)
   const shared = showAsProject ? track.projectShareEnabled : track.shareEnabled
   const hasProjectPanel = !!selVersion?.projectFilename
@@ -84,8 +84,7 @@ export const TrackRow = memo(function TrackRow({
   }
 
   function handleRowClick(e: React.MouseEvent) {
-    // Touch devices: a single tap on the row plays. Pointer devices keep
-    // double-click so a single click stays free for selection / the menus.
+
     if (
       typeof window === 'undefined' ||
       !window.matchMedia('(pointer: coarse)').matches

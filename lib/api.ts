@@ -12,7 +12,7 @@ import type {
   User,
 } from './types'
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.marcey.xyz'
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.marcey.net'
 
 export class ApiError extends Error {
   status: number
@@ -47,14 +47,10 @@ async function tryRefresh(): Promise<boolean> {
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown
-  /** Skip the automatic 401 -> refresh -> retry flow. */
+
   skipRefresh?: boolean
 }
 
-/**
- * Central API client. Always sends credentials (httpOnly cookies), parses the
- * `{ error }` envelope, and transparently refreshes the access token on 401.
- */
 export async function apiClient<T = unknown>(
   path: string,
   options: RequestOptions = {},
@@ -106,8 +102,6 @@ export async function apiClient<T = unknown>(
   return data as T
 }
 
-/* ----------------------------- Auth ----------------------------- */
-
 export const authApi = {
   register: (body: { email: string; username: string; password: string }) =>
     apiClient<{ message: string }>('/auth/register', { method: 'POST', body }),
@@ -150,8 +144,6 @@ export const authApi = {
   resetPassword: (body: { token: string; newPassword: string }) =>
     apiClient<{ message: string }>('/auth/reset-password', { method: 'POST', body }),
 }
-
-/* ---------------------------- Account --------------------------- */
 
 export const accountApi = {
   me: () => apiClient<User>('/account/me'),
@@ -208,8 +200,6 @@ export const accountApi = {
       body: { code },
     }),
 }
-
-/* --------------------------- Playlists --------------------------- */
 
 export const playlistApi = {
   list: () => apiClient<Playlist[]>('/playlists'),
@@ -287,8 +277,6 @@ export const playlistApi = {
     ),
 }
 
-/* ------------------------ Notifications ------------------------ */
-
 export const notificationsApi = {
   list: (before?: string | null) =>
     apiClient<NotificationPage>(
@@ -300,8 +288,6 @@ export const notificationsApi = {
       body: ids ? { ids } : {},
     }),
 }
-
-/* -------------------------- Audio files -------------------------- */
 
 export const audioApi = {
   listByPlaylist: (playlistId: string) =>
@@ -324,7 +310,6 @@ export const audioApi = {
       body,
     }),
 
-  // Reiner Projekt-Eintrag (nur .zip/.rar, keine Audiodatei)
   initProjectUpload: (
     playlistId: string,
     body: { filename: string; contentType: string; fileSize: number },
@@ -410,7 +395,6 @@ export const audioApi = {
       { skipRefresh: true },
     ),
 
-  /* --- Versionen --- */
   initVersionUpload: (
     id: string,
     body: { filename: string; contentType: string; fileSize: number },
@@ -440,7 +424,6 @@ export const audioApi = {
   deleteVersion: (id: string, versionId: string) =>
     apiClient<AudioFile>(`/audio-files/${id}/versions/${versionId}`, { method: 'DELETE' }),
 
-  /* --- Projektdatei einer Version --- */
   initVersionProject: (
     id: string,
     versionId: string,
@@ -474,12 +457,6 @@ export const audioApi = {
     }),
 }
 
-/* ------------------------- Direct uploads ------------------------ */
-
-/**
- * Uploads a file directly to the presigned MinIO/S3 URL with real progress.
- * Uses XMLHttpRequest because fetch has no upload-progress support.
- */
 export function uploadToPresignedUrl(
   uploadUrl: string,
   file: File | Blob,

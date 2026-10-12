@@ -14,10 +14,6 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
 }
 
-/**
- * Compact English key notation: "F#m" (minor) / "F# maj" (major).
- * Normalises legacy German values ("F# moll" / "F# dur") for display.
- */
 export function formatMusicalKey(raw?: string | null): string {
   if (!raw) return ''
   const s = String(raw).trim()
@@ -43,7 +39,6 @@ export function formatDate(iso: string): string {
   }
 }
 
-/** Compact relative time. `now`, `5m`, `3h`, `2d`, then a short date. */
 export function timeAgo(iso: string, locale = 'en'): string {
   const then = new Date(iso).getTime()
   if (!isFinite(then)) return ''
@@ -65,7 +60,6 @@ export function timeAgo(iso: string, locale = 'en'): string {
   }
 }
 
-/** Human date + time for notification tooltips. */
 export function formatDateTime(iso: string, locale = 'en'): string {
   try {
     return new Date(iso).toLocaleString(locale.startsWith('de') ? 'de-DE' : 'en-US', {

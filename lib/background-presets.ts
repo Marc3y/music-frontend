@@ -21,7 +21,7 @@ export type Background =
 export interface BackgroundPreset {
   id: Background
   labelKey: string
-  /** small preview shown in the picker tile (a CSS background-image string) */
+
   swatch: string
   swatchSize?: string
 }
