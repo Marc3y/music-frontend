@@ -8,7 +8,7 @@ Das Projekt setzt die Zielgruppe auf Producer und Musiker.
 
 Daneben gibt es auch eine native SwiftUI-App für iOS und macOS ([music-app](https://github.com/Marc3y/music-app)), die dieselbe Funktionalität gegen dasselbe Backend abbildet.
 
-![Preview](gitlib/prev.png)
+<img src="gitlib/prev.png" alt="Preview" style="border-radius: 12px" width="600">
 
 ## Tech-Stack
 
